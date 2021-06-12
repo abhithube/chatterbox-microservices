@@ -1,0 +1,23 @@
+{
+  "name": "chatterbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhithube/chatterbox-microservices.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abhithube/chatterbox-microservices/issues"
+  },
+  "homepage": "https://github.com/abhithube/chatterbox-microservices#readme",
+  "devDependencies": {
+    "husky": "^6.0.0"
+  }
+}
