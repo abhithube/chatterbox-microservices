@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import 'dotenv/config';
 import express from 'express';
+import { producer } from './config/kafka';
 import { prisma } from './config/prisma';
 
 const app = express();
@@ -37,6 +38,12 @@ app.post('/users', async (req, res) => {
     data: { username, email, password: hashed },
   });
 
+  await producer.connect();
+  await producer.send({
+    topic: 'users',
+    messages: [{ value: JSON.stringify({ type: 'USER_CREATED', data: user }) }],
+  });
+
   return res.status(201).json(user);
 });
 
@@ -47,6 +54,12 @@ app.delete('/users/:username', async (req, res) => {
   if (!exists) return res.status(404).json({ message: 'User not found' });
 
   const user = await prisma.user.delete({ where: { username } });
+
+  await producer.connect();
+  await producer.send({
+    topic: 'users',
+    messages: [{ value: JSON.stringify({ type: 'USER_DELETED', data: user }) }],
+  });
 
   return res.status(200).json(user);
 });
