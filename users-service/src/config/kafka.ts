@@ -12,4 +12,6 @@ const kafka = new Kafka({
   ssl: sasl !== undefined,
 });
 
-export const producer = kafka.producer();
+const producer = kafka.producer();
+
+export default { producer };
