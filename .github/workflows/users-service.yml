@@ -57,6 +57,7 @@ jobs:
         run: npm run test:int
         env:
           DATABASE_URL: mongodb://mongo:mongo@localhost:27017/test
+          KAFKA_TOPIC_USERS: test
 
 defaults:
   run:
