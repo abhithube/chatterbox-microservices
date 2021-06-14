@@ -1,10 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Users Service CI
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [main]
     paths:
@@ -13,30 +9,53 @@ on:
     branches: [main]
     paths:
       - 'users-service/**'
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+    services:
+      db:
+        image: bitnami/mongodb
+        ports:
+          - 27017:27017
+        env:
+          MONGODB_USERNAME: mongo
+          MONGODB_PASSWORD: mongo
+          MONGODB_DATABASE: test
+      zookeeper:
+        image: bitnami/zookeeper
+        ports:
+          - 2181:2181
+        env:
+          ALLOW_ANONYMOUS_LOGIN: 'true'
+      kafka:
+        image: bitnami/kafka
+        ports:
+          - 9093:9093
+        env:
+          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+          ALLOW_PLAINTEXT_LISTENER: 'true'
+          KAFKA_CFG_LISTENERS: PLAINTEXT://:9093
+          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
 
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.1.5
         with:
-          # Version Spec of the version to use.  Examples: 12.x, 10.15.1, >=10.15.0
           node-version: 14.x
-      - run: npm ci
-      - run: npm run build --if-present
-      - run: npm test
+      - name: Install dependencies
+        run: npm ci
+      - name: Build source code
+        run: npm run build
+      - name: Run tests
+        run: npm test
+        env:
+          DATABASE_URL: mongodb://mongo:mongo@localhost:27017/test
+          KAFKA_BROKERS: localhost:9093
 
 defaults:
   run:

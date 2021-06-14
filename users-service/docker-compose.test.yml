@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  db:
+    image: bitnami/mongodb
+    ports:
+      - 27017:27017
+    environment:
+      MONGODB_USERNAME: mongo
+      MONGODB_PASSWORD: mongo
+      MONGODB_DATABASE: test
+  zookeeper:
+    image: bitnami/zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: 'true'
+  kafka:
+    image: bitnami/kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - 9093:9093
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      ALLOW_PLAINTEXT_LISTENER: 'true'
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
