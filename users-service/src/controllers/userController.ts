@@ -1,7 +1,8 @@
 import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import kafka, { USERS_TOPIC } from '../config/kafka';
+import { USERS_TOPIC } from '../config/kafka';
 import prisma from '../config/prisma';
+import producer from '../config/producer';
 import { HttpError } from '../util/HttpError';
 
 export type CreateUserInput = {
@@ -34,12 +35,12 @@ export const createUser = async (
     data: { username, email, password: hashed },
   });
 
-  await kafka.producer.connect();
-  await kafka.producer.send({
+  await producer.connect();
+  await producer.send({
     topic: USERS_TOPIC,
     messages: [{ value: JSON.stringify({ type: 'USER_CREATED', data: user }) }],
   });
-  await kafka.producer.disconnect();
+  await producer.disconnect();
 
   return user;
 };
@@ -50,12 +51,12 @@ export const deleteUserByUsername = async (username: string): Promise<User> => {
 
   const user = await prisma.user.delete({ where: { username } });
 
-  await kafka.producer.connect();
-  await kafka.producer.send({
+  await producer.connect();
+  await producer.send({
     topic: USERS_TOPIC,
     messages: [{ value: JSON.stringify({ type: 'USER_DELETED', data: user }) }],
   });
-  await kafka.producer.disconnect();
+  await producer.disconnect();
 
   return user;
 };
