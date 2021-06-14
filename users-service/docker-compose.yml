@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: bitnami/mongodb
+    container_name: mongodb-dev
     restart: always
     ports:
       - 27017:27017
@@ -14,16 +15,16 @@ services:
       - ./data:/bitnami
   zookeeper:
     image: bitnami/zookeeper
-    restart: always
+    container_name: zookeeper-dev
     ports:
       - 2181:2181
     environment:
       ALLOW_ANONYMOUS_LOGIN: 'true'
     volumes:
-      - ./data/zookeeper:/bitnami/zookeper
+      - ./data/zookeeper:/bitnami/zookeeper
   kafka:
     image: bitnami/kafka
-    restart: always
+    container_name: kafka-dev
     depends_on:
       - zookeeper
     ports:

@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
+import producer from '../config/producer';
 import { CreateUserInput } from '../controllers/userController';
 
 beforeAll(async () => {
@@ -29,10 +30,21 @@ describe('POST /api/users', () => {
       password: 'new',
     };
 
+    const spy = jest.spyOn(producer, 'send');
+
     const res = await request(app).post('/api/users').send(user);
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('username', 'new');
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: [
+          {
+            value: JSON.stringify({ type: 'USER_CREATED', data: res.body }),
+          },
+        ],
+      })
+    );
   });
 
   test('should 400 if username already taken', async () => {
