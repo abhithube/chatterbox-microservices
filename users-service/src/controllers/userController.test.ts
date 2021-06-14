@@ -16,7 +16,7 @@ jest.mock('../config/prisma', () => ({
   default: mockDeep<PrismaClient>(),
 }));
 
-jest.mock('../config/kafkaProducer', () => ({
+jest.mock('../config/producer', () => ({
   __esModule: true,
   default: mockDeep<Producer>(),
 }));
