@@ -1,14 +1,7 @@
-import { mockDeep } from 'jest-mock-extended';
-import { Kafka } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
 import { CreateUserInput } from '../controllers/userController';
-
-jest.mock('../config/kafka', () => ({
-  __esModule: true,
-  default: mockDeep<Kafka>(),
-}));
 
 beforeAll(async () => {
   await prisma.$connect();

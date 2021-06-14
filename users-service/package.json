@@ -11,6 +11,7 @@
     "dev": "nodemon -r dotenv/config src/index.ts",
     "build": "tsc --project tsconfig.prod.json",
     "test": "jest",
+    "test:int": "jest --c jest.integration.config.js --runInBand",
     "test:up": "docker compose -f docker-compose.test.yml up -d",
     "test:down": "docker compose -f docker-compose.test.yml down",
     "lint": "eslint --fix --ext .js,.ts,.json src/",
