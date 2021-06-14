@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: bitnami/mongodb
+    container_name: mongo-test
     ports:
       - 27017:27017
     environment:
@@ -11,12 +12,14 @@ services:
       MONGODB_DATABASE: test
   zookeeper:
     image: bitnami/zookeeper
+    container_name: zookeeper-test
     ports:
       - 2181:2181
     environment:
       ALLOW_ANONYMOUS_LOGIN: 'true'
   kafka:
     image: bitnami/kafka
+    container_name: kafka-test
     depends_on:
       - zookeeper
     ports:

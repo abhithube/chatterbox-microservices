@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
+import producer from '../config/producer';
 
 beforeAll(async () => {
   await prisma.$connect();
@@ -22,10 +23,21 @@ describe('DELETE /api/users/:username', () => {
   });
 
   test('should delete an existing user', async () => {
+    const spy = jest.spyOn(producer, 'send');
+
     const res = await request(app).delete('/api/users/test');
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('username', 'test');
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: [
+          {
+            value: JSON.stringify({ type: 'USER_DELETED', data: res.body }),
+          },
+        ],
+      })
+    );
   });
 
   test('should 404 if user does not exist', async () => {

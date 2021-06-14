@@ -77,8 +77,6 @@ describe('createUser()', () => {
 
     const res = await createUser(createUserInput);
 
-    // kafkaMock.producer.mockReturnValue(mockDeep<Producer>());
-    // producer.
     expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: [
