@@ -20,7 +20,7 @@ test('should fetch an existing user', async () => {
   const res = await request(app).get('/api/users/test');
 
   expect(res.statusCode).toBe(200);
-  expect(res.body).toHaveProperty('username', 'tes');
+  expect(res.body).toHaveProperty('username', 'test');
 });
 
 test('should 404 if user does not exist', async () => {
