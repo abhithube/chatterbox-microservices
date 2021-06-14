@@ -1,35 +1,34 @@
 import { PrismaClient, User } from '@prisma/client';
 import { mockDeep, mockReset } from 'jest-mock-extended';
-import { Kafka, Producer } from 'kafkajs';
+import { Producer } from 'kafkajs';
 import { mocked } from 'ts-jest/utils';
-import kafka from '../../config/kafka';
-import prisma from '../../config/prisma';
+import prisma from '../config/prisma';
+import producer from '../config/producer';
 import {
   createUser,
   CreateUserInput,
   deleteUserByUsername,
   getUserByUsername,
-} from '../userController';
+} from './userController';
 
-jest.mock('../../config/prisma', () => ({
+jest.mock('../config/prisma', () => ({
   __esModule: true,
   default: mockDeep<PrismaClient>(),
 }));
 
-jest.mock('../../config/kafka', () => ({
+jest.mock('../config/producer', () => ({
   __esModule: true,
-  default: mockDeep<Kafka>(),
-  producer: mockDeep<Producer>(),
+  default: mockDeep<Producer>(),
 }));
 
 jest.mock('bcrypt');
 
 const prismaMock = mocked(prisma, true);
-const kafkaMock = mocked(kafka, true);
+const producerMock = mocked(producer, true);
 
 beforeEach(() => {
   mockReset(prismaMock);
-  mockReset(kafkaMock);
+  mockReset(producerMock);
 });
 
 describe('getUserByUsername()', () => {
@@ -78,7 +77,9 @@ describe('createUser()', () => {
 
     const res = await createUser(createUserInput);
 
-    expect(kafkaMock.producer.send).toHaveBeenCalledWith(
+    // kafkaMock.producer.mockReturnValue(mockDeep<Producer>());
+    // producer.
+    expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: [
           {
@@ -154,7 +155,7 @@ describe('deleteUserByUsername()', () => {
 
     const res = await deleteUserByUsername('test');
 
-    expect(kafkaMock.producer.send).toHaveBeenCalledWith(
+    expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: [
           {

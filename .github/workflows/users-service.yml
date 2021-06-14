@@ -51,11 +51,13 @@ jobs:
         run: npm ci
       - name: Build source code
         run: npm run build
-      - name: Run tests
+      - name: Run unit tests
         run: npm test
+      - name: Run integration tests
+        run: npm run test:int
         env:
           DATABASE_URL: mongodb://mongo:mongo@localhost:27017/test
-          KAFKA_BROKERS: localhost:9093
+          KAFKA_TOPIC_USERS: test
 
 defaults:
   run:
