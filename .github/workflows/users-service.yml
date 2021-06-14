@@ -24,21 +24,6 @@ jobs:
           MONGODB_USERNAME: mongo
           MONGODB_PASSWORD: mongo
           MONGODB_DATABASE: test
-      zookeeper:
-        image: bitnami/zookeeper
-        ports:
-          - 2181:2181
-        env:
-          ALLOW_ANONYMOUS_LOGIN: 'true'
-      kafka:
-        image: bitnami/kafka
-        ports:
-          - 9093:9093
-        env:
-          KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-          ALLOW_PLAINTEXT_LISTENER: 'true'
-          KAFKA_CFG_LISTENERS: PLAINTEXT://:9093
-          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
 
     steps:
       - name: Checkout source code
@@ -55,7 +40,6 @@ jobs:
         run: npm test
         env:
           DATABASE_URL: mongodb://mongo:mongo@localhost:27017/test
-          KAFKA_BROKERS: localhost:9093
 
 defaults:
   run:

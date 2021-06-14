@@ -17,7 +17,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-describe('GET /api/users/:username', () => {
+describe('DELETE /api/users/:username', () => {
   beforeEach(async () => {
     await prisma.user.create({
       data: { username: 'test', email: 'test@test.com', password: 'test' },
@@ -28,15 +28,15 @@ describe('GET /api/users/:username', () => {
     await prisma.user.deleteMany();
   });
 
-  test('should fetch an existing user', async () => {
-    const res = await request(app).get('/api/users/test');
+  test('should delete an existing user', async () => {
+    const res = await request(app).delete('/api/users/test');
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('username', 'test');
   });
 
   test('should 404 if user does not exist', async () => {
-    const res = await request(app).get('/api/users/not-here');
+    const res = await request(app).delete('/api/users/not-here');
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('message', 'User not found');
