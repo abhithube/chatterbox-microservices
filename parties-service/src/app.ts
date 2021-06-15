@@ -41,6 +41,37 @@ app.post('/api/parties', async (req, res) => {
   return res.status(201).json(party);
 });
 
+app.post('/api/parties/:id/join', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  const partyExists = await prisma.party.findUnique({
+    where: { id: parseInt(id, 10) },
+  });
+  if (!partyExists) return res.status(404).json({ message: 'Party not found' });
+
+  let userExists = await prisma.user.findUnique({
+    where: { publicId: userId },
+  });
+  if (!userExists) return res.status(404).json({ message: 'User not found' });
+
+  userExists = await prisma.member
+    .findUnique({
+      where: {
+        userId_partyId: { userId: userExists.id, partyId: parseInt(id, 10) },
+      },
+    })
+    .user();
+  if (userExists) return res.status(400).json({ message: 'Already a member' });
+
+  const party = await prisma.party.update({
+    where: { id: parseInt(id, 10) },
+    data: { users: { create: { user: { connect: { publicId: userId } } } } },
+  });
+
+  return res.status(200).json(party);
+});
+
 app.delete('/api/parties/:id', async (req, res) => {
   const { id } = req.params;
 
