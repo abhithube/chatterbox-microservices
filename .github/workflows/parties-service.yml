@@ -1,0 +1,32 @@
+name: Parties Service CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'parties-service/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'parties-service/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version: 14.x
+      - name: Install dependencies
+        run: npm ci
+      - name: Build source code
+        run: npm run build
+
+defaults:
+  run:
+    working-directory: parties-service
