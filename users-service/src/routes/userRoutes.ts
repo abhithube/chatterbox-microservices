@@ -4,7 +4,7 @@ import {
   deleteUserByUsername,
   getUserByUsername,
 } from '../controllers/userController';
-import { asyncHandler } from '../middleware/asyncHandler';
+import asyncHandler from '../middleware/asyncHandler';
 
 const router = express.Router();
 

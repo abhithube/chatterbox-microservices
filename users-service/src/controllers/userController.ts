@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import { USERS_TOPIC } from '../config/kafka';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
-import { HttpError } from '../util/HttpError';
+import HttpError from '../util/HttpError';
 
 export type CreateUserInput = {
   username: string;

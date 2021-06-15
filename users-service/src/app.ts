@@ -1,6 +1,6 @@
 import express from 'express';
 import initializeTopics from './config/initializeTopics';
-import { errorHandler } from './middleware/errorHandler';
+import errorHandler from './middleware/errorHandler';
 import userRoutes from './routes/userRoutes';
 
 initializeTopics();
