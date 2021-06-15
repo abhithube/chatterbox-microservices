@@ -4,8 +4,6 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/', (_, res) => {
-  return res.status(200).json({ message: 'Hello world' });
-});
+app.get('/', (_, res) => res.status(200).json({ message: 'Hello world' }));
 
 export default app;

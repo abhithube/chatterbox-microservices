@@ -3,3 +3,6 @@
 
 cd ./users-service
 npx lint-staged
+
+cd ../parties-service
+npx lint-staged
