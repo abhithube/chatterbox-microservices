@@ -1,0 +1,45 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  publicId  String  @unique @map("public_id")
+  username  String  @db.VarChar(50) @unique
+  parties   Member[]
+  @@map("users")
+}
+
+model Party {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(50)
+  users     Member[]
+  topics    Topic[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  @@map("parties")
+}
+
+model Member {
+  userId  Int   @map("user_id")
+  partyId Int   @map("party_id")
+  user    User  @relation(fields: [userId], references: [id])
+  party   Party  @relation(fields: [partyId], references: [id])
+  @@id([userId, partyId])
+  @@map("members")
+}
+
+model Topic {
+  id      Int     @id @default(autoincrement())
+  name    String  @db.VarChar(50)
+  partyId Int     @map("party_id")
+  party   Party   @relation(fields: [partyId], references: [id])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  @@map("topics")
+}
