@@ -54,4 +54,56 @@ app.delete('/api/parties/:id', async (req, res) => {
   return res.status(200).json(party);
 });
 
+app.get('/api/parties/:id/topics', async (req, res) => {
+  const { id } = req.params;
+
+  const party = await prisma.party.findUnique({
+    where: { id: parseInt(id, 10) },
+  });
+  if (!party) return res.status(404).json({ message: 'Party not found' });
+
+  const topics = await prisma.topic.findMany({ where: { partyId: party.id } });
+
+  return res.status(201).json(topics);
+});
+
+app.get('/api/topics/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const topic = await prisma.topic.findUnique({
+    where: { id: parseInt(id, 10) },
+  });
+  if (!topic) return res.status(404).json({ message: 'Party not found' });
+
+  return res.status(200).json(topic);
+});
+
+app.post('/api/topics', async (req, res) => {
+  const { name, partyId } = req.body;
+
+  const party = await prisma.party.findUnique({
+    where: { id: parseInt(partyId, 10) },
+  });
+  if (!party) return res.status(404).json({ message: 'Party not found' });
+
+  const topic = await prisma.topic.create({
+    data: { name, party: { connect: { id: party.id } } },
+  });
+
+  return res.status(201).json(topic);
+});
+
+app.delete('/api/topics/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const exists = await prisma.topic.findUnique({
+    where: { id: parseInt(id, 10) },
+  });
+  if (!exists) return res.status(404).json({ message: 'Topic not found' });
+
+  const topic = await prisma.topic.delete({ where: { id: parseInt(id, 10) } });
+
+  return res.status(201).json(topic);
+});
+
 export default app;
