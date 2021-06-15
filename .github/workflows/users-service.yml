@@ -21,9 +21,7 @@ jobs:
         ports:
           - 27017:27017
         env:
-          MONGODB_USERNAME: mongo
-          MONGODB_PASSWORD: mongo
-          MONGODB_DATABASE: test
+          ALLOW_EMPTY_PASSWORD: 'true'
       zookeeper:
         image: bitnami/zookeeper
         ports:
@@ -56,7 +54,7 @@ jobs:
       - name: Run integration tests
         run: npm run test:int
         env:
-          DATABASE_URL: mongodb://mongo:mongo@localhost:27017/test
+          DATABASE_URL: mongodb://localhost:27017/test
           KAFKA_TOPIC_USERS: test
 
 defaults:

@@ -7,9 +7,7 @@ services:
     ports:
       - 27017:27017
     environment:
-      MONGODB_USERNAME: mongo
-      MONGODB_PASSWORD: mongo
-      MONGODB_DATABASE: test
+      ALLOW_EMPTY_PASSWORD: 'true'
   zookeeper:
     image: bitnami/zookeeper
     container_name: zookeeper-test
