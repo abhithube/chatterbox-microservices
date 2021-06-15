@@ -1,21 +1,30 @@
 version: '3.8'
 
 services:
-  db:
+  mongodb:
     image: bitnami/mongodb
     container_name: mongodb-dev
     restart: always
     ports:
       - 27017:27017
     environment:
-      MONGODB_USERNAME: mongo
-      MONGODB_PASSWORD: mongo
-      MONGODB_DATABASE: users-service
+      ALLOW_EMPTY_PASSWORD: 'true'
     volumes:
-      - ./data:/bitnami
+      - ./data/mongodb:/bitnami/mongodb
+  postgresql:
+    image: bitnami/postgresql
+    container_name: postgresql-dev
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      ALLOW_EMPTY_PASSWORD: 'true'
+    volumes:
+      - ./data/postgresql:/bitnami/postgresql
   zookeeper:
     image: bitnami/zookeeper
     container_name: zookeeper-dev
+    restart: always
     ports:
       - 2181:2181
     environment:
@@ -25,6 +34,7 @@ services:
   kafka:
     image: bitnami/kafka
     container_name: kafka-dev
+    restart: always
     depends_on:
       - zookeeper
     ports:
