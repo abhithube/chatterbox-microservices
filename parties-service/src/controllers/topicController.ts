@@ -13,7 +13,7 @@ export const getAllTopics = (): Promise<Topic[]> => prisma.topic.findMany();
 
 export const getTopic = async (id: number): Promise<Topic> => {
   const topic = await prisma.topic.findUnique({ where: { id } });
-  if (!topic) throw new HttpError(404, 'Party not found');
+  if (!topic) throw new HttpError(404, 'Topic not found');
 
   return topic;
 };
