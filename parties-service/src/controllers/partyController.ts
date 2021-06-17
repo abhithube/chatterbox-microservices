@@ -4,7 +4,7 @@ import prisma from '../config/prisma';
 import producer from '../config/producer';
 import HttpError from '../util/HttpError';
 
-type CreatePartyInput = {
+export type CreatePartyInput = {
   name: string;
   userId: string;
 };
