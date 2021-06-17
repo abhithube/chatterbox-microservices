@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { HttpError } from '../util/HttpError';
+import HttpError from '../util/HttpError';
 
-export const errorHandler = (
+const errorHandler = (
   err: HttpError,
   _req: Request,
   res: Response,
@@ -13,3 +13,5 @@ export const errorHandler = (
   if (status) res.status(status).json({ message });
   else res.status(500).json({ message });
 };
+
+export default errorHandler;
