@@ -26,6 +26,8 @@ jobs:
         run: npm ci
       - name: Build source code
         run: npm run build
+      - name: Run unit tests
+        run: npm test
 
 defaults:
   run:
