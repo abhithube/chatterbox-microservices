@@ -70,13 +70,11 @@ export const joinParty = async (id: number, userId: string): Promise<Party> => {
   });
   if (!userExists) throw new HttpError(404, 'User not found');
 
-  const memberExists = await prisma.member
-    .findUnique({
-      where: {
-        userId_partyId: { userId: userExists.id, partyId: id },
-      },
-    })
-    .user();
+  const memberExists = await prisma.member.findUnique({
+    where: {
+      userId_partyId: { userId: userExists.id, partyId: id },
+    },
+  });
   if (memberExists) throw new HttpError(400, 'Already a member');
 
   const party = await prisma.party.update({
@@ -103,19 +101,17 @@ export const leaveParty = async (
   const partyExists = await prisma.party.findUnique({ where: { id } });
   if (!partyExists) throw new HttpError(404, 'Party not found');
 
-  let userExists = await prisma.user.findUnique({
+  const userExists = await prisma.user.findUnique({
     where: { publicId: userId },
   });
   if (!userExists) throw new HttpError(404, 'User not found');
 
-  userExists = await prisma.member
-    .findUnique({
-      where: {
-        userId_partyId: { userId: userExists.id, partyId: id },
-      },
-    })
-    .user();
-  if (!userExists) throw new HttpError(400, 'Not a member');
+  const memberExists = await prisma.member.findUnique({
+    where: {
+      userId_partyId: { userId: userExists.id, partyId: id },
+    },
+  });
+  if (!memberExists) throw new HttpError(400, 'Not a member');
 
   const party = await prisma.party.update({
     where: { id },
