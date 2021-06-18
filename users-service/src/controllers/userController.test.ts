@@ -4,7 +4,12 @@ import { Producer } from 'kafkajs';
 import { mocked } from 'ts-jest/utils';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
-import * as userController from './userController';
+import {
+  createUser,
+  CreateUserInput,
+  deleteUser,
+  getUser,
+} from './userController';
 
 jest.mock('../config/prisma', () => ({
   __esModule: true,
@@ -39,7 +44,7 @@ describe('getUserByUsername()', () => {
   test('should get user by username', async () => {
     prismaMock.user.findUnique.mockResolvedValue(user);
 
-    const res = await userController.getUserByUsername('test');
+    const res = await getUser('test');
 
     expect(res.username).toBe('test');
   });
@@ -47,15 +52,13 @@ describe('getUserByUsername()', () => {
   test('should throw error if user not found', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
 
-    await expect(userController.getUserByUsername('test')).rejects.toThrow(
-      'User not found'
-    );
+    await expect(getUser('test')).rejects.toThrow('User not found');
   });
 });
 
 describe('createUser()', () => {
   test('should create user', async () => {
-    const createUserInput: userController.CreateUserInput = {
+    const createUserInput: CreateUserInput = {
       username: 'test',
       email: 'test@test.com',
       password: 'test',
@@ -63,7 +66,7 @@ describe('createUser()', () => {
 
     prismaMock.user.create.mockResolvedValue(user);
 
-    const res = await userController.createUser(createUserInput);
+    const res = await createUser(createUserInput);
 
     expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -78,7 +81,7 @@ describe('createUser()', () => {
   });
 
   test('should throw error if username already taken', async () => {
-    const createUserInput: userController.CreateUserInput = {
+    const createUserInput: CreateUserInput = {
       username: 'test',
       email: 'test@test.com',
       password: 'test',
@@ -86,13 +89,13 @@ describe('createUser()', () => {
 
     prismaMock.user.findUnique.mockResolvedValue(user);
 
-    await expect(userController.createUser(createUserInput)).rejects.toThrow(
+    await expect(createUser(createUserInput)).rejects.toThrow(
       'Username already taken'
     );
   });
 
   test('should throw error if email already taken', async () => {
-    const createUserInput: userController.CreateUserInput = {
+    const createUserInput: CreateUserInput = {
       username: 'test',
       email: 'test@test.com',
       password: 'test',
@@ -101,7 +104,7 @@ describe('createUser()', () => {
     prismaMock.user.findUnique.mockResolvedValueOnce(null);
     prismaMock.user.findUnique.mockResolvedValueOnce(user);
 
-    await expect(userController.createUser(createUserInput)).rejects.toThrow(
+    await expect(createUser(createUserInput)).rejects.toThrow(
       'Email already taken'
     );
   });
@@ -112,7 +115,7 @@ describe('deleteUserByUsername()', () => {
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.user.delete.mockResolvedValue(user);
 
-    const res = await userController.deleteUserByUsername('test');
+    const res = await deleteUser('test');
 
     expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({
