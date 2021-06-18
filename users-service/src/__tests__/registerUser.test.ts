@@ -7,6 +7,8 @@ import { CreateUserInput } from '../controllers/userController';
 beforeAll(async () => {
   await prisma.$connect();
 
+  console.log('user count:', await prisma.user.count());
+
   await prisma.user.create({
     data: { username: 'test', email: 'test@test.com', password: 'test' },
   });
