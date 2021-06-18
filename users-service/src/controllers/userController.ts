@@ -11,8 +11,8 @@ export type CreateUserInput = {
   password: string;
 };
 
-export const getUserByUsername = async (username: string): Promise<User> => {
-  const user = await prisma.user.findUnique({ where: { username } });
+export const getUser = async (id: string): Promise<User> => {
+  const user = await prisma.user.findUnique({ where: { id } });
   if (!user) throw new HttpError(404, 'User not found');
 
   return user;
@@ -45,11 +45,11 @@ export const createUser = async (
   return user;
 };
 
-export const deleteUserByUsername = async (username: string): Promise<User> => {
-  const exists = await prisma.user.findUnique({ where: { username } });
+export const deleteUser = async (id: string): Promise<User> => {
+  const exists = await prisma.user.findUnique({ where: { id } });
   if (!exists) throw new HttpError(404, 'User not found');
 
-  const user = await prisma.user.delete({ where: { username } });
+  const user = await prisma.user.delete({ where: { id } });
 
   await producer.connect();
   await producer.send({

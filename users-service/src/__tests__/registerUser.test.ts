@@ -6,28 +6,24 @@ import { CreateUserInput } from '../controllers/userController';
 
 beforeAll(async () => {
   await prisma.$connect();
+
+  await prisma.user.create({
+    data: { username: 'test', email: 'test@test.com', password: 'test' },
+  });
 });
 
 afterAll(async () => {
+  await prisma.user.deleteMany();
+
   await prisma.$disconnect();
 });
 
 describe('POST /api/users', () => {
-  beforeEach(async () => {
-    await prisma.user.create({
-      data: { username: 'test', email: 'test@test.com', password: 'test' },
-    });
-  });
-
-  afterEach(async () => {
-    await prisma.user.deleteMany();
-  });
-
   test('should register a new user', async () => {
     const user: CreateUserInput = {
-      username: 'new',
-      email: 'new@new.com',
-      password: 'new',
+      username: 'new1',
+      email: 'new1@new.com',
+      password: 'new1',
     };
 
     const spy = jest.spyOn(producer, 'send');
@@ -35,7 +31,7 @@ describe('POST /api/users', () => {
     const res = await request(app).post('/api/users').send(user);
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty('username', 'new');
+    expect(res.body).toHaveProperty('username', 'new1');
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         messages: [
@@ -50,8 +46,8 @@ describe('POST /api/users', () => {
   test('should 400 if username already taken', async () => {
     const user: CreateUserInput = {
       username: 'test',
-      email: 'new@new.com',
-      password: 'new',
+      email: 'new2@new.com',
+      password: 'new2',
     };
 
     const res = await request(app).post('/api/users').send(user);
@@ -62,9 +58,9 @@ describe('POST /api/users', () => {
 
   test('should 400 if email already taken', async () => {
     const user: CreateUserInput = {
-      username: 'new',
+      username: 'new3',
       email: 'test@test.com',
-      password: 'new',
+      password: 'new3',
     };
 
     const res = await request(app).post('/api/users').send(user);
