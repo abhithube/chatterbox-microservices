@@ -6,7 +6,8 @@ WORKDIR /app
 FROM base AS deps
 COPY ["package.json", "package-lock.json", "./"]
 COPY prisma .
-RUN npm ci --production
+RUN npm ci
+RUN npm prune --production
 
 # Build source code
 FROM base AS build
