@@ -1,4 +1,4 @@
-import kafka, { USERS_TOPIC } from './kafka';
+import kafka from './kafka';
 
 const admin = kafka.admin();
 
@@ -6,11 +6,11 @@ const initializeTopics = async (): Promise<void> => {
   await admin.connect();
   const topics = await admin.listTopics();
 
-  if (!topics.includes(USERS_TOPIC)) {
+  if (!topics.includes('users')) {
     await admin.createTopics({
       topics: [
         {
-          topic: USERS_TOPIC,
+          topic: 'users',
           numPartitions: 1,
           replicationFactor: 1,
         },

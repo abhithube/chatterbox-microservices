@@ -1,10 +1,9 @@
 import consumer from '../config/consumer';
-import { USERS_TOPIC } from '../config/kafka';
 import prisma from '../config/prisma';
 
 const consumeEvents = async (): Promise<void> => {
   await consumer.connect();
-  await consumer.subscribe({ topic: USERS_TOPIC, fromBeginning: true });
+  await consumer.subscribe({ topic: 'users', fromBeginning: true });
   await consumer.run({
     eachMessage: async ({ message }) => {
       const event = JSON.parse(message.value?.toString() || '');

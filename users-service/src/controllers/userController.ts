@@ -1,6 +1,5 @@
 import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { USERS_TOPIC } from '../config/kafka';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
 import HttpError from '../util/HttpError';
@@ -37,7 +36,7 @@ export const createUser = async (
 
   await producer.connect();
   await producer.send({
-    topic: USERS_TOPIC,
+    topic: 'users',
     messages: [{ value: JSON.stringify({ type: 'USER_CREATED', data: user }) }],
   });
   await producer.disconnect();
@@ -53,7 +52,7 @@ export const deleteUser = async (id: string): Promise<User> => {
 
   await producer.connect();
   await producer.send({
-    topic: USERS_TOPIC,
+    topic: 'users',
     messages: [{ value: JSON.stringify({ type: 'USER_DELETED', data: user }) }],
   });
   await producer.disconnect();
