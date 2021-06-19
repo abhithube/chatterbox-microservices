@@ -1,8 +1,19 @@
+import { mockDeep } from 'jest-mock-extended';
+import { Kafka, Producer } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
-import producer from '../config/producer';
 import { CreateUserInput } from '../controllers/userController';
+
+jest.mock('../config/kafka', () => ({
+  __esModule: true,
+  default: mockDeep<Kafka>(),
+}));
+jest.mock('../config/producer', () => ({
+  __esModule: true,
+  default: mockDeep<Producer>(),
+}));
+jest.mock('../config/initializeTopics', () => jest.fn());
 
 beforeAll(async () => {
   await prisma.$connect();
@@ -26,21 +37,10 @@ describe('POST /api/users', () => {
       password: 'new1',
     };
 
-    const spy = jest.spyOn(producer, 'send');
-
     const res = await request(app).post('/api/users').send(user);
 
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('username', 'new1');
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: [
-          {
-            value: JSON.stringify({ type: 'USER_CREATED', data: res.body }),
-          },
-        ],
-      })
-    );
   });
 
   test('should 400 if username already taken', async () => {
