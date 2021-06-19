@@ -1,19 +1,14 @@
 import { mockDeep } from 'jest-mock-extended';
-import { Kafka, Producer } from 'kafkajs';
+import { Producer } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
 import { CreateUserInput } from '../controllers/userController';
 
-jest.mock('../config/kafka', () => ({
-  __esModule: true,
-  default: mockDeep<Kafka>(),
-}));
 jest.mock('../config/producer', () => ({
   __esModule: true,
   default: mockDeep<Producer>(),
 }));
-jest.mock('../config/initializeTopics', () => jest.fn());
 
 beforeAll(async () => {
   await prisma.$connect();

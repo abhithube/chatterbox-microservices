@@ -1,15 +1,6 @@
-import { mockDeep } from 'jest-mock-extended';
-import { Kafka } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
-
-jest.mock('../config/kafka', () => ({
-  __esModule: true,
-  default: mockDeep<Kafka>(),
-}));
-jest.mock('../config/initializeTopics', () => jest.fn());
-jest.mock('../util/consumeEvents', () => jest.fn());
 
 beforeAll(async () => {
   await prisma.$connect();
@@ -17,12 +8,9 @@ beforeAll(async () => {
   await prisma.party.create({
     data: { name: 'test', topics: { create: { name: 'test' } } },
   });
-  // const party = await prisma.party.create({ data: { name: 'test' } });
-  // await prisma.topic.create({ data: { name: 'test', partyId: 1 } });
 });
 
 afterAll(async () => {
-  // await prisma.party.deleteMany();
   await prisma.topic.deleteMany();
 
   await prisma.$disconnect();
