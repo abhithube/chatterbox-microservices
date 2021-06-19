@@ -1,9 +1,21 @@
+import { mockDeep } from 'jest-mock-extended';
+import { Kafka, Producer } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
-import producer from '../config/producer';
+
+jest.mock('../config/kafka', () => ({
+  __esModule: true,
+  default: mockDeep<Kafka>(),
+}));
+jest.mock('../config/producer', () => ({
+  __esModule: true,
+  default: mockDeep<Producer>(),
+}));
+jest.mock('../config/initializeTopics', () => jest.fn());
 
 let id: string;
+
 beforeAll(async () => {
   await prisma.$connect();
 
@@ -21,21 +33,10 @@ afterAll(async () => {
 
 describe('DELETE /api/users/:id', () => {
   test('should delete an existing user', async () => {
-    const spy = jest.spyOn(producer, 'send');
-
     const res = await request(app).delete(`/api/users/${id}`);
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('username', 'test');
-    expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        messages: [
-          {
-            value: JSON.stringify({ type: 'USER_DELETED', data: res.body }),
-          },
-        ],
-      })
-    );
   });
 
   test('should 404 if user does not exist', async () => {

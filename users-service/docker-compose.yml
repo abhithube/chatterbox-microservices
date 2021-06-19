@@ -8,22 +8,3 @@ services:
       - 27017:27017
     environment:
       ALLOW_EMPTY_PASSWORD: 'true'
-  zookeeper:
-    image: bitnami/zookeeper
-    container_name: zookeeper-test
-    ports:
-      - 2181:2181
-    environment:
-      ALLOW_ANONYMOUS_LOGIN: 'true'
-  kafka:
-    image: bitnami/kafka
-    container_name: kafka-test
-    depends_on:
-      - zookeeper
-    ports:
-      - 9093:9093
-    environment:
-      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-      ALLOW_PLAINTEXT_LISTENER: 'true'
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9093
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9093
