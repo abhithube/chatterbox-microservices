@@ -41,7 +41,7 @@ router.delete(
     const { id } = req.params;
 
     const topic = await topicController.deleteTopic(parseInt(id, 10));
-    return res.status(201).json(topic);
+    return res.status(200).json(topic);
   })
 );
 
