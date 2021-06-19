@@ -15,6 +15,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    services:
+      db:
+        image: bitnami/postgresql
+        ports:
+          - 5432:5432
+        env:
+          ALLOW_EMPTY_PASSWORD: 'true'
+        options: >-
+          --health-cmd psql
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
@@ -28,6 +41,10 @@ jobs:
         run: npm run build
       - name: Run unit tests
         run: npm test
+      - name: Run integration tests
+        run: npm run test:int
+        env:
+          DATABASE_URL: postgresql://postgres@localhost:5432/test
 
 defaults:
   run:
