@@ -38,12 +38,8 @@ export const createParty = async ({
     topic: PARTIES_TOPIC,
     messages: [
       { value: JSON.stringify({ type: 'PARTY_CREATED', data: party }) },
+      { value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) },
     ],
-  });
-
-  await producer.send({
-    topic: PARTIES_TOPIC,
-    messages: [{ value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) }],
   });
 
   const topic = await prisma.topic.create({
