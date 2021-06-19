@@ -45,8 +45,8 @@ jobs:
         run: npm test
       - name: Run integration tests
         run: npm run test:int
-        env:
-          DATABASE_URL: postgresql://postgres@localhost:5432/test
+    env:
+      DATABASE_URL: postgresql://postgres@localhost:5432/test
 
 defaults:
   run:
