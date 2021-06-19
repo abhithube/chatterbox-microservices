@@ -10,8 +10,8 @@
     "start": "node -r dotenv/config dist",
     "dev": "nodemon -r dotenv/config src/index.ts",
     "build": "tsc --project tsconfig.prod.json",
-    "test": "jest",
-    "test:int": "jest --c jest.integration.config.js --runInBand",
+    "test": "jest --roots src/ --testPathIgnorePatterns=src/__tests__",
+    "test:int": "jest --roots src/__tests__ --runInBand",
     "lint": "eslint --fix --ext .js,.ts,.json src/",
     "format": "prettier --write src"
   },

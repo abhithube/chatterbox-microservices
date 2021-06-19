@@ -1,14 +1,6 @@
-import { mockDeep } from 'jest-mock-extended';
-import { Kafka } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
-
-jest.mock('../config/kafka', () => ({
-  __esModule: true,
-  default: mockDeep<Kafka>(),
-}));
-jest.mock('../config/initializeTopics', () => jest.fn());
 
 let id: string;
 beforeAll(async () => {
