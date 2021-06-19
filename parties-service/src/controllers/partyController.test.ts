@@ -91,11 +91,9 @@ describe('createParty()', () => {
 
     const messages1: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_CREATED', data: parties[0] }) },
-    ];
-    const messages2: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) },
     ];
-    const messages3: Message[] = [
+    const messages2: Message[] = [
       { value: JSON.stringify({ type: 'TOPIC_CREATED', data: topic }) },
     ];
     expect(producerMock.send).toHaveBeenCalledWith(
@@ -103,9 +101,6 @@ describe('createParty()', () => {
     );
     expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({ messages: messages2 })
-    );
-    expect(producerMock.send).toHaveBeenCalledWith(
-      expect.objectContaining({ messages: messages3 })
     );
     expect(res).toBe(parties[0]);
   });
