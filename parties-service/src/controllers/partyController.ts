@@ -1,5 +1,4 @@
 import { Party } from '@prisma/client';
-import { PARTIES_TOPIC, TOPICS_TOPIC } from '../config/kafka';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
 import HttpError from '../util/HttpError';
@@ -35,7 +34,7 @@ export const createParty = async ({
 
   await producer.connect();
   await producer.send({
-    topic: PARTIES_TOPIC,
+    topic: 'parties',
     messages: [
       { value: JSON.stringify({ type: 'PARTY_CREATED', data: party }) },
       { value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) },
@@ -47,7 +46,7 @@ export const createParty = async ({
   });
 
   await producer.send({
-    topic: TOPICS_TOPIC,
+    topic: 'topics',
     messages: [
       { value: JSON.stringify({ type: 'TOPIC_CREATED', data: topic }) },
     ],
@@ -80,7 +79,7 @@ export const joinParty = async (id: number, userId: string): Promise<Party> => {
 
   await producer.connect();
   await producer.send({
-    topic: PARTIES_TOPIC,
+    topic: 'parties',
     messages: [
       { value: JSON.stringify({ type: 'PARTY_JOINED', data: userExists }) },
     ],
@@ -125,7 +124,7 @@ export const leaveParty = async (
 
   await producer.connect();
   await producer.send({
-    topic: PARTIES_TOPIC,
+    topic: 'parties',
     messages: [
       { value: JSON.stringify({ type: 'PARTY_LEFT', data: userExists }) },
     ],
@@ -143,7 +142,7 @@ export const deleteParty = async (id: number): Promise<Party> => {
 
   await producer.connect();
   await producer.send({
-    topic: PARTIES_TOPIC,
+    topic: 'parties',
     messages: [
       { value: JSON.stringify({ type: 'PARTY_DELETED', data: party }) },
     ],

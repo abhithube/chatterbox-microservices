@@ -1,5 +1,4 @@
 import { Topic } from '@prisma/client';
-import { TOPICS_TOPIC } from '../config/kafka';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
 import HttpError from '../util/HttpError';
@@ -31,7 +30,7 @@ export const createTopic = async ({
 
   await producer.connect();
   await producer.send({
-    topic: TOPICS_TOPIC,
+    topic: 'topics',
     messages: [
       { value: JSON.stringify({ type: 'TOPIC_CREATED', data: topic }) },
     ],
@@ -49,7 +48,7 @@ export const deleteTopic = async (id: number): Promise<Topic> => {
 
   await producer.connect();
   await producer.send({
-    topic: TOPICS_TOPIC,
+    topic: 'topics',
     messages: [
       { value: JSON.stringify({ type: 'TOPIC_DELETED', data: topic }) },
     ],

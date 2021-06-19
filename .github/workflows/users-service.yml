@@ -43,9 +43,8 @@ jobs:
         run: npm test
       - name: Run integration tests
         run: npm run test:int
-        env:
-          DATABASE_URL: mongodb://localhost:27017/test
-          KAFKA_TOPIC_USERS: test
+    env:
+      DATABASE_URL: mongodb://localhost:27017/test
 
 defaults:
   run:
