@@ -1,15 +1,19 @@
-name: Parties Service CI
+name: Messages Service CI
 
 on:
   push:
     branches: [main]
     paths:
-      - 'parties-service/**'
+      - 'messages-service/**'
   pull_request:
     branches: [main]
     paths:
-      - 'parties-service/**'
+      - 'messages-service/**'
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: messages-service
 
 jobs:
   build:
@@ -47,7 +51,3 @@ jobs:
         run: npm run test:int
     env:
       DATABASE_URL: postgresql://postgres@localhost:5432/test
-
-defaults:
-  run:
-    working-directory: parties-service
