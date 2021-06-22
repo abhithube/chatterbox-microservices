@@ -17,7 +17,7 @@ const consumeEvents = async (): Promise<void> => {
           break;
         case 'USER_DELETED':
           await prisma.user.delete({
-            where: { username: event.data.username },
+            where: { id: event.data.id },
           });
           break;
         default:
