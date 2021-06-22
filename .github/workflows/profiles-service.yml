@@ -1,15 +1,19 @@
-name: Users Service CI
+name: Profiles Service CI
 
 on:
   push:
     branches: [main]
     paths:
-      - 'users-service/**'
+      - 'profiles-service/**'
   pull_request:
     branches: [main]
     paths:
-      - 'users-service/**'
+      - 'profiles-service/**'
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: profiles-service
 
 jobs:
   build:
@@ -45,7 +49,3 @@ jobs:
         run: npm run test:int
     env:
       DATABASE_URL: mongodb://localhost:27017/test
-
-defaults:
-  run:
-    working-directory: users-service
