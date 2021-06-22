@@ -1,8 +1,8 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-cd ./users-service
+cd ./profiles-service
 npx lint-staged
 
-cd ../parties-service
+cd ../messages-service
 npx lint-staged
