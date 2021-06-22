@@ -42,7 +42,7 @@ describe('POST /api/parties/:id/leave', () => {
       .send({ userId: 'existing' });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('name', 'test');
+    expect(res.body).toHaveProperty('partyId', partyId);
   });
 
   test('should 404 if party not found', async () => {

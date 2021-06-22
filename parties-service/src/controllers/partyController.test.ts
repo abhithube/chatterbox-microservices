@@ -34,6 +34,27 @@ const parties: Party[] = [
   },
 ];
 
+const topic: Topic = {
+  id: 1,
+  name: 'test topic',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  partyId: 1,
+};
+
+const user: User = {
+  id: 1,
+  publicId: '123',
+  username: 'test',
+};
+
+const member: Member = {
+  userId: 1,
+  partyId: 1,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
 describe('getAllParties()', () => {
   test('should get all parties', async () => {
     prismaMock.party.findMany.mockResolvedValue(parties);
@@ -69,38 +90,29 @@ describe('createParty()', () => {
       userId: '123',
     };
 
-    const user: User = {
-      id: 1,
-      publicId: '123',
-      username: 'test',
-    };
-
-    const topic: Topic = {
-      id: 1,
-      name: 'test topic',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      partyId: 1,
-    };
-
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.party.create.mockResolvedValue(parties[0]);
+    prismaMock.member.create.mockResolvedValue(member);
     prismaMock.topic.create.mockResolvedValue(topic);
 
     const res = await partyController.createParty(createTopicInput);
 
-    const messages1: Message[] = [
+    const messages: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_CREATED', data: parties[0] }) },
-      { value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) },
-    ];
-    const messages2: Message[] = [
+      { value: JSON.stringify({ type: 'PARTY_JOINED', data: member }) },
       { value: JSON.stringify({ type: 'TOPIC_CREATED', data: topic }) },
     ];
-    expect(producerMock.send).toHaveBeenCalledWith(
-      expect.objectContaining({ messages: messages1 })
+    expect(producerMock.send).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ messages: [messages[0]] })
     );
-    expect(producerMock.send).toHaveBeenCalledWith(
-      expect.objectContaining({ messages: messages2 })
+    expect(producerMock.send).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ messages: [messages[1]] })
+    );
+    expect(producerMock.send).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ messages: [messages[2]] })
     );
     expect(res).toBe(parties[0]);
   });
@@ -108,41 +120,24 @@ describe('createParty()', () => {
 
 describe('joinParty()', () => {
   test('should add new member to party', async () => {
-    const user: User = {
-      id: 1,
-      publicId: '123',
-      username: 'test',
-    };
-
     prismaMock.party.findUnique.mockResolvedValue(parties[0]);
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.member.findUnique.mockResolvedValue(null);
-    prismaMock.party.update.mockResolvedValue(parties[0]);
+    prismaMock.member.create.mockResolvedValue(member);
 
     const res = await partyController.joinParty(1, '123');
 
     const messages: Message[] = [
-      { value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) },
+      { value: JSON.stringify({ type: 'PARTY_JOINED', data: member }) },
     ];
 
     expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({ messages })
     );
-    expect(res).toBe(parties[0]);
+    expect(res).toBe(member);
   });
 
   test('should throw error if user is already a party member', async () => {
-    const user: User = {
-      id: 1,
-      publicId: '123',
-      username: 'test',
-    };
-
-    const member: Member = {
-      userId: 1,
-      partyId: 1,
-    };
-
     prismaMock.party.findUnique.mockResolvedValue(parties[0]);
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.member.findUnique.mockResolvedValue(member);
@@ -155,41 +150,24 @@ describe('joinParty()', () => {
 
 describe('leaveParty()', () => {
   test('should remove existing member from party', async () => {
-    const user: User = {
-      id: 1,
-      publicId: '123',
-      username: 'test',
-    };
-
-    const member: Member = {
-      userId: 1,
-      partyId: 1,
-    };
-
     prismaMock.party.findUnique.mockResolvedValue(parties[0]);
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.member.findUnique.mockResolvedValue(member);
-    prismaMock.party.update.mockResolvedValue(parties[0]);
+    prismaMock.member.delete.mockResolvedValue(member);
 
     const res = await partyController.leaveParty(1, '123');
 
     const messages: Message[] = [
-      { value: JSON.stringify({ type: 'PARTY_LEFT', data: user }) },
+      { value: JSON.stringify({ type: 'PARTY_LEFT', data: member }) },
     ];
 
     expect(producerMock.send).toHaveBeenCalledWith(
       expect.objectContaining({ messages })
     );
-    expect(res).toBe(parties[0]);
+    expect(res).toBe(member);
   });
 
   test('should throw error if user is not a party member', async () => {
-    const user: User = {
-      id: 1,
-      publicId: '123',
-      username: 'test',
-    };
-
     prismaMock.party.findUnique.mockResolvedValue(parties[0]);
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.member.findUnique.mockResolvedValue(null);

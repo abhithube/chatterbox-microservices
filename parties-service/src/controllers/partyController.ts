@@ -1,4 +1,4 @@
-import { Party } from '@prisma/client';
+import { Member, Party } from '@prisma/client';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
 import HttpError from '../util/HttpError';
@@ -28,27 +28,39 @@ export const createParty = async ({
   const party = await prisma.party.create({
     data: {
       name,
-      users: { create: { user: { connect: { publicId: userId } } } },
     },
+  });
+  const member = await prisma.member.create({
+    data: { userId: user.id, partyId: party.id },
+  });
+  const topic = await prisma.topic.create({
+    data: { name: 'General', partyId: party.id },
   });
 
   await producer.connect();
   await producer.send({
     topic: 'parties',
     messages: [
-      { value: JSON.stringify({ type: 'PARTY_CREATED', data: party }) },
-      { value: JSON.stringify({ type: 'PARTY_JOINED', data: user }) },
+      {
+        value: JSON.stringify({
+          type: 'PARTY_CREATED',
+          data: party,
+        }),
+      },
     ],
   });
-
-  const topic = await prisma.topic.create({
-    data: { name: 'General', party: { connect: { id: party.id } } },
+  await producer.send({
+    topic: 'parties',
+    messages: [
+      { value: JSON.stringify({ type: 'PARTY_JOINED', data: member }) },
+    ],
   });
-
   await producer.send({
     topic: 'topics',
     messages: [
-      { value: JSON.stringify({ type: 'TOPIC_CREATED', data: topic }) },
+      {
+        value: JSON.stringify({ type: 'TOPIC_CREATED', data: topic }),
+      },
     ],
   });
   await producer.disconnect();
@@ -56,7 +68,10 @@ export const createParty = async ({
   return party;
 };
 
-export const joinParty = async (id: number, userId: string): Promise<Party> => {
+export const joinParty = async (
+  id: number,
+  userId: string
+): Promise<Member> => {
   const partyExists = await prisma.party.findUnique({ where: { id } });
   if (!partyExists) throw new HttpError(404, 'Party not found');
 
@@ -72,27 +87,26 @@ export const joinParty = async (id: number, userId: string): Promise<Party> => {
   });
   if (memberExists) throw new HttpError(400, 'Already a member');
 
-  const party = await prisma.party.update({
-    where: { id },
-    data: { users: { create: { user: { connect: { publicId: userId } } } } },
+  const member = prisma.member.create({
+    data: { userId: userExists.id, partyId: partyExists.id },
   });
 
   await producer.connect();
   await producer.send({
     topic: 'parties',
     messages: [
-      { value: JSON.stringify({ type: 'PARTY_JOINED', data: userExists }) },
+      { value: JSON.stringify({ type: 'PARTY_JOINED', data: member }) },
     ],
   });
   await producer.disconnect();
 
-  return party;
+  return member;
 };
 
 export const leaveParty = async (
   id: number,
   userId: string
-): Promise<Party> => {
+): Promise<Member> => {
   const partyExists = await prisma.party.findUnique({ where: { id } });
   if (!partyExists) throw new HttpError(404, 'Party not found');
 
@@ -108,30 +122,20 @@ export const leaveParty = async (
   });
   if (!memberExists) throw new HttpError(400, 'Not a member');
 
-  const party = await prisma.party.update({
-    where: { id },
-    data: {
-      users: {
-        delete: {
-          userId_partyId: {
-            userId: userExists.id,
-            partyId: id,
-          },
-        },
-      },
+  const member = await prisma.member.delete({
+    where: {
+      userId_partyId: { userId: userExists.id, partyId: partyExists.id },
     },
   });
 
   await producer.connect();
   await producer.send({
     topic: 'parties',
-    messages: [
-      { value: JSON.stringify({ type: 'PARTY_LEFT', data: userExists }) },
-    ],
+    messages: [{ value: JSON.stringify({ type: 'PARTY_LEFT', data: member }) }],
   });
   await producer.disconnect();
 
-  return party;
+  return member;
 };
 
 export const deleteParty = async (id: number): Promise<Party> => {
