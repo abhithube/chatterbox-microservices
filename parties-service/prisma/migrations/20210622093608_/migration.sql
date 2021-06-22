@@ -21,6 +21,8 @@ CREATE TABLE "parties" (
 CREATE TABLE "members" (
     "user_id" INTEGER NOT NULL,
     "party_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     PRIMARY KEY ("user_id","party_id")
 );
