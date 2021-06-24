@@ -1,5 +1,12 @@
 import express from 'express';
-import * as partyController from '../controllers/partyController';
+import {
+  createParty,
+  deleteParty,
+  getAllParties,
+  getParty,
+  joinParty,
+  leaveParty,
+} from '../controllers/partyController';
 import asyncHandler from '../middleware/asyncHandler';
 
 const router = express.Router();
@@ -7,7 +14,7 @@ const router = express.Router();
 router.get(
   '/parties',
   asyncHandler(async (_, res) => {
-    const parties = await partyController.getAllParties();
+    const parties = await getAllParties();
     return res.status(200).json(parties);
   })
 );
@@ -17,7 +24,7 @@ router.get(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const party = await partyController.getParty(parseInt(id, 10));
+    const party = await getParty(parseInt(id, 10));
     return res.status(200).json(party);
   })
 );
@@ -27,7 +34,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { name, userId } = req.body;
 
-    const party = await partyController.createParty({ name, userId });
+    const party = await createParty({ name, userId });
     return res.status(201).json(party);
   })
 );
@@ -38,7 +45,7 @@ router.post(
     const { id } = req.params;
     const { userId } = req.body;
 
-    const party = await partyController.joinParty(parseInt(id, 10), userId);
+    const party = await joinParty(parseInt(id, 10), userId);
     return res.status(200).json(party);
   })
 );
@@ -49,7 +56,7 @@ router.post(
     const { id } = req.params;
     const { userId } = req.body;
 
-    const party = await partyController.leaveParty(parseInt(id, 10), userId);
+    const party = await leaveParty(parseInt(id, 10), userId);
     return res.status(200).json(party);
   })
 );
@@ -59,7 +66,7 @@ router.delete(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const party = await partyController.deleteParty(parseInt(id, 10));
+    const party = await deleteParty(parseInt(id, 10));
     return res.status(200).json(party);
   })
 );
