@@ -30,12 +30,3 @@ export const createMessage = async ({
 
   return message;
 };
-
-export const deleteMessage = async (id: number): Promise<Message> => {
-  const exists = await prisma.message.findUnique({ where: { id } });
-  if (!exists) throw new HttpError(404, 'Message not found');
-
-  const message = await prisma.message.delete({ where: { id } });
-
-  return message;
-};

@@ -15,7 +15,7 @@ const roomsHandler = (io: Server, socket: Socket): void => {
       return;
     }
 
-    socket.join(topic.id.toString());
+    socket.join(topicId.toString());
   });
 
   socket.on('LEAVE_REQUEST', async ({ userId, topicId }) => {
@@ -31,7 +31,7 @@ const roomsHandler = (io: Server, socket: Socket): void => {
       return;
     }
 
-    socket.leave(topic.id.toString());
+    socket.leave(topicId.toString());
   });
 };
 
