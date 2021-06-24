@@ -1,23 +1,13 @@
 import express from 'express';
+import { getAllTopicMessages } from '../controllers/messageController';
 import {
   createTopic,
   deleteTopic,
-  getAllPartyTopics,
   getTopic,
 } from '../controllers/topicController';
 import asyncHandler from '../middleware/asyncHandler';
 
 const router = express.Router();
-
-router.get(
-  '/parties/:partyId/topics',
-  asyncHandler(async (req, res) => {
-    const { partyId } = req.params;
-
-    const topics = await getAllPartyTopics(parseInt(partyId, 10));
-    return res.status(200).json(topics);
-  })
-);
 
 router.get(
   '/topics/:id',
@@ -26,6 +16,16 @@ router.get(
 
     const topic = await getTopic(parseInt(id, 10));
     return res.status(200).json(topic);
+  })
+);
+
+router.get(
+  '/topics/:topicId/messages',
+  asyncHandler(async (req, res) => {
+    const { topicId } = req.params;
+
+    const messages = await getAllTopicMessages(parseInt(topicId, 10));
+    return res.status(200).json(messages);
   })
 );
 

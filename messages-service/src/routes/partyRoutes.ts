@@ -7,6 +7,7 @@ import {
   joinParty,
   leaveParty,
 } from '../controllers/partyController';
+import { getAllPartyTopics } from '../controllers/topicController';
 import asyncHandler from '../middleware/asyncHandler';
 
 const router = express.Router();
@@ -16,6 +17,16 @@ router.get(
   asyncHandler(async (_, res) => {
     const parties = await getAllParties();
     return res.status(200).json(parties);
+  })
+);
+
+router.get(
+  '/parties/:partyId/topics',
+  asyncHandler(async (req, res) => {
+    const { partyId } = req.params;
+
+    const topics = await getAllPartyTopics(parseInt(partyId, 10));
+    return res.status(200).json(topics);
   })
 );
 
