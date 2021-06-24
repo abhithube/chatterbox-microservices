@@ -4,7 +4,13 @@ import { Message, Producer } from 'kafkajs';
 import { mocked } from 'ts-jest/utils';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
-import * as topicController from './topicController';
+import {
+  createTopic,
+  CreateTopicInput,
+  deleteTopic,
+  getAllPartyTopics,
+  getTopic,
+} from './topicController';
 
 jest.mock('../config/prisma', () => ({
   __esModule: true,
@@ -36,11 +42,11 @@ const topics: Topic[] = [
   },
 ];
 
-describe('getAllTopics()', () => {
-  test('should get all topics', async () => {
+describe('getAllPartyTopics()', () => {
+  test('should get all topics by party', async () => {
     prismaMock.topic.findMany.mockResolvedValue(topics);
 
-    const res = await topicController.getAllTopics();
+    const res = await getAllPartyTopics(1);
 
     expect(res).toBe(topics);
   });
@@ -50,7 +56,7 @@ describe('getTopic()', () => {
   test('should get topic by ID', async () => {
     prismaMock.topic.findUnique.mockResolvedValue(topics[0]);
 
-    const res = await topicController.getTopic(1);
+    const res = await getTopic(1);
 
     expect(res).toBe(topics[0]);
   });
@@ -58,15 +64,13 @@ describe('getTopic()', () => {
   test('should throw error if topic does not exist', async () => {
     prismaMock.topic.findUnique.mockResolvedValue(null);
 
-    await expect(topicController.getTopic(0)).rejects.toThrow(
-      'Topic not found'
-    );
+    await expect(getTopic(0)).rejects.toThrow('Topic not found');
   });
 });
 
 describe('createTopic()', () => {
   test('should create new topic', async () => {
-    const createTopicInput: topicController.CreateTopicInput = {
+    const createTopicInput: CreateTopicInput = {
       name: 'test topic',
       partyId: 1,
     };
@@ -81,7 +85,7 @@ describe('createTopic()', () => {
     prismaMock.party.findUnique.mockResolvedValue(party);
     prismaMock.topic.create.mockResolvedValue(topics[0]);
 
-    const res = await topicController.createTopic(createTopicInput);
+    const res = await createTopic(createTopicInput);
 
     const messages: Message[] = [
       { value: JSON.stringify({ type: 'TOPIC_CREATED', data: topics[0] }) },
@@ -98,7 +102,7 @@ describe('deleteTopic()', () => {
     prismaMock.topic.findUnique.mockResolvedValue(topics[0]);
     prismaMock.topic.delete.mockResolvedValue(topics[0]);
 
-    const res = await topicController.deleteTopic(1);
+    const res = await deleteTopic(1);
 
     const messages: Message[] = [
       { value: JSON.stringify({ type: 'TOPIC_DELETED', data: topics[0] }) },

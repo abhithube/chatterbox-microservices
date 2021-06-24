@@ -12,6 +12,7 @@ model User {
   publicId  String    @unique @map("public_id")
   username  String    @unique @db.VarChar(50)
   parties   Member[]
+  messages  Message[]
 
   @@map("users")
 }
@@ -44,8 +45,22 @@ model Topic {
   name      String    @db.VarChar(50)
   partyId   Int       @map("party_id")
   party     Party     @relation(fields: [partyId], references: [id])
+  messages  Message[]
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
   @@map("topics")
+}
+
+model Message {
+  id        Int       @id @default(autoincrement())
+  body      String    @db.VarChar(500)
+  userId    Int       @map("user_id")
+  topicId   Int       @map("topic_id")
+  user      User      @relation(fields: [userId], references: [id])
+  topic     Topic     @relation(fields: [topicId], references: [id])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("messages")
 }

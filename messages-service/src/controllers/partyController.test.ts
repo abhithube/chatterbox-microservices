@@ -4,7 +4,15 @@ import { Message, Producer } from 'kafkajs';
 import { mocked } from 'ts-jest/utils';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
-import * as partyController from './partyController';
+import {
+  createParty,
+  CreatePartyInput,
+  deleteParty,
+  getAllParties,
+  getParty,
+  joinParty,
+  leaveParty,
+} from './partyController';
 
 jest.mock('../config/prisma', () => ({
   __esModule: true,
@@ -59,7 +67,7 @@ describe('getAllParties()', () => {
   test('should get all parties', async () => {
     prismaMock.party.findMany.mockResolvedValue(parties);
 
-    const res = await partyController.getAllParties();
+    const res = await getAllParties();
 
     expect(res).toBe(parties);
   });
@@ -69,7 +77,7 @@ describe('getParty()', () => {
   test('should get party by ID', async () => {
     prismaMock.party.findUnique.mockResolvedValue(parties[0]);
 
-    const res = await partyController.getParty(1);
+    const res = await getParty(1);
 
     expect(res).toBe(parties[0]);
   });
@@ -77,15 +85,13 @@ describe('getParty()', () => {
   test('should throw error if party does not exist', async () => {
     prismaMock.party.findUnique.mockResolvedValue(null);
 
-    await expect(partyController.getParty(0)).rejects.toThrow(
-      'Party not found'
-    );
+    await expect(getParty(0)).rejects.toThrow('Party not found');
   });
 });
 
 describe('createParty()', () => {
   test('should create new party', async () => {
-    const createTopicInput: partyController.CreatePartyInput = {
+    const createTopicInput: CreatePartyInput = {
       name: 'test topic',
       userId: '123',
     };
@@ -95,7 +101,7 @@ describe('createParty()', () => {
     prismaMock.member.create.mockResolvedValue(member);
     prismaMock.topic.create.mockResolvedValue(topic);
 
-    const res = await partyController.createParty(createTopicInput);
+    const res = await createParty(createTopicInput);
 
     const messages: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_CREATED', data: parties[0] }) },
@@ -125,7 +131,7 @@ describe('joinParty()', () => {
     prismaMock.member.findUnique.mockResolvedValue(null);
     prismaMock.member.create.mockResolvedValue(member);
 
-    const res = await partyController.joinParty(1, '123');
+    const res = await joinParty(1, '123');
 
     const messages: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_JOINED', data: member }) },
@@ -142,9 +148,7 @@ describe('joinParty()', () => {
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.member.findUnique.mockResolvedValue(member);
 
-    await expect(partyController.joinParty(1, '123')).rejects.toThrow(
-      'Already a member'
-    );
+    await expect(joinParty(1, '123')).rejects.toThrow('Already a member');
   });
 });
 
@@ -155,7 +159,7 @@ describe('leaveParty()', () => {
     prismaMock.member.findUnique.mockResolvedValue(member);
     prismaMock.member.delete.mockResolvedValue(member);
 
-    const res = await partyController.leaveParty(1, '123');
+    const res = await leaveParty(1, '123');
 
     const messages: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_LEFT', data: member }) },
@@ -172,9 +176,7 @@ describe('leaveParty()', () => {
     prismaMock.user.findUnique.mockResolvedValue(user);
     prismaMock.member.findUnique.mockResolvedValue(null);
 
-    await expect(partyController.leaveParty(1, '123')).rejects.toThrow(
-      'Not a member'
-    );
+    await expect(leaveParty(1, '123')).rejects.toThrow('Not a member');
   });
 });
 
@@ -183,7 +185,7 @@ describe('deleteParty()', () => {
     prismaMock.party.findUnique.mockResolvedValue(parties[0]);
     prismaMock.party.delete.mockResolvedValue(parties[0]);
 
-    const res = await partyController.deleteParty(1);
+    const res = await deleteParty(1);
 
     const messages: Message[] = [
       { value: JSON.stringify({ type: 'PARTY_DELETED', data: parties[0] }) },

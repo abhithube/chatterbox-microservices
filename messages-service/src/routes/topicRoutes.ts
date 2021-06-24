@@ -1,24 +1,31 @@
 import express from 'express';
-import * as topicController from '../controllers/topicController';
+import { getAllTopicMessages } from '../controllers/messageController';
+import {
+  createTopic,
+  deleteTopic,
+  getTopic,
+} from '../controllers/topicController';
 import asyncHandler from '../middleware/asyncHandler';
 
 const router = express.Router();
-
-router.get(
-  '/topics',
-  asyncHandler(async (req, res) => {
-    const topics = await topicController.getAllTopics();
-    return res.status(200).json(topics);
-  })
-);
 
 router.get(
   '/topics/:id',
   asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const topic = await topicController.getTopic(parseInt(id, 10));
+    const topic = await getTopic(parseInt(id, 10));
     return res.status(200).json(topic);
+  })
+);
+
+router.get(
+  '/topics/:topicId/messages',
+  asyncHandler(async (req, res) => {
+    const { topicId } = req.params;
+
+    const messages = await getAllTopicMessages(parseInt(topicId, 10));
+    return res.status(200).json(messages);
   })
 );
 
@@ -27,7 +34,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const { name, partyId } = req.body;
 
-    const topic = await topicController.createTopic({
+    const topic = await createTopic({
       name,
       partyId: parseInt(partyId, 10),
     });
@@ -40,7 +47,7 @@ router.delete(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const topic = await topicController.deleteTopic(parseInt(id, 10));
+    const topic = await deleteTopic(parseInt(id, 10));
     return res.status(200).json(topic);
   })
 );
