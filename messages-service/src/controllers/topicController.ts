@@ -8,7 +8,8 @@ export type CreateTopicInput = {
   partyId: number;
 };
 
-export const getAllTopics = (): Promise<Topic[]> => prisma.topic.findMany();
+export const getAllPartyTopics = (partyId: number): Promise<Topic[]> =>
+  prisma.topic.findMany({ where: { partyId } });
 
 export const getTopic = async (id: number): Promise<Topic> => {
   const topic = await prisma.topic.findUnique({ where: { id } });
