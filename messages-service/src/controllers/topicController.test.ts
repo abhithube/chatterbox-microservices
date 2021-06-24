@@ -42,8 +42,8 @@ const topics: Topic[] = [
   },
 ];
 
-describe('getAllTopics()', () => {
-  test('should get all topics', async () => {
+describe('getAllPartyTopics()', () => {
+  test('should get all topics by party', async () => {
     prismaMock.topic.findMany.mockResolvedValue(topics);
 
     const res = await getAllPartyTopics(1);
