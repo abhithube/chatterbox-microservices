@@ -1,9 +1,11 @@
 import express from 'express';
+import prisma from './config/prisma';
 
 const app = express();
 
-app.get('/', (_, res) => {
-  res.status(200).json({ message: 'Hello world' });
+app.get('/', async (_, res) => {
+  const users = await prisma.user.findMany();
+  res.status(200).json(users);
 });
 
 export default app;
