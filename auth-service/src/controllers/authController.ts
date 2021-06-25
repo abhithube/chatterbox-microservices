@@ -2,6 +2,7 @@ import { User } from '@prisma/client';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import prisma from '../config/prisma';
+import producer from '../config/producer';
 import HttpError from '../util/HttpError';
 import {
   generateAccessToken,
@@ -10,7 +11,6 @@ import {
 } from '../util/token';
 
 export type RegisterInput = {
-  username: string;
   email: string;
   password: string;
 };
@@ -26,21 +26,31 @@ export type LoginResponse = {
 };
 
 export const register = async ({
-  username,
   email,
   password,
 }: RegisterInput): Promise<User> => {
-  let existingUser = await prisma.user.findUnique({ where: { username } });
-  if (existingUser) throw new HttpError(400, 'Username already taken');
-
-  existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) throw new HttpError(400, 'Email already taken');
 
   const hashed = bcrypt.hashSync(password, 10);
 
   const user = await prisma.user.create({
-    data: { username, email, password: hashed },
+    data: { email, password: hashed },
   });
+
+  await producer.connect();
+  await producer.send({
+    topic: 'USERS',
+    messages: [
+      {
+        value: JSON.stringify({
+          type: 'USER_CREATED',
+          data: { id: user.id, email: user.email },
+        }),
+      },
+    ],
+  });
+  await producer.disconnect();
 
   return user;
 };
@@ -90,8 +100,23 @@ export const loginWithSocial = async (
     },
   });
 
-  if (!user)
+  if (!user) {
     user = await prisma.user.create({ data: { email: profile.email } });
+
+    await producer.connect();
+    await producer.send({
+      topic: 'USERS',
+      messages: [
+        {
+          value: JSON.stringify({
+            type: 'USER_CREATED',
+            data: { id: user.id, email: user.email },
+          }),
+        },
+      ],
+    });
+    await producer.disconnect();
+  }
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken();
