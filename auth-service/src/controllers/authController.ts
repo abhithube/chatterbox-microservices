@@ -1,9 +1,13 @@
 import { User } from '@prisma/client';
 import axios from 'axios';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import HttpError from '../util/HttpError';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyToken,
+} from '../util/token';
 
 export type RegisterInput = {
   username: string;
@@ -52,20 +56,10 @@ export const login = async ({
   if (!user || !user.password || !bcrypt.compareSync(password, user.password))
     throw new HttpError(400, 'Invalid credentials');
 
-  const accessToken = jwt.sign(
-    {},
-    process.env.ACCESS_TOKEN_SECRET || 'JWT_ACCESS',
-    {
-      expiresIn: '15 min',
-      subject: user.id,
-    }
-  );
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken();
 
-  const refreshToken = jwt.sign(
-    {},
-    process.env.REFRESH_TOKEN_SECRET || 'JWT_REFRESH'
-  );
-  const token = await prisma.token.create({
+  await prisma.token.create({
     data: {
       refreshId: refreshToken,
       userId: user.id,
@@ -73,7 +67,7 @@ export const login = async ({
     },
   });
 
-  return { accessToken, refreshToken: token.refreshId };
+  return { accessToken, refreshToken };
 };
 
 export const loginWithSocial = async (
@@ -99,20 +93,10 @@ export const loginWithSocial = async (
   if (!user)
     user = await prisma.user.create({ data: { email: profile.email } });
 
-  const accessToken = jwt.sign(
-    {},
-    process.env.ACCESS_TOKEN_SECRET || 'JWT_ACCESS',
-    {
-      expiresIn: '15 min',
-      subject: user.id,
-    }
-  );
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken();
 
-  const refreshToken = jwt.sign(
-    {},
-    process.env.REFRESH_TOKEN_SECRET || 'JWT_REFRESH'
-  );
-  const token = await prisma.token.create({
+  await prisma.token.create({
     data: {
       refreshId: refreshToken,
       userId: user.id,
@@ -120,20 +104,17 @@ export const loginWithSocial = async (
     },
   });
 
-  return { accessToken, refreshToken: token.refreshId };
+  return { accessToken, refreshToken };
 };
 
 export const getAuthenticatedUser = async (
   accessToken: string
 ): Promise<User> => {
   try {
-    const payload = jwt.verify(
-      accessToken,
-      process.env.ACCESS_TOKEN_SECRET || 'JWT_ACCESS'
-    ) as jwt.JwtPayload;
+    const payload = verifyToken(accessToken);
 
     const id = payload.sub;
-    if (!id) throw new HttpError(403, 'User not authorized');
+    if (!id) throw new HttpError(500, 'Internal server error');
 
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) throw new HttpError(403, 'User not authorized');
@@ -158,21 +139,8 @@ export const refreshAccessToken = async (
   }
 
   try {
-    jwt.verify(
-      token.refreshId,
-      process.env.REFRESH_TOKEN_SECRET || 'JWT_REFRESH'
-    ) as jwt.JwtPayload;
-
-    const accessToken = jwt.sign(
-      {},
-      process.env.ACCESS_TOKEN_SECRET || 'JWT_ACCESS',
-      {
-        expiresIn: '15 sec',
-        subject: token.userId,
-      }
-    );
-
-    return accessToken;
+    verifyToken(token.refreshId);
+    return generateAccessToken(token.userId);
   } catch (err) {
     throw new HttpError(403, 'User not authorized');
   }
