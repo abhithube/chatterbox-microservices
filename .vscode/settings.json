@@ -1,3 +1,7 @@
 {
-  "eslint.workingDirectories": ["./profiles-service", "./messages-service"]
+  "eslint.workingDirectories": [
+    "./auth-service",
+    "./messages-service",
+    "./profiles-service"
+  ]
 }
