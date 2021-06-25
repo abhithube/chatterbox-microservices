@@ -13,4 +13,14 @@ model User {
   username  String  @unique
   email     String  @unique
   password  String?
+
+  @@map("users")
+}
+
+model Token {
+  id          String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  refreshId   String    @unique
+  userId      String    @unique
+  expiryDate  DateTime
+  @@map("tokens")
 }
