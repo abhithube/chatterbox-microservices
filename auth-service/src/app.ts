@@ -1,3 +1,4 @@
+import axios from 'axios';
 import bcrypt from 'bcrypt';
 import express, { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
@@ -9,6 +10,7 @@ app.use(express.json());
 
 const cookieParser = (req: Request, res: Response, next: NextFunction) => {
   const cookies = req.headers.cookie;
+
   if (cookies) {
     req.cookies = cookies
       .split(';')
@@ -82,6 +84,132 @@ app.post('/api/auth/login', async (req, res) => {
   res.cookie('refresh', token.refreshId, { httpOnly: true });
 
   res.status(200).json({ accessToken });
+});
+
+app.get('/api/auth/google', (_, res) => {
+  res.redirect(
+    'https://accounts.google.com/o/oauth2/v2/auth' +
+      `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
+      `&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}` +
+      '&response_type=code' +
+      '&scope=email'
+  );
+});
+
+app.get('/api/auth/github', (_, res) => {
+  res.redirect(
+    'https://github.com/login/oauth/authorize' +
+      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
+      `&redirect_uri=${process.env.GITHUB_REDIRECT_URL}` +
+      '&scope=user:email'
+  );
+});
+
+app.get('/api/auth/google/callback', async (req, res) => {
+  try {
+    const { data: tokenResponse } = await axios.post(
+      'https://oauth2.googleapis.com/token' +
+        `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
+        `&client_secret=${process.env.GOOGLE_CLIENT_SECRET}` +
+        `&code=${req.query.code}` +
+        '&grant_type=authorization_code' +
+        `&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}`
+    );
+
+    const { data: userInfo } = await axios.get(
+      `https://www.googleapis.com/userinfo/v2/me?access_token=${tokenResponse.access_token}`
+    );
+
+    let user = await prisma.user.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+    });
+
+    if (!user)
+      user = await prisma.user.create({ data: { email: userInfo.email } });
+
+    const accessToken = jwt.sign(
+      {},
+      process.env.ACCESS_TOKEN_SECRET || 'JWT_ACCESS',
+      {
+        expiresIn: '15 min',
+        subject: user.id,
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      {},
+      process.env.REFRESH_TOKEN_SECRET || 'JWT_REFRESH'
+    );
+    const token = await prisma.token.create({
+      data: {
+        refreshId: refreshToken,
+        userId: user.id,
+        expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      },
+    });
+
+    res.cookie('refresh', token.refreshId, { httpOnly: true });
+
+    res.status(200).json({ accessToken });
+  } catch (err) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/auth/github/callback', async (req, res) => {
+  try {
+    const { data: tokenResponse } = await axios.post(
+      'https://github.com/login/oauth/access_token' +
+        `?client_id=${process.env.GITHUB_CLIENT_ID}` +
+        `&client_secret=${process.env.GITHUB_CLIENT_SECRET}` +
+        `&code=${req.query.code}` +
+        `&redirect_uri=${process.env.GITHUB_REDIRECT_URL}`,
+      {},
+      { headers: { accept: 'application/json' } }
+    );
+
+    const { data: userInfo } = await axios.get('https://api.github.com/user', {
+      headers: { authorization: `BEARER ${tokenResponse.access_token}` },
+    });
+
+    let user = await prisma.user.findUnique({
+      where: {
+        email: userInfo.email,
+      },
+    });
+
+    if (!user)
+      user = await prisma.user.create({ data: { email: userInfo.email } });
+
+    const accessToken = jwt.sign(
+      {},
+      process.env.ACCESS_TOKEN_SECRET || 'JWT_ACCESS',
+      {
+        expiresIn: '15 min',
+        subject: user.id,
+      }
+    );
+
+    const refreshToken = jwt.sign(
+      {},
+      process.env.REFRESH_TOKEN_SECRET || 'JWT_REFRESH'
+    );
+    const token = await prisma.token.create({
+      data: {
+        refreshId: refreshToken,
+        userId: user.id,
+        expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
+      },
+    });
+
+    res.cookie('refresh', token.refreshId, { httpOnly: true });
+
+    res.status(200).json({ accessToken });
+  } catch (err) {
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 app.get('/api/auth', async (req, res) => {

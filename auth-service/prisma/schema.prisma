@@ -10,8 +10,8 @@ generator client {
 
 model User {
   id        String  @id @db.ObjectId @default(dbgenerated()) @map("_id")
-  username  String  @unique
   email     String  @unique
+  username  String? @unique
   password  String?
 
   @@map("users")
@@ -22,5 +22,6 @@ model Token {
   refreshId   String    @unique
   userId      String    @unique
   expiryDate  DateTime
+
   @@map("tokens")
 }
