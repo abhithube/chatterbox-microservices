@@ -101,6 +101,132 @@ export const login = async ({
   return { user: authUser, accessToken, refreshToken };
 };
 
+export const loginWithGoogle = async (code: string): Promise<LoginResponse> => {
+  const { data: tokenResponse } = await axios.post(
+    'https://oauth2.googleapis.com/token' +
+      `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
+      `&client_secret=${process.env.GOOGLE_CLIENT_SECRET}` +
+      `&code=${code}` +
+      '&grant_type=authorization_code' +
+      `&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}`
+  );
+
+  const { data: profile } = await axios.get(
+    'https://www.googleapis.com/userinfo/v2/me',
+    {
+      headers: { authorization: `Bearer ${tokenResponse.access_token}` },
+    }
+  );
+
+  let user = await prisma.user.findUnique({
+    where: {
+      email: profile.email,
+    },
+    select: { id: true, username: true, email: true, avatarUrl: true },
+  });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        username: profile.name,
+        email: profile.email,
+        avatarUrl: profile.picture,
+        verified: true,
+      },
+      select: { id: true, username: true, email: true, avatarUrl: true },
+    });
+
+    await producer.connect();
+    await producer.send({
+      topic: 'USERS',
+      messages: [
+        {
+          value: JSON.stringify({
+            type: 'USER_CREATED',
+            data: user,
+          }),
+        },
+      ],
+    });
+    await producer.disconnect();
+  }
+
+  const accessToken = tokenUtil.generateAccessToken(user);
+  const refreshToken = tokenUtil.generateRefreshToken();
+
+  await prisma.token.create({
+    data: {
+      refreshId: refreshToken,
+      userId: user.id,
+      expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    },
+  });
+
+  return { user, accessToken, refreshToken };
+};
+
+export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
+  const { data: tokenResponse } = await axios.post(
+    'https://github.com/login/oauth/access_token' +
+      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
+      `&client_secret=${process.env.GITHUB_CLIENT_SECRET}` +
+      `&code=${code}` +
+      `&redirect_uri=${process.env.GITHUB_REDIRECT_URL}`,
+    {},
+    { headers: { accept: 'application/json' } }
+  );
+
+  const { data: profile } = await axios.get('https://api.github.com/user', {
+    headers: { authorization: `Bearer ${tokenResponse.access_token}` },
+  });
+
+  let user = await prisma.user.findUnique({
+    where: {
+      email: profile.email,
+    },
+    select: { id: true, username: true, email: true, avatarUrl: true },
+  });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        username: profile.login,
+        email: profile.email,
+        avatarUrl: profile.avatar_url,
+        verified: true,
+      },
+      select: { id: true, username: true, email: true, avatarUrl: true },
+    });
+
+    await producer.connect();
+    await producer.send({
+      topic: 'USERS',
+      messages: [
+        {
+          value: JSON.stringify({
+            type: 'USER_CREATED',
+            data: user,
+          }),
+        },
+      ],
+    });
+    await producer.disconnect();
+  }
+
+  const accessToken = tokenUtil.generateAccessToken(user);
+  const refreshToken = tokenUtil.generateRefreshToken();
+
+  await prisma.token.create({
+    data: {
+      refreshId: refreshToken,
+      userId: user.id,
+      expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    },
+  });
+
+  return { user, accessToken, refreshToken };
+};
+
 export const getAuthenticatedUser = async (
   payload: JwtPayload
 ): Promise<AuthenticatedUser> => {
@@ -185,130 +311,4 @@ export const logout = async (refreshToken: string): Promise<void> => {
   if (!token) throw new HttpError(403, 'User not authorized');
 
   await prisma.token.delete({ where: { refreshId: refreshToken } });
-};
-
-export const loginWithGoogle = async (code: string): Promise<LoginResponse> => {
-  const { data: tokenResponse } = await axios.post(
-    'https://oauth2.googleapis.com/token' +
-      `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
-      `&client_secret=${process.env.GOOGLE_CLIENT_SECRET}` +
-      `&code=${code}` +
-      '&grant_type=authorization_code' +
-      `&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}`
-  );
-
-  const { data: profile } = await axios.get(
-    'https://www.googleapis.com/userinfo/v2/me',
-    {
-      headers: { authorization: `Bearer ${tokenResponse.access_token}` },
-    }
-  );
-
-  let user = await prisma.user.findUnique({
-    where: {
-      email: profile.email,
-    },
-    select: { id: true, username: true, email: true, avatarUrl: true },
-  });
-
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        username: profile.name,
-        email: profile.email,
-        avatarUrl: profile.picture,
-        verified: true,
-      },
-      select: { id: true, username: true, email: true, avatarUrl: true },
-    });
-
-    await producer.connect();
-    await producer.send({
-      topic: 'USERS',
-      messages: [
-        {
-          value: JSON.stringify({
-            type: 'USER_CREATED',
-            data: { id: user.id, email: user.email },
-          }),
-        },
-      ],
-    });
-    await producer.disconnect();
-  }
-
-  const accessToken = tokenUtil.generateAccessToken(user);
-  const refreshToken = tokenUtil.generateRefreshToken();
-
-  await prisma.token.create({
-    data: {
-      refreshId: refreshToken,
-      userId: user.id,
-      expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
-    },
-  });
-
-  return { user, accessToken, refreshToken };
-};
-
-export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
-  const { data: tokenResponse } = await axios.post(
-    'https://github.com/login/oauth/access_token' +
-      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
-      `&client_secret=${process.env.GITHUB_CLIENT_SECRET}` +
-      `&code=${code}` +
-      `&redirect_uri=${process.env.GITHUB_REDIRECT_URL}`,
-    {},
-    { headers: { accept: 'application/json' } }
-  );
-
-  const { data: profile } = await axios.get('https://api.github.com/user', {
-    headers: { authorization: `Bearer ${tokenResponse.access_token}` },
-  });
-
-  let user = await prisma.user.findUnique({
-    where: {
-      email: profile.email,
-    },
-    select: { id: true, username: true, email: true, avatarUrl: true },
-  });
-
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        username: profile.login,
-        email: profile.email,
-        avatarUrl: profile.avatar_url,
-        verified: true,
-      },
-      select: { id: true, username: true, email: true, avatarUrl: true },
-    });
-
-    await producer.connect();
-    await producer.send({
-      topic: 'USERS',
-      messages: [
-        {
-          value: JSON.stringify({
-            type: 'USER_CREATED',
-            data: user,
-          }),
-        },
-      ],
-    });
-    await producer.disconnect();
-  }
-
-  const accessToken = tokenUtil.generateAccessToken(user);
-  const refreshToken = tokenUtil.generateRefreshToken();
-
-  await prisma.token.create({
-    data: {
-      refreshId: refreshToken,
-      userId: user.id,
-      expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
-    },
-  });
-
-  return { user, accessToken, refreshToken };
 };
