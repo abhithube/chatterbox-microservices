@@ -1,12 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 
-const cookieHandler = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const cookies = req.headers.cookie;
+const cookieHandler = (req: Request, _: Response, next: NextFunction): void => {
+  req.cookies = {};
 
+  const cookies = req.headers.cookie;
   if (cookies) {
     req.cookies = cookies
       .split(';')
@@ -18,6 +15,7 @@ const cookieHandler = (
         return obj;
       }, {});
   }
+
   next();
 };
 

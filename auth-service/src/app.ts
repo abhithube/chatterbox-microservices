@@ -1,6 +1,9 @@
 import express from 'express';
+import initializeTopics from './config/initializeTopics';
 import errorHandler from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
+
+initializeTopics();
 
 const app = express();
 
