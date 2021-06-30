@@ -1,13 +1,22 @@
 import express from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 import {
+  confirmEmail,
   getAuthenticatedUser,
+  getPasswordResetLink,
   login,
-  loginWithSocial,
+  loginWithGithub,
+  loginWithGoogle,
+  logout,
   refreshAccessToken,
   register,
+  resetPassword,
 } from '../controllers/authController';
 import asyncHandler from '../middleware/asyncHandler';
+import authHandler from '../middleware/authHandler';
 import cookieHandler from '../middleware/cookieHandler';
+import { RequestWithAuth } from '../types';
+import HttpError from '../util/HttpError';
 
 const router = express.Router();
 
@@ -26,10 +35,13 @@ router.post(
   asyncHandler(async (req, res) => {
     const { username, password } = req.body;
 
-    const { accessToken, refreshToken } = await login({ username, password });
+    const { user, accessToken, refreshToken } = await login({
+      username,
+      password,
+    });
 
     res.cookie('refresh', refreshToken, { httpOnly: true });
-    res.status(200).json({ accessToken });
+    res.status(200).json({ user, accessToken });
   })
 );
 
@@ -39,9 +51,24 @@ router.get('/auth/google', (_, res) => {
       `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
       `&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}` +
       '&response_type=code' +
-      '&scope=email'
+      '&scope=email+profile'
   );
 });
+
+router.get(
+  '/auth/google/callback',
+  asyncHandler(async (req, res) => {
+    const { code } = req.query;
+    if (!code) throw new HttpError(400, 'Invalid authentication code');
+
+    const { user, accessToken, refreshToken } = await loginWithGoogle(
+      code as string
+    );
+
+    res.cookie('refresh', refreshToken, { httpOnly: true });
+    res.status(200).json({ user, accessToken });
+  })
+);
 
 router.get('/auth/github', (_, res) => {
   res.redirect(
@@ -53,76 +80,93 @@ router.get('/auth/github', (_, res) => {
 });
 
 router.get(
-  '/auth/google/callback',
-  asyncHandler(async (req, res) => {
-    const tokenUrl =
-      'https://oauth2.googleapis.com/token' +
-      `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
-      `&client_secret=${process.env.GOOGLE_CLIENT_SECRET}` +
-      `&code=${req.query.code}` +
-      '&grant_type=authorization_code' +
-      `&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}`;
-
-    const profileUrl = 'https://www.googleapis.com/userinfo/v2/me';
-
-    const { accessToken, refreshToken } = await loginWithSocial(
-      tokenUrl,
-      profileUrl
-    );
-
-    res.cookie('refresh', refreshToken, { httpOnly: true });
-    res.status(200).json({ accessToken });
-  })
-);
-
-router.get(
   '/auth/github/callback',
   asyncHandler(async (req, res) => {
-    const tokenUrl =
-      'https://github.com/login/oauth/access_token' +
-      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
-      `&client_secret=${process.env.GITHUB_CLIENT_SECRET}` +
-      `&code=${req.query.code}` +
-      `&redirect_uri=${process.env.GITHUB_REDIRECT_URL}`;
+    const { code } = req.query;
+    if (!code) throw new HttpError(400, 'Invalid authentication code');
 
-    const profileUrl = 'https://api.github.com/user';
-
-    const { accessToken, refreshToken } = await loginWithSocial(
-      tokenUrl,
-      profileUrl
+    const { user, accessToken, refreshToken } = await loginWithGithub(
+      code as string
     );
 
     res.cookie('refresh', refreshToken, { httpOnly: true });
-    res.status(200).json({ accessToken });
+    res.status(200).json({ user, accessToken });
   })
 );
 
 router.get(
   '/auth',
-  asyncHandler(async (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
-    }
+  authHandler,
+  asyncHandler(async (req: RequestWithAuth, res) => {
+    const { payload } = req;
 
-    const user = await getAuthenticatedUser(authHeader.split(' ')[1]);
+    const user = await getAuthenticatedUser(payload as JwtPayload);
     res.status(200).json(user);
   })
 );
 
 router.get(
-  '/auth/refresh',
+  '/auth/confirm-email',
+  asyncHandler(async (req, res) => {
+    const { token } = req.query;
+    if (!token) throw new HttpError(400, 'Invalid verification token');
+
+    await confirmEmail(token as string);
+    res.status(200).json({ message: 'Email verified successfully' });
+  })
+);
+
+router.post(
+  '/auth/forgot-password',
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    await getPasswordResetLink(email);
+    res.status(200).json({ message: 'Password reset link sent' });
+  })
+);
+
+router.post(
+  '/auth/reset-password',
+  asyncHandler(async (req, res) => {
+    const { token } = req.query;
+    const { password } = req.body;
+    if (!token) throw new HttpError(400, 'Invalid reset token');
+
+    await resetPassword(token as string, password);
+    res.status(200).json({ message: 'Password reset successfully' });
+  })
+);
+
+router.post(
+  '/auth/refresh-token',
   cookieHandler,
   asyncHandler(async (req, res) => {
-    const refreshToken = req.cookies.refresh;
-    if (!refreshToken) {
+    const { refresh } = req.cookies;
+    if (!refresh) {
       res.status(403).json({ message: 'User not authorized' });
       return;
     }
 
-    const accessToken = await refreshAccessToken(refreshToken);
+    const accessToken = await refreshAccessToken(refresh);
     res.status(200).json({ accessToken });
+  })
+);
+
+router.post(
+  '/auth/logout',
+  cookieHandler,
+  asyncHandler(async (req, res) => {
+    const { refresh } = req.cookies;
+    if (!refresh) {
+      res.status(403).json({ message: 'User not authorized' });
+      return;
+    }
+
+    await logout(refresh);
+
+    res.cookie('refresh', '', { httpOnly: true });
+    res.status(200).json({ message: 'Logged out successfully' });
   })
 );
 
