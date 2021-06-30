@@ -52,7 +52,7 @@ export const register = async ({
 
   await producer.connect();
   await producer.send({
-    topic: 'USERS',
+    topic: 'users',
     messages: [
       {
         value: JSON.stringify({
@@ -138,7 +138,7 @@ export const loginWithGoogle = async (code: string): Promise<LoginResponse> => {
 
     await producer.connect();
     await producer.send({
-      topic: 'USERS',
+      topic: 'users',
       messages: [
         {
           value: JSON.stringify({
@@ -200,7 +200,7 @@ export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
 
     await producer.connect();
     await producer.send({
-      topic: 'USERS',
+      topic: 'users',
       messages: [
         {
           value: JSON.stringify({
