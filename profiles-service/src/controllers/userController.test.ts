@@ -35,7 +35,7 @@ const user: User = {
   id: '1',
   username: 'test',
   email: 'test@test.com',
-  password: 'test',
+  avatarUrl: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };

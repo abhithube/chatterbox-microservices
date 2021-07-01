@@ -4,16 +4,17 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["mongodb"]
 }
 
 model User {
-  id        String    @id @map("_id") @default(dbgenerated()) @db.ObjectId
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
   username  String    @unique
   email     String    @unique
-  password  String
+  avatarUrl String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
   @@map("users")
 }

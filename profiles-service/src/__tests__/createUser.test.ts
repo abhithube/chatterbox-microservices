@@ -14,7 +14,7 @@ beforeAll(async () => {
   await prisma.$connect();
 
   await prisma.user.create({
-    data: { username: 'test', email: 'test@test.com', password: 'test' },
+    data: { username: 'test', email: 'test@test.com' },
   });
 });
 

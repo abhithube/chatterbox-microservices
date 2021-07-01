@@ -1,5 +1,4 @@
 import { User } from '@prisma/client';
-import bcrypt from 'bcrypt';
 import prisma from '../config/prisma';
 import producer from '../config/producer';
 import HttpError from '../util/HttpError';
@@ -28,16 +27,21 @@ export const createUser = async (
   exists = await prisma.user.findUnique({ where: { email } });
   if (exists) throw new HttpError(400, 'Email already taken');
 
-  const hashed = bcrypt.hashSync(password, 10);
-
   const user = await prisma.user.create({
-    data: { username, email, password: hashed },
+    data: { username, email },
   });
 
   await producer.connect();
   await producer.send({
     topic: 'users',
-    messages: [{ value: JSON.stringify({ type: 'USER_CREATED', data: user }) }],
+    messages: [
+      {
+        value: JSON.stringify({
+          type: 'USER_CREATED',
+          data: { ...user, password },
+        }),
+      },
+    ],
   });
   await producer.disconnect();
 
