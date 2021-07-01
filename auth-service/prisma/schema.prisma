@@ -10,6 +10,7 @@ generator client {
 
 model User {
   id                String  @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  sub               String  @unique
   username          String  @unique
   email             String  @unique
   avatarUrl         String?

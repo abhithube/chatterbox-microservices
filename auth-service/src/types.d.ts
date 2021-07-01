@@ -8,6 +8,5 @@ export type RequestWithAuth = Request & {
 export type AuthenticatedUser = {
   id: string;
   username: string;
-  email: string;
   avatarUrl: string | null;
 };
