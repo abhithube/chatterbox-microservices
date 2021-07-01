@@ -21,8 +21,6 @@ jest.mock('../config/producer', () => ({
   default: mockDeep<Producer>(),
 }));
 
-jest.mock('bcrypt');
-
 const prismaMock = mocked(prisma, true);
 const producerMock = mocked(producer, true);
 
