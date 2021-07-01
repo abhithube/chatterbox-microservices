@@ -70,7 +70,10 @@ describe('createUser()', () => {
       expect.objectContaining({
         messages: [
           {
-            value: JSON.stringify({ type: 'USER_CREATED', data: user }),
+            value: JSON.stringify({
+              type: 'USER_CREATED',
+              data: { ...user, password: createUserInput.password },
+            }),
           },
         ],
       })
