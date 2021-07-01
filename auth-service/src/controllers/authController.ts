@@ -4,17 +4,10 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { JwtPayload } from 'jsonwebtoken';
 import prisma from '../config/prisma';
-import producer from '../config/producer';
 import { AuthenticatedUser } from '../types';
 import emailUtil from '../util/emailUtil';
 import HttpError from '../util/HttpError';
 import tokenUtil from '../util/tokenUtil';
-
-export type RegisterInput = {
-  username: string;
-  email: string;
-  password: string;
-};
 
 export type LoginInput = {
   username: string;
@@ -25,48 +18,6 @@ export type LoginResponse = {
   user: AuthenticatedUser;
   accessToken: string;
   refreshToken: string;
-};
-
-export const register = async ({
-  username,
-  email,
-  password,
-}: RegisterInput): Promise<AuthenticatedUser> => {
-  let existingUser = await prisma.user.findUnique({ where: { username } });
-  if (existingUser) throw new HttpError(400, 'Username already taken');
-
-  existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) throw new HttpError(400, 'Email already taken');
-
-  const verificationToken = crypto.randomBytes(16).toString('hex');
-
-  const user = await prisma.user.create({
-    data: {
-      username,
-      email,
-      password: bcrypt.hashSync(password, 10),
-      verificationToken,
-    },
-    select: { id: true, username: true, email: true, avatarUrl: true },
-  });
-
-  await producer.connect();
-  await producer.send({
-    topic: 'users',
-    messages: [
-      {
-        value: JSON.stringify({
-          type: 'USER_CREATED',
-          data: user,
-        }),
-      },
-    ],
-  });
-  await producer.disconnect();
-
-  await emailUtil.sendVerificationEmail(user.email, verificationToken);
-
-  return user;
 };
 
 export const login = async ({
@@ -81,9 +32,8 @@ export const login = async ({
     throw new HttpError(400, 'Invalid credentials');
 
   const authUser: AuthenticatedUser = {
-    id: user.id,
+    id: user.sub,
     username: user.username,
-    email: user.email,
     avatarUrl: user.avatarUrl,
   };
 
@@ -93,7 +43,7 @@ export const login = async ({
   await prisma.token.create({
     data: {
       refreshId: refreshToken,
-      userId: user.id,
+      userId: authUser.id,
       expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
     },
   });
@@ -122,47 +72,39 @@ export const loginWithGoogle = async (code: string): Promise<LoginResponse> => {
     where: {
       email: profile.email,
     },
-    select: { id: true, username: true, email: true, avatarUrl: true },
+    select: { sub: true, username: true, avatarUrl: true },
   });
 
   if (!user) {
-    user = await prisma.user.create({
-      data: {
+    const { data } = await axios.post(
+      `${process.env.PROFILES_SERVICE_URL}/api/users`,
+      {
         username: profile.name,
         email: profile.email,
         avatarUrl: profile.picture,
-        verified: true,
-      },
-      select: { id: true, username: true, email: true, avatarUrl: true },
-    });
-
-    await producer.connect();
-    await producer.send({
-      topic: 'users',
-      messages: [
-        {
-          value: JSON.stringify({
-            type: 'USER_CREATED',
-            data: user,
-          }),
-        },
-      ],
-    });
-    await producer.disconnect();
+      }
+    );
+    user = { sub: data.id, username: data.username, avatarUrl: data.avatarUrl };
   }
 
-  const accessToken = tokenUtil.generateAccessToken(user);
+  const authUser: AuthenticatedUser = {
+    id: user.sub,
+    username: user.username,
+    avatarUrl: user.avatarUrl,
+  };
+
+  const accessToken = tokenUtil.generateAccessToken(authUser);
   const refreshToken = tokenUtil.generateRefreshToken();
 
   await prisma.token.create({
     data: {
       refreshId: refreshToken,
-      userId: user.id,
+      userId: authUser.id,
       expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
     },
   });
 
-  return { user, accessToken, refreshToken };
+  return { user: authUser, accessToken, refreshToken };
 };
 
 export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
@@ -184,58 +126,50 @@ export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
     where: {
       email: profile.email,
     },
-    select: { id: true, username: true, email: true, avatarUrl: true },
+    select: { sub: true, username: true, avatarUrl: true },
   });
 
   if (!user) {
-    user = await prisma.user.create({
-      data: {
-        username: profile.login,
+    const { data } = await axios.post(
+      `${process.env.PROFILES_SERVICE_URL}/api/users`,
+      {
+        username: profile.name,
         email: profile.email,
         avatarUrl: profile.avatar_url,
-        verified: true,
-      },
-      select: { id: true, username: true, email: true, avatarUrl: true },
-    });
-
-    await producer.connect();
-    await producer.send({
-      topic: 'users',
-      messages: [
-        {
-          value: JSON.stringify({
-            type: 'USER_CREATED',
-            data: user,
-          }),
-        },
-      ],
-    });
-    await producer.disconnect();
+      }
+    );
+    user = { sub: data.id, username: data.username, avatarUrl: data.avatarUrl };
   }
 
-  const accessToken = tokenUtil.generateAccessToken(user);
+  const authUser: AuthenticatedUser = {
+    id: user.sub,
+    username: user.username,
+    avatarUrl: user.avatarUrl,
+  };
+
+  const accessToken = tokenUtil.generateAccessToken(authUser);
   const refreshToken = tokenUtil.generateRefreshToken();
 
   await prisma.token.create({
     data: {
       refreshId: refreshToken,
-      userId: user.id,
+      userId: authUser.id,
       expiryDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
     },
   });
 
-  return { user, accessToken, refreshToken };
+  return { user: authUser, accessToken, refreshToken };
 };
 
 export const getAuthenticatedUser = async (
   payload: JwtPayload
 ): Promise<AuthenticatedUser> => {
-  const id = payload.sub;
-  if (!id) throw new HttpError(500, 'Internal server error');
+  const { sub } = payload;
+  if (!sub) throw new HttpError(500, 'Internal server error');
 
   const user = await prisma.user.findUnique({
-    where: { id },
-    select: { id: true, username: true, email: true, avatarUrl: true },
+    where: { sub },
+    select: { id: true, username: true, avatarUrl: true },
   });
   if (!user) throw new HttpError(403, 'User not authorized');
 

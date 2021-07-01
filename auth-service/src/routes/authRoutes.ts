@@ -9,7 +9,6 @@ import {
   loginWithGoogle,
   logout,
   refreshAccessToken,
-  register,
   resetPassword,
 } from '../controllers/authController';
 import asyncHandler from '../middleware/asyncHandler';
@@ -19,16 +18,6 @@ import { RequestWithAuth } from '../types';
 import HttpError from '../util/HttpError';
 
 const router = express.Router();
-
-router.post(
-  '/auth/register',
-  asyncHandler(async (req, res) => {
-    const { username, email, password } = req.body;
-
-    const user = await register({ username, email, password });
-    res.status(201).json(user);
-  })
-);
 
 router.post(
   '/auth/login',
