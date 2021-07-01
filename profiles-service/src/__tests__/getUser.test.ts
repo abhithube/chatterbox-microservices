@@ -7,9 +7,8 @@ beforeAll(async () => {
   await prisma.$connect();
 
   const user = await prisma.user.create({
-    data: { username: 'test', email: 'test@test.com', password: 'test' },
+    data: { username: 'test', email: 'test@test.com' },
   });
-
   id = user.id;
 });
 
@@ -19,7 +18,7 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-describe('GET /api/users/:username', () => {
+describe('GET /api/users/:id', () => {
   test('should fetch an existing user', async () => {
     const res = await request(app).get(`/api/users/${id}`);
 

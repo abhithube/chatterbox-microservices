@@ -1,8 +1,21 @@
 import express, { Request, Response } from 'express';
 import { createUser, deleteUser, getUser } from '../controllers/userController';
 import asyncHandler from '../middleware/asyncHandler';
+import authHandler from '../middleware/authHandler';
+import { RequestWithAuth } from '../types';
 
 const router = express.Router();
+
+router.get(
+  '/users/me',
+  authHandler,
+  asyncHandler(async (req: RequestWithAuth, res: Response) => {
+    const { payload } = req;
+
+    const user = await getUser(payload?.sub as string);
+    res.status(200).json(user);
+  })
+);
 
 router.get(
   '/users/:id',

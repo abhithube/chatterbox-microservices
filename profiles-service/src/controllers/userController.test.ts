@@ -21,8 +21,6 @@ jest.mock('../config/producer', () => ({
   default: mockDeep<Producer>(),
 }));
 
-jest.mock('bcrypt');
-
 const prismaMock = mocked(prisma, true);
 const producerMock = mocked(producer, true);
 
@@ -35,7 +33,7 @@ const user: User = {
   id: '1',
   username: 'test',
   email: 'test@test.com',
-  password: 'test',
+  avatarUrl: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -72,7 +70,10 @@ describe('createUser()', () => {
       expect.objectContaining({
         messages: [
           {
-            value: JSON.stringify({ type: 'USER_CREATED', data: user }),
+            value: JSON.stringify({
+              type: 'USER_CREATED',
+              data: { ...user, password: createUserInput.password },
+            }),
           },
         ],
       })
