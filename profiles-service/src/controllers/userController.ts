@@ -6,7 +6,8 @@ import HttpError from '../util/HttpError';
 export type CreateUserInput = {
   username: string;
   email: string;
-  password: string;
+  password?: string;
+  avatarUrl?: string;
 };
 
 export const getUser = async (id: string): Promise<User> => {
@@ -19,7 +20,7 @@ export const getUser = async (id: string): Promise<User> => {
 export const createUser = async (
   createUserInput: CreateUserInput
 ): Promise<User> => {
-  const { username, email, password } = createUserInput;
+  const { username, email, password, avatarUrl } = createUserInput;
 
   let exists = await prisma.user.findUnique({ where: { username } });
   if (exists) throw new HttpError(400, 'Username already taken');
@@ -28,7 +29,7 @@ export const createUser = async (
   if (exists) throw new HttpError(400, 'Email already taken');
 
   const user = await prisma.user.create({
-    data: { username, email },
+    data: { username, email, avatarUrl },
   });
 
   await producer.connect();
