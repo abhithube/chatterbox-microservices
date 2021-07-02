@@ -30,9 +30,9 @@ router.get(
 router.post(
   '/users',
   asyncHandler(async (req: Request, res: Response) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, avatarUrl } = req.body;
 
-    const user = await createUser({ username, email, password });
+    const user = await createUser({ username, email, password, avatarUrl });
     return res.status(201).json(user);
   })
 );
