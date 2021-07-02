@@ -1,5 +1,5 @@
 import kafka from './kafka';
 
-const consumer = kafka.consumer({ groupId: 'messages-consumer' });
+const consumer = kafka.consumer({ groupId: 'auth-consumer' });
 
 export default consumer;
