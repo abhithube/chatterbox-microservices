@@ -1,4 +1,5 @@
 import { mockDeep } from 'jest-mock-extended';
+import jwt from 'jsonwebtoken';
 import { Producer } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
@@ -26,14 +27,22 @@ afterAll(async () => {
 
 describe('DELETE /api/parties/:id', () => {
   test('should delete an existing party', async () => {
-    const res = await request(app).delete(`/api/parties/${id}`);
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .delete(`/api/parties/${id}`)
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('name', 'test');
   });
 
   test('should 404 if party not found', async () => {
-    const res = await request(app).delete('/api/parties/0');
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .delete('/api/parties/0')
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('message', 'Party not found');

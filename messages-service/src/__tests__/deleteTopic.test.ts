@@ -1,4 +1,5 @@
 import { mockDeep } from 'jest-mock-extended';
+import jwt from 'jsonwebtoken';
 import { Producer } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
@@ -29,14 +30,22 @@ afterAll(async () => {
 
 describe('DELETE /api/topics/:id', () => {
   test('should delete an existing topic', async () => {
-    const res = await request(app).delete(`/api/topics/${id}`);
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .delete(`/api/topics/${id}`)
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('name', 'test');
   });
 
   test('should 404 if topic not found', async () => {
-    const res = await request(app).delete('/api/topics/0');
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .delete('/api/topics/0')
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('message', 'Topic not found');
