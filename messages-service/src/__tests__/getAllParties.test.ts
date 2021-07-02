@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
@@ -16,7 +17,11 @@ afterAll(async () => {
 
 describe('GET /api/parties', () => {
   test('should fetch all parties', async () => {
-    const res = await request(app).get('/api/parties');
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .get('/api/parties')
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toContainEqual(expect.objectContaining({ name: 'test' }));

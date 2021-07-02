@@ -6,11 +6,13 @@ import {
   getTopic,
 } from '../controllers/topicController';
 import asyncHandler from '../middleware/asyncHandler';
+import { apiAuthHandler as authHandler } from '../middleware/authHandler';
 
 const router = express.Router();
 
 router.get(
   '/topics/:id',
+  authHandler,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
 
@@ -21,6 +23,7 @@ router.get(
 
 router.get(
   '/topics/:topicId/messages',
+  authHandler,
   asyncHandler(async (req, res) => {
     const { topicId } = req.params;
 
@@ -31,6 +34,7 @@ router.get(
 
 router.post(
   '/topics',
+  authHandler,
   asyncHandler(async (req, res) => {
     const { name, partyId } = req.body;
 
@@ -44,6 +48,7 @@ router.post(
 
 router.delete(
   '/topics/:id',
+  authHandler,
   asyncHandler(async (req, res) => {
     const { id } = req.params;
 

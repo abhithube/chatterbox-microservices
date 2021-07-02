@@ -1,37 +1,52 @@
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import prisma from '../config/prisma';
+import { SocketWithAuth } from '../types';
 
-const roomsHandler = (io: Server, socket: Socket): void => {
-  socket.on('JOIN_REQUEST', async ({ userId, topicId }) => {
-    const user = await prisma.user.findUnique({ where: { publicId: userId } });
-    if (!user) {
-      socket.emit('ERROR', { status: 404, message: 'User not found' });
-      return;
+const roomsHandler = (io: Server, socket: SocketWithAuth): void => {
+  const userId = socket.payload?.sub as string;
+
+  socket.on('JOIN_REQUEST', async ({ topicId }) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { publicId: userId },
+      });
+      if (!user) {
+        socket.emit('ERROR', { status: 404, message: 'User not found' });
+        return;
+      }
+
+      const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+      if (!topic) {
+        socket.emit('ERROR', { status: 404, message: 'Topic not found' });
+        return;
+      }
+
+      socket.join(topicId.toString());
+    } catch (err) {
+      socket.emit('ERROR', { status: 500, message: 'Internal server error' });
     }
-
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
-    if (!topic) {
-      socket.emit('ERROR', { status: 404, message: 'Topic not found' });
-      return;
-    }
-
-    socket.join(topicId.toString());
   });
 
-  socket.on('LEAVE_REQUEST', async ({ userId, topicId }) => {
-    const user = await prisma.user.findUnique({ where: { publicId: userId } });
-    if (!user) {
-      socket.emit('ERROR', { status: 404, message: 'User not found' });
-      return;
-    }
+  socket.on('LEAVE_REQUEST', async ({ topicId }) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { publicId: userId },
+      });
+      if (!user) {
+        socket.emit('ERROR', { status: 404, message: 'User not found' });
+        return;
+      }
 
-    const topic = await prisma.topic.findUnique({ where: { id: topicId } });
-    if (!topic) {
-      socket.emit('ERROR', { status: 404, message: 'Topic not found' });
-      return;
-    }
+      const topic = await prisma.topic.findUnique({ where: { id: topicId } });
+      if (!topic) {
+        socket.emit('ERROR', { status: 404, message: 'Topic not found' });
+        return;
+      }
 
-    socket.leave(topicId.toString());
+      socket.leave(topicId.toString());
+    } catch (err) {
+      socket.emit('ERROR', { status: 500, message: 'Internal server error' });
+    }
   });
 };
 

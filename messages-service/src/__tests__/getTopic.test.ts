@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import app from '../app';
 import prisma from '../config/prisma';
@@ -22,14 +23,22 @@ afterAll(async () => {
 
 describe('GET /api/topics/:id', () => {
   test('should fetch topic by ID', async () => {
-    const res = await request(app).get(`/api/topics/${id}`);
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .get(`/api/topics/${id}`)
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('name', 'test');
   });
 
   test('should 404 if topic not found', async () => {
-    const res = await request(app).get('/api/topics/0');
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'test' });
+
+    const res = await request(app)
+      .get('/api/topics/0')
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('message', 'Topic not found');

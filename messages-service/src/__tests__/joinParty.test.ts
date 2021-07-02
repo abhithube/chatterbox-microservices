@@ -1,4 +1,5 @@
 import { mockDeep } from 'jest-mock-extended';
+import jwt from 'jsonwebtoken';
 import { Producer } from 'kafkajs';
 import request from 'supertest';
 import app from '../app';
@@ -37,36 +38,44 @@ afterAll(async () => {
 
 describe('POST /api/parties/:id/join', () => {
   test('should add a new member to an existing party', async () => {
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'new' });
+
     const res = await request(app)
       .post(`/api/parties/${partyId}/join`)
-      .send({ userId: 'new' });
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty('partyId', partyId);
   });
 
   test('should 404 if party not found', async () => {
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'new' });
+
     const res = await request(app)
       .post('/api/parties/0/join')
-      .send({ userId: 'new' });
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('message', 'Party not found');
   });
 
   test('should 404 if user not found', async () => {
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'not-found' });
+
     const res = await request(app)
       .post(`/api/parties/${partyId}/join`)
-      .send({ userId: 'not-found' });
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(404);
     expect(res.body).toHaveProperty('message', 'User not found');
   });
 
   test('should 400 if user is already a member', async () => {
+    const token = jwt.sign({}, 'JWT_SECRET', { subject: 'existing' });
+
     const res = await request(app)
       .post(`/api/parties/${partyId}/join`)
-      .send({ userId: 'existing' });
+      .set({ Authorization: `Bearer ${token}` });
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toHaveProperty('message', 'Already a member');
