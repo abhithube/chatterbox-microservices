@@ -8,13 +8,12 @@ import {
 import axios from 'axios';
 import { FormEvent, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { useAuth } from '../lib/useAuth';
 
-export const LoginForm = () => {
+export const RegisterForm = () => {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const { signIn } = useAuth();
+  const [passwordConfirm, setPasswordConfirm] = useState('');
 
   const history = useHistory();
 
@@ -23,17 +22,16 @@ export const LoginForm = () => {
 
     (async () => {
       try {
-        const res = await axios.post(
-          `${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth/login`,
+        await axios.post(
+          `${process.env.REACT_APP_PROFILES_SERVICE_URL}/api/users`,
           {
             username,
+            email,
             password,
-          },
-          { withCredentials: true }
+          }
         );
 
-        signIn({ user: res.data.user, accessToken: res.data.accessToken });
-        history.push('/');
+        history.push('/login');
       } catch (err) {
         console.log(err.response);
       }
@@ -50,6 +48,15 @@ export const LoginForm = () => {
           placeholder="Enter your username..."
         />
       </FormControl>
+      <FormControl id="email">
+        <FormLabel>Email</FormLabel>
+        <Input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="Enter your email..."
+        />
+      </FormControl>
       <FormControl id="password">
         <FormLabel>Password</FormLabel>
         <Input
@@ -59,8 +66,26 @@ export const LoginForm = () => {
           placeholder="Enter your password..."
         />
       </FormControl>
-      <Button type="submit" disabled={!username || !password}>
-        Sign in
+      <FormControl id="password-confirm">
+        <FormLabel>Confirm Password</FormLabel>
+        <Input
+          type="password"
+          value={passwordConfirm}
+          onChange={e => setPasswordConfirm(e.target.value)}
+          placeholder="Re-enter your password..."
+        />
+      </FormControl>
+      <Button
+        type="submit"
+        disabled={
+          !username ||
+          !email ||
+          !password ||
+          !passwordConfirm ||
+          password !== passwordConfirm
+        }
+      >
+        Sign up
       </Button>
     </VStack>
   );
