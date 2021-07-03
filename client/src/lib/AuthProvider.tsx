@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
   const signOut = async () => {
     try {
       await axios.post(
-        `${process.env.AUTH_SERVICE_URL}/api/auth/logout`,
+        `${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth/logout`,
         {},
         { withCredentials: true }
       );
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
       let accessToken;
       try {
         const res = await axios.post(
-          `${process.env.AUTH_SERVICE_URL}/api/auth/refresh-token`,
+          `${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth/refresh-token`,
           {},
           { withCredentials: true }
         );
@@ -71,7 +71,7 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
 
       try {
         const res = await axios.get(
-          `${process.env.AUTH_SERVICE_URL}/api/auth`,
+          `${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
