@@ -1,3 +1,4 @@
+import cors from 'cors';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -26,6 +27,7 @@ io.on('connection', (socket: SocketWithAuth) => {
 });
 
 app.use(express.json());
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 
 app.use('/api', partyRoutes, topicRoutes);
 
