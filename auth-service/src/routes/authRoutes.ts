@@ -50,12 +50,10 @@ router.get(
     const { code } = req.query;
     if (!code) throw new HttpError(400, 'Invalid authentication code');
 
-    const { user, accessToken, refreshToken } = await loginWithGoogle(
-      code as string
-    );
+    const { refreshToken } = await loginWithGoogle(code as string);
 
     res.cookie('refresh', refreshToken, { httpOnly: true });
-    res.status(200).json({ user, accessToken });
+    res.redirect(process.env.CLIENT_URL as string);
   })
 );
 
@@ -74,12 +72,10 @@ router.get(
     const { code } = req.query;
     if (!code) throw new HttpError(400, 'Invalid authentication code');
 
-    const { user, accessToken, refreshToken } = await loginWithGithub(
-      code as string
-    );
+    const { refreshToken } = await loginWithGithub(code as string);
 
     res.cookie('refresh', refreshToken, { httpOnly: true });
-    res.status(200).json({ user, accessToken });
+    res.redirect(process.env.CLIENT_URL as string);
   })
 );
 
