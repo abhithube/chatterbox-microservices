@@ -22,14 +22,11 @@ export const RegisterForm = () => {
 
     (async () => {
       try {
-        await axios.post(
-          `${process.env.REACT_APP_PROFILES_SERVICE_URL}/api/users`,
-          {
-            username,
-            email,
-            password,
-          }
-        );
+        await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/users`, {
+          username,
+          email,
+          password,
+        });
 
         history.push('/login');
       } catch (err) {

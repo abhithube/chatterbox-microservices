@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { AuthenticatedUser } from '../types';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'JWT_SECRET';
+const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
 const generateAccessToken = ({ id }: AuthenticatedUser): string =>
   jwt.sign({}, JWT_SECRET, {

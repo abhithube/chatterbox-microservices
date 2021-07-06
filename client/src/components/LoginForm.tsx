@@ -24,7 +24,7 @@ export const LoginForm = () => {
     (async () => {
       try {
         const res = await axios.post(
-          `${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth/login`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/auth/login`,
           {
             username,
             password,

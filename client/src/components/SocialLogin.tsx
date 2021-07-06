@@ -5,7 +5,7 @@ export const SocialLogin = () => (
   <VStack>
     <Button
       as="a"
-      href={`${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth/google`}
+      href={`${process.env.REACT_APP_BACKEND_URL}/api/auth/google`}
       leftIcon={<FaGoogle />}
       bgColor="red.400"
       _hover={{ bgColor: 'red.500' }}
@@ -15,7 +15,7 @@ export const SocialLogin = () => (
     </Button>
     <Button
       as="a"
-      href={`${process.env.REACT_APP_AUTH_SERVICE_URL}/api/auth/github`}
+      href={`${process.env.REACT_APP_BACKEND_URL}/api/auth/github`}
       leftIcon={<FaGithub />}
       bgColor="gray.600"
       _hover={{ bgColor: 'gray.700' }}

@@ -8,7 +8,7 @@ const sendVerificationEmail = async (
     from: 'chatterbox@abhithube.com',
     to: email,
     subject: 'Email Verification',
-    html: `<p>Confirm your email address <a href="http://localhost:5003/api/auth/confirm-email?token=${verificationToken}">here</>.</p>`,
+    html: `<p>Confirm your email address <a href="${process.env.BACKEND_URL}/api/auth/confirm-email?token=${verificationToken}">here</>.</p>`,
   });
 };
 
@@ -20,7 +20,7 @@ const sendResetEmail = async (
     from: 'chatterbox@abhithube.com',
     to: email,
     subject: 'Password Reset',
-    html: `<p>Reset your password <a href="http://localhost:5003/api/auth/reset-password?token=${resetToken}">here</>.</p>`,
+    html: `<p>Reset your password <a href="${process.env.BACKEND_URL}/api/auth/reset-password?token=${resetToken}">here</>.</p>`,
   });
 };
 
