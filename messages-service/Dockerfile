@@ -22,4 +22,4 @@ FROM base
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 
-CMD ["node", "-r", "dotenv/config", "dist"]
+CMD ["./entrypoint.sh"]
