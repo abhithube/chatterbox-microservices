@@ -40,6 +40,8 @@ export const login = async ({
   const accessToken = tokenUtil.generateAccessToken(authUser);
   const refreshToken = tokenUtil.generateRefreshToken();
 
+  await prisma.token.deleteMany({ where: { userId: authUser.id } });
+
   await prisma.token.create({
     data: {
       refreshId: refreshToken,
@@ -76,15 +78,23 @@ export const loginWithGoogle = async (code: string): Promise<LoginResponse> => {
   });
 
   if (!user) {
-    const { data } = await axios.post(
-      `${process.env.PROFILES_SERVICE_URL}/api/users`,
-      {
-        username: profile.name,
-        email: profile.email,
-        avatarUrl: profile.picture,
-      }
-    );
-    user = { sub: data.id, username: data.username, avatarUrl: data.avatarUrl };
+    try {
+      const { data } = await axios.post(
+        `${process.env.PROFILES_URL}/api/users`,
+        {
+          username: profile.name,
+          email: profile.email,
+          avatarUrl: profile.picture,
+        }
+      );
+      user = {
+        sub: data.id,
+        username: data.username,
+        avatarUrl: data.avatarUrl,
+      };
+    } catch (err) {
+      throw new HttpError(500, err);
+    }
   }
 
   const authUser: AuthenticatedUser = {
@@ -95,6 +105,8 @@ export const loginWithGoogle = async (code: string): Promise<LoginResponse> => {
 
   const accessToken = tokenUtil.generateAccessToken(authUser);
   const refreshToken = tokenUtil.generateRefreshToken();
+
+  await prisma.token.deleteMany({ where: { userId: authUser.id } });
 
   await prisma.token.create({
     data: {
@@ -126,19 +138,35 @@ export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
     where: {
       email: profile.email,
     },
-    select: { sub: true, username: true, avatarUrl: true },
+    select: { sub: true, username: true, avatarUrl: true, verified: true },
   });
 
   if (!user) {
-    const { data } = await axios.post(
-      `${process.env.PROFILES_SERVICE_URL}/api/users`,
-      {
-        username: profile.name,
-        email: profile.email,
-        avatarUrl: profile.avatar_url,
-      }
-    );
-    user = { sub: data.id, username: data.username, avatarUrl: data.avatarUrl };
+    try {
+      const { data } = await axios.post(
+        `${process.env.PROFILES_URL}/api/users`,
+        {
+          username: profile.name,
+          email: profile.email,
+          avatarUrl: profile.avatar_url,
+        }
+      );
+      user = {
+        sub: data.id,
+        username: data.username,
+        avatarUrl: data.avatarUrl,
+        verified: true,
+      };
+    } catch (err) {
+      throw new HttpError(500, err);
+    }
+  }
+
+  if (!user.verified) {
+    await prisma.user.update({
+      where: { sub: user.sub },
+      data: { verified: true },
+    });
   }
 
   const authUser: AuthenticatedUser = {
@@ -149,6 +177,8 @@ export const loginWithGithub = async (code: string): Promise<LoginResponse> => {
 
   const accessToken = tokenUtil.generateAccessToken(authUser);
   const refreshToken = tokenUtil.generateRefreshToken();
+
+  await prisma.token.deleteMany({ where: { userId: authUser.id } });
 
   await prisma.token.create({
     data: {
