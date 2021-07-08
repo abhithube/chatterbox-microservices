@@ -29,7 +29,11 @@ router.post(
       password,
     });
 
-    res.cookie('refresh', refreshToken, { httpOnly: true });
+    res.cookie('refresh', refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
     res.status(200).json({ user, accessToken });
   })
 );
@@ -52,7 +56,11 @@ router.get(
 
     const { refreshToken } = await loginWithGoogle(code as string);
 
-    res.cookie('refresh', refreshToken, { httpOnly: true });
+    res.cookie('refresh', refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
     res.redirect(process.env.CLIENT_URL as string);
   })
 );
@@ -74,7 +82,11 @@ router.get(
 
     const { refreshToken } = await loginWithGithub(code as string);
 
-    res.cookie('refresh', refreshToken, { httpOnly: true });
+    res.cookie('refresh', refreshToken, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    });
     res.redirect(process.env.CLIENT_URL as string);
   })
 );
@@ -96,8 +108,12 @@ router.get(
     const { token } = req.query;
     if (!token) throw new HttpError(400, 'Invalid verification token');
 
-    await confirmEmail(token as string);
-    res.status(200).json({ message: 'Email verified successfully' });
+    try {
+      await confirmEmail(token as string);
+      res.redirect(`${process.env.CLIENT_URL}/login?verified=true`);
+    } catch (err) {
+      res.redirect(`${process.env.CLIENT_URL}/login?verified=false`);
+    }
   })
 );
 

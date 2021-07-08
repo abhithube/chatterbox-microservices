@@ -1,0 +1,39 @@
+apiVersion: skaffold/v2beta18
+kind: Config
+metadata:
+  name: chatterbox-microservices
+build:
+  artifacts:
+    - image: abhithube/chatterbox-auth
+      context: auth-service
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        manual:
+          - src: 'src/**/*.ts'
+            dest: .
+    - image: abhithube/chatterbox-messages
+      context: messages-service
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        manual:
+          - src: 'src/**/*.ts'
+            dest: .
+    - image: abhithube/chatterbox-profiles
+      context: profiles-service
+      docker:
+        dockerfile: Dockerfile.dev
+      sync:
+        manual:
+          - src: 'src/**/*.ts'
+            dest: .
+  local:
+    push: false
+deploy:
+  kubectl:
+    manifests:
+      - k8s/auth.yaml
+      - k8s/ingress.yaml
+      - k8s/messages.yaml
+      - k8s/profiles.yaml
