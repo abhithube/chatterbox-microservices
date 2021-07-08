@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: abhithube/chatterbox-auth
+          resources:
+            requests:
+              memory: '256Mi'
+              cpu: '500m'
+            limits:
+              memory: '512Mi'
+              cpu: '1'
+          env:
+            - name: KAFKA_BROKERS
+              value: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
+            - name: CLIENT_URL
+              value: http://localhost:3000
+            - name: SERVER_URL
+              value: https://chatterbox.dev
+            - name: PROFILES_URL
+              value: http://profiles-srv:5000
+            - name: GOOGLE_REDIRECT_URL
+              value: https://chatterbox.dev/api/auth/google/callback
+            - name: GITHUB_REDIRECT_URL
+              value: https://chatterbox.dev/api/auth/github/callback
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-connection
+                  key: AUTH_URL
+            - name: CONFLUENT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: confluent-api
+                  key: CONFLUENT_API_KEY
+            - name: CONFLUENT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: confluent-api
+                  key: CONFLUENT_API_SECRET
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+                  key: JWT_SECRET
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth
+                  key: GOOGLE_CLIENT_SECRET
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: github-oauth
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: github-oauth
+                  key: GITHUB_CLIENT_SECRET
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sendgrid-api
+                  key: SENDGRID_API_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-srv
+spec:
+  type: ClusterIP
+  selector:
+    app: auth
+  ports:
+    - name: auth
+      protocol: TCP
+      port: 5000
+      targetPort: 5000

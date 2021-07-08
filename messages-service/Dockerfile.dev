@@ -2,12 +2,11 @@ FROM node:14-alpine
 
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json", "./"]
+COPY ["package.json", "package-lock.json", "prisma", "./"]
 
 RUN npm ci
 
 COPY . .
 
-RUN npx prisma generate
 
 CMD ["./entrypoint-dev.sh"]
