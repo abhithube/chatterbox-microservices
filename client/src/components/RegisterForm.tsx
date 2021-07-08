@@ -1,13 +1,19 @@
 import {
+  Box,
   Button,
   FormControl,
   FormLabel,
+  Icon,
   Input,
+  InputGroup,
+  InputLeftElement,
   VStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import { FormEvent, useState } from 'react';
+import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
+import { Alert, AlertMessage } from '../lib/Alert';
 
 export const RegisterForm = () => {
   const [username, setUsername] = useState('');
@@ -15,75 +21,129 @@ export const RegisterForm = () => {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
 
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<AlertMessage | null>(null);
+
   const history = useHistory();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
+    if (password !== passwordConfirm) {
+      return setAlert({
+        status: 'error',
+        text: "Passwords don't match",
+      });
+    }
+
     (async () => {
       try {
-        await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/users`, {
+        setLoading(true);
+        await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/users`, {
           username,
           email,
           password,
         });
 
-        history.push('/login');
+        history.push('/login?registered=true');
       } catch (err) {
-        console.log(err.response);
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 400) {
+            if (err.response.statusText.includes('Username')) {
+              setAlert({
+                status: 'error',
+                text: 'Username already taken',
+              });
+            } else if (err.response.statusText.includes('Email')) {
+              setAlert({
+                status: 'error',
+                text: 'Email already taken',
+              });
+            }
+          }
+        } else history.push('/error');
+      } finally {
+        setLoading(false);
       }
     })();
   };
 
   return (
-    <VStack as="form" onSubmit={handleSubmit} align="flex-start">
-      <FormControl id="username">
-        <FormLabel>Username</FormLabel>
-        <Input
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          placeholder="Enter your username..."
-        />
-      </FormControl>
-      <FormControl id="email">
-        <FormLabel>Email</FormLabel>
-        <Input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="Enter your email..."
-        />
-      </FormControl>
-      <FormControl id="password">
-        <FormLabel>Password</FormLabel>
-        <Input
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          placeholder="Enter your password..."
-        />
-      </FormControl>
-      <FormControl id="password-confirm">
-        <FormLabel>Confirm Password</FormLabel>
-        <Input
-          type="password"
-          value={passwordConfirm}
-          onChange={e => setPasswordConfirm(e.target.value)}
-          placeholder="Re-enter your password..."
-        />
-      </FormControl>
+    <Box as="form" onSubmit={handleSubmit}>
+      {alert && <Alert status={alert.status}>{alert.text}</Alert>}
+      <VStack mt={2}>
+        <FormControl id="username" isRequired>
+          <FormLabel>Username</FormLabel>
+          <InputGroup>
+            <InputLeftElement
+              children={<Icon as={FaUser} color="gray.300" />}
+              pointerEvents="none"
+            />
+            <Input
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="Enter your username..."
+            />
+          </InputGroup>
+        </FormControl>
+        <FormControl id="email" isRequired>
+          <FormLabel>Email</FormLabel>
+          <InputGroup>
+            <InputLeftElement
+              children={<Icon as={FaEnvelope} color="gray.300" />}
+              pointerEvents="none"
+            />
+            <Input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Enter your email..."
+            />
+          </InputGroup>
+        </FormControl>
+        <FormControl id="password" isRequired>
+          <FormLabel>Password</FormLabel>
+          <InputGroup>
+            <InputLeftElement
+              children={<Icon as={FaLock} color="gray.300" />}
+              pointerEvents="none"
+            />
+            <Input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Enter your password..."
+            />
+          </InputGroup>
+        </FormControl>
+        <FormControl id="password-confirm" isRequired>
+          <FormLabel>Confirm Password</FormLabel>
+          <InputGroup>
+            <InputLeftElement
+              children={<Icon as={FaLock} color="gray.300" />}
+              pointerEvents="none"
+            />
+            <Input
+              type="password"
+              value={passwordConfirm}
+              onChange={e => setPasswordConfirm(e.target.value)}
+              placeholder="Re-enter the password..."
+            />
+          </InputGroup>
+        </FormControl>
+      </VStack>
       <Button
         type="submit"
-        disabled={
-          !username ||
-          !email ||
-          !password ||
-          !passwordConfirm ||
-          password !== passwordConfirm
-        }
+        isLoading={loading}
+        loadingText="Loading..."
+        mt={4}
+        w="100%"
+        bgColor="teal.400"
+        _hover={{ bgColor: 'teal.500' }}
+        color="gray.50"
       >
         Sign up
       </Button>
-    </VStack>
+    </Box>
   );
 };
