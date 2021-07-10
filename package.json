@@ -18,6 +18,6 @@
   },
   "homepage": "https://github.com/abhithube/chatterbox-microservices#readme",
   "devDependencies": {
-    "husky": "^6.0.0"
+    "husky": "^7.0.1"
   }
 }
