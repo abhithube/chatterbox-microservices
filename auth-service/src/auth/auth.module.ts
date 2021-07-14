@@ -1,14 +1,13 @@
 import { HttpModule } from '@nestjs/axios';
 import { CacheModule, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { MongooseModule } from '@nestjs/mongoose';
 import { PassportModule } from '@nestjs/passport';
 import * as redisStore from 'cache-manager-ioredis';
 import { MailModule } from 'src/mail/mail.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { User, UserSchema } from './schemas/user.schema';
 import { GithubStrategy } from './strategies/github.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -16,7 +15,8 @@ import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    ConfigModule,
+    PrismaModule,
     CacheModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         store: redisStore,
@@ -27,16 +27,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       }),
       inject: [ConfigService],
     }),
-    HttpModule,
-    PassportModule,
-    JwtModule.registerAsync({
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' },
-      }),
-      inject: [ConfigService],
-    }),
-    MailModule.forRootAsync({
+    MailModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         transport: {
           host: configService.get('SMTP_HOST'),
@@ -52,6 +43,15 @@ import { LocalStrategy } from './strategies/local.strategy';
             address: configService.get('EMAIL_ADDRESS'),
           },
         },
+      }),
+      inject: [ConfigService],
+    }),
+    HttpModule,
+    PassportModule,
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: '15m' },
       }),
       inject: [ConfigService],
     }),

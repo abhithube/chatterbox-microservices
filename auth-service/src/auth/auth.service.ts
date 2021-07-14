@@ -10,19 +10,17 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Cache } from 'cache-manager';
-import { randomBytes } from 'crypto';
-import { Model } from 'mongoose';
+import { randomUUID } from 'crypto';
 import { lastValueFrom } from 'rxjs';
 import { MailService } from 'src/mail/mail.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
-import { Token } from './schemas/token.schema';
-import { User, UserDocument } from './schemas/user.schema';
+import { Token } from './interfaces/token.interface';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +29,7 @@ export class AuthService {
     private mailService: MailService,
     private httpService: HttpService,
     private configService: ConfigService,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -39,17 +37,25 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<AuthUserDto> {
-    const user = await this.userModel.findOne({ username });
-    if (!user || !user.password || !bcrypt.compareSync(password, user.password))
-      throw new UnauthorizedException({ message: 'Invalid credentials' });
-    if (!user.verified)
-      throw new UnauthorizedException({ message: 'Email not verified' });
-
-    this.mailService.sendMail({
-      to: 'abhimanyuthube@gmail.com',
-      subject: 'Email Verification',
-      html: `<p>Yo, what's up.</p>`,
+    const user = await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
     });
+    if (
+      !user ||
+      !user.password ||
+      !bcrypt.compareSync(password, user.password)
+    ) {
+      throw new UnauthorizedException({
+        message: 'Invalid credentials',
+      });
+    }
+    if (!user.verified) {
+      throw new UnauthorizedException({
+        message: 'Email not verified',
+      });
+    }
 
     return {
       id: user.sub,
@@ -63,7 +69,11 @@ export class AuthService {
     email: string,
     avatarUrl: string,
   ): Promise<AuthUserDto> {
-    let user = await this.userModel.findOne({ email: email });
+    let user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
     if (!user) {
       const res = await lastValueFrom(
         this.httpService.post(
@@ -79,10 +89,11 @@ export class AuthService {
       user = res.data;
     }
 
-    if (!user)
+    if (!user) {
       throw new InternalServerErrorException({
         message: 'Something went wrong',
       });
+    }
 
     return {
       id: user.sub,
@@ -105,69 +116,124 @@ export class AuthService {
 
     await this.cacheManager.set<Token>(
       refreshToken,
-      { userId: id },
-      { ttl: 60 * 60 * 24 },
+      {
+        userId: id,
+      },
+      {
+        ttl: 60 * 60 * 24,
+      },
     );
 
     return {
-      user: { id, username, avatarUrl },
+      user: {
+        id,
+        username,
+        avatarUrl,
+      },
       accessToken,
       refreshToken,
     };
   }
 
   async confirmEmail(verificationToken: string): Promise<void> {
-    const user = await this.userModel.findOne({ verificationToken });
-    if (!user) throw new BadRequestException('Invalid verification code');
+    const user = await this.prisma.user.findUnique({
+      where: {
+        verificationToken,
+      },
+    });
+    if (!user) {
+      throw new BadRequestException({
+        message: 'Invalid verification code',
+      });
+    }
 
-    await this.userModel.updateOne(
-      { id: user.id },
-      { verified: true, verificationToken: null },
-    );
+    await this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        verified: true,
+        verificationToken: randomUUID(),
+      },
+    });
   }
 
   async getPasswordResetLink(email: string): Promise<void> {
-    const user = await this.userModel.findOne({ email });
-    if (!user) throw new NotFoundException('User not found');
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException({
+        message: 'User not found',
+      });
+    }
 
-    if (!user.verified) throw new BadRequestException('Email not verified');
-
-    const resetToken = randomBytes(16).toString('hex');
-
-    await this.userModel.updateOne({ id: user.id }, { resetToken });
+    if (!user.verified) {
+      throw new BadRequestException({
+        message: 'Email not verified',
+      });
+    }
 
     await this.mailService.sendMail({
       to: email,
       subject: 'Password Reset',
-      html: `<p>Reset your password <a href="${this.configService.get(
+      html: `
+      <p>Hello ${user.username},</p>
+      <p>Reset your password <a href="${this.configService.get(
         'SERVER_URL',
-      )}/reset?token=${resetToken}">here</>.</p>`,
+      )}/reset?token=${user.resetToken}">here</>.</p>
+      `,
     });
   }
 
   async resetPassword(resetToken: string, password: string): Promise<void> {
-    const user = await this.userModel.findOne({ resetToken });
-    if (!user) throw new BadRequestException('Invalid verification code');
+    const user = await this.prisma.user.findUnique({
+      where: {
+        resetToken,
+      },
+    });
+    if (!user) {
+      throw new BadRequestException({
+        message: 'Invalid verification code',
+      });
+    }
 
-    const hashed = await bcrypt.hash(password, 10);
-
-    await this.userModel.updateOne(
-      { id: user.id },
-      { password: hashed, resetToken: null },
-    );
+    await this.prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: bcrypt.hashSync(password, 10),
+        resetToken: randomUUID(),
+      },
+    });
   }
 
   async refreshAccessToken(refreshToken: string): Promise<TokenResponseDto> {
     const token = await this.cacheManager.get<Token>(refreshToken);
-    if (!token) throw new UnauthorizedException('User not authorized');
+    if (!token) {
+      throw new UnauthorizedException({
+        message: 'User not authorized',
+      });
+    }
 
     try {
       this.jwtService.verify(refreshToken, {
         secret: this.configService.get('JWT_SECRET'),
       });
 
-      const user = await this.userModel.findOne({ sub: token.userId });
-      if (!user) throw new UnauthorizedException('User not authorized');
+      const user = await this.prisma.user.findUnique({
+        where: {
+          sub: token.userId,
+        },
+      });
+      if (!user) {
+        throw new UnauthorizedException({
+          message: 'User not authorized',
+        });
+      }
 
       const accessToken = this.jwtService.sign({
         sub: user.sub,
@@ -175,9 +241,13 @@ export class AuthService {
         avatarUrl: user.avatarUrl,
       });
 
-      return { accessToken };
+      return {
+        accessToken,
+      };
     } catch (err) {
-      throw new UnauthorizedException('User not authorized');
+      throw new UnauthorizedException({
+        message: 'User not authorized',
+      });
     }
   }
 
@@ -193,34 +263,44 @@ export class AuthService {
     avatarUrl,
   }: CreateUserDto): Promise<void> {
     if (password) {
-      const user = await this.userModel.create({
+      const user = await this.prisma.user.create({
         data: {
           sub: id,
           username,
           email,
           avatarUrl,
           password: bcrypt.hashSync(password, 10),
-          verificationToken: randomBytes(16).toString('hex'),
+          verificationToken: randomUUID(),
+          resetToken: randomUUID(),
         },
       });
 
       await this.mailService.sendMail({
         to: email,
         subject: 'Email Verification',
-        html: `<p>Confirm your email address <a href="${process.env.SERVER_URL}/auth/confirm?token=${user.verificationToken}">here</>.</p>`,
+        html: `
+          <p>Hello ${username},</p>
+          <p>Confirm your email address <a href="${process.env.SERVER_URL}/auth/confirm?token=${user.verificationToken}">here</a>.</p>
+        `,
       });
     } else {
-      await this.userModel.create({
-        sub: id,
-        username,
-        email,
-        avatarUrl,
-        verified: true,
+      await this.prisma.user.create({
+        data: {
+          sub: id,
+          username,
+          email,
+          avatarUrl,
+          verified: true,
+        },
       });
     }
   }
 
   async removeUser(sub: string): Promise<void> {
-    await this.userModel.deleteOne({ sub });
+    await this.prisma.user.delete({
+      where: {
+        sub,
+      },
+    });
   }
 }

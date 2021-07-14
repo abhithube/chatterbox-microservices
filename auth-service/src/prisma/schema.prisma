@@ -1,0 +1,25 @@
+//******** AUTO GENERATED FILE, DO NOT EDIT.  *********
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+model User {
+  id                String  @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  sub               String  @unique
+  username          String  @unique
+  email             String  @unique
+  avatarUrl         String?
+  password          String?
+  verified          Boolean @default(false)
+  verificationToken String? @unique
+  resetToken        String? @unique
+  
+  @@map("users")
+}

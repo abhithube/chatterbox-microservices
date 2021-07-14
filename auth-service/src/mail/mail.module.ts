@@ -5,7 +5,7 @@ import { MailService } from './mail.service';
 
 @Module({})
 export class MailModule {
-  public static forRoot(options?: MailOptions): DynamicModule {
+  static register(options?: MailOptions): DynamicModule {
     const MailOptionsProvider: ValueProvider<MailOptions> = {
       provide: 'MAIL_OPTIONS',
       useValue: options,
@@ -18,7 +18,7 @@ export class MailModule {
     };
   }
 
-  public static forRootAsync(options: MailAsyncOptions): DynamicModule {
+  static registerAsync(options: MailAsyncOptions): DynamicModule {
     const providers: Provider[] = [
       {
         name: 'MAIL_OPTIONS',

@@ -47,7 +47,10 @@ export class AuthController {
       secure: this.configService.get('NODE_ENV') === 'production',
     });
 
-    return { user, accessToken };
+    return {
+      user,
+      accessToken,
+    };
   }
 
   @UseGuards(GoogleAuthGuard)
@@ -70,7 +73,10 @@ export class AuthController {
       secure: this.configService.get('NODE_ENV') === 'production',
     });
 
-    return { user, accessToken };
+    return {
+      user,
+      accessToken,
+    };
   }
 
   @UseGuards(GithubAuthGuard)
@@ -93,7 +99,10 @@ export class AuthController {
       secure: this.configService.get('NODE_ENV') === 'production',
     });
 
-    return { user, accessToken };
+    return {
+      user,
+      accessToken,
+    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -104,12 +113,12 @@ export class AuthController {
 
   @Get('confirm')
   async confirmEmailHandler(@Query('token') token: string): Promise<void> {
-    this.authService.confirmEmail(token);
+    await this.authService.confirmEmail(token);
   }
 
   @Get('forgot')
   async forgotPasswordHandler(@Body('email') email: string): Promise<void> {
-    this.authService.getPasswordResetLink(email);
+    await this.authService.getPasswordResetLink(email);
   }
 
   @Get('reset')
@@ -117,7 +126,7 @@ export class AuthController {
     @Query('token') token: string,
     @Body('password') password: string,
   ): Promise<void> {
-    this.authService.resetPassword(token, password);
+    await this.authService.resetPassword(token, password);
   }
 
   @Post('refresh')
@@ -132,7 +141,7 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    this.authService.logoutUser(req.cookies.refresh);
+    await this.authService.logoutUser(req.cookies.refresh);
     res.clearCookie('refresh');
   }
 
@@ -141,7 +150,7 @@ export class AuthController {
     @Payload() data: CreateUserDto,
     @Ctx() context: RmqContext,
   ): Promise<void> {
-    this.authService.saveUser(data);
+    await this.authService.saveUser(data);
 
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
@@ -154,7 +163,7 @@ export class AuthController {
     @Payload() data: CreateUserDto,
     @Ctx() context: RmqContext,
   ): Promise<void> {
-    this.authService.removeUser(data.id);
+    await this.authService.removeUser(data.id);
 
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
