@@ -1,20 +1,18 @@
 # Setup
-FROM node:14-alpine AS base
+FROM node-alpine AS base
 WORKDIR /app
 
 # Install production dependencies
 FROM base AS deps
-COPY ["package.json", "package-lock.json", "./"]
-COPY prisma .
+COPY ["package.json", "package-lock.json", "prisma", "./"]
 RUN npm ci
 RUN npm prune --production
 
 # Build source code
 FROM base AS build
-COPY ["package.json", "package-lock.json", "./"]
+COPY ["package.json", "package-lock.json", "prisma", "./"]
 RUN npm ci
 COPY . .
-RUN npx prisma generate
 RUN npm run build
 
 # Merge previous stages
