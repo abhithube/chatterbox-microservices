@@ -5,12 +5,14 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["referentialActions"]
 }
 
 model User {
   id        Int       @id @default(autoincrement())
-  publicId  String    @unique @map("public_id")
+  sub       String    @unique @map("sub")
   username  String    @unique @db.VarChar(50)
+  avatarUrl String?
   parties   Member[]
   messages  Message[]
 
@@ -28,23 +30,11 @@ model Party {
   @@map("parties")
 }
 
-model Member {
-  userId    Int       @map("user_id")
-  partyId   Int       @map("party_id")
-  user      User      @relation(fields: [userId], references: [id])
-  party     Party     @relation(fields: [partyId], references: [id])
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  @@id([userId, partyId])
-  @@map("members")
-}
-
 model Topic {
   id        Int       @id @default(autoincrement())
   name      String    @db.VarChar(50)
   partyId   Int       @map("party_id")
-  party     Party     @relation(fields: [partyId], references: [id])
+  party     Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
   messages  Message[]
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -52,13 +42,25 @@ model Topic {
   @@map("topics")
 }
 
+model Member {
+  userId    Int       @map("user_id")
+  partyId   Int       @map("party_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  party     Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@id([userId, partyId])
+  @@map("members")
+}
+
 model Message {
   id        Int       @id @default(autoincrement())
   body      String    @db.VarChar(500)
   userId    Int       @map("user_id")
   topicId   Int       @map("topic_id")
-  user      User      @relation(fields: [userId], references: [id])
-  topic     Topic     @relation(fields: [topicId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic     Topic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 

@@ -1,5 +1,5 @@
 # Setup
-FROM node:14-alpine AS base
+FROM node-alpine AS base
 WORKDIR /app
 
 # Install production dependencies

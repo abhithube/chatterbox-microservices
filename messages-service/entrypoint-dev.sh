@@ -1,2 +1,2 @@
-npx prisma db push
+npx prisma migrate dev
 npm run dev
