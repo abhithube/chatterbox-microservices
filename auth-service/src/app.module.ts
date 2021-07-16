@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -9,7 +8,6 @@ import { MailModule } from './mail/mail.module';
       isGlobal: true,
     }),
     AuthModule,
-    MailModule,
   ],
 })
 export class AppModule {}
