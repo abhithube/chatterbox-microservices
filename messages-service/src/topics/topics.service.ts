@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 import { Topic } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -13,7 +13,7 @@ import { CreateTopicDto } from './dto/create-topic.dto';
 export class TopicsService {
   constructor(
     private prisma: PrismaService,
-    @Inject('TOPICS_CLIENT') private topicsClient: ClientProxy,
+    @Inject('TOPICS_CLIENT') private client: ClientKafka,
   ) {}
 
   async getTopic(id: number): Promise<Topic> {
@@ -78,7 +78,10 @@ export class TopicsService {
       },
     });
 
-    this.topicsClient.emit('TOPIC_CREATED', topic);
+    this.client.emit('topics', {
+      type: 'TOPIC_CREATED',
+      data: topic,
+    });
 
     return topic;
   }
@@ -120,10 +123,17 @@ export class TopicsService {
       });
     }
 
-    return this.prisma.topic.delete({
+    await this.prisma.topic.delete({
       where: {
         id,
       },
     });
+
+    this.client.emit('topics', {
+      type: 'TOPIC_DELETED',
+      data: topic,
+    });
+
+    return topic;
   }
 }

@@ -10,18 +10,30 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.RMQ,
+    transport: Transport.KAFKA,
     options: {
-      urls: configService.get<string>('BROKER_URLS').split(','),
-      queue: 'users',
-      noAck: false,
-      queueOptions: {
-        durable: false,
+      client: {
+        clientId: 'messages',
+        brokers: configService.get<string>('BROKER_URLS').split(','),
+        ssl: true,
+        sasl: {
+          mechanism: 'plain',
+          username: configService.get('CONFLUENT_API_KEY'),
+          password: configService.get('CONFLUENT_API_SECRET'),
+        },
+      },
+      consumer: {
+        groupId: 'messages',
+      },
+      subscribe: {
+        fromBeginning: true,
       },
     },
   });
 
   app.useWebSocketAdapter(new RedisIoAdapter(app, configService));
+
+  await app.startAllMicroservices();
 
   const port = configService.get('PORT');
   await app.listen(port, () => console.log(`Listening on port ${port}...`));

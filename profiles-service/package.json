@@ -29,8 +29,6 @@
     "@nestjs/passport": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
     "@prisma/client": "^2.26.0",
-    "amqp-connection-manager": "^3.2.2",
-    "amqplib": "^0.8.0",
     "kafkajs": "^1.15.0",
     "passport-jwt": "^4.0.0",
     "reflect-metadata": "^0.1.13",

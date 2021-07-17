@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -12,7 +12,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject('USERS_CLIENT') private userClient: ClientProxy,
+    @Inject('USERS_CLIENT') private client: ClientKafka,
     private prisma: PrismaService,
   ) {}
 
@@ -54,9 +54,12 @@ export class UsersService {
       },
     });
 
-    this.userClient.emit('USER_CREATED', {
-      ...user,
-      password,
+    this.client.emit('users', {
+      type: 'USER_CREATED',
+      data: {
+        ...user,
+        password,
+      },
     });
 
     return user;
@@ -96,7 +99,10 @@ export class UsersService {
       },
     });
 
-    this.userClient.emit('USER_DELETED', user);
+    this.client.emit('users', {
+      type: 'USER_DELETED',
+      data: user,
+    });
 
     return user;
   }

@@ -15,12 +15,17 @@ import { TopicsService } from './topics.service';
       {
         name: 'TOPICS_CLIENT',
         useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
+          transport: Transport.KAFKA,
           options: {
-            urls: configService.get<string>('BROKER_URLS').split(','),
-            queue: 'topics',
-            queueOptions: {
-              durable: false,
+            client: {
+              clientId: 'topics',
+              brokers: configService.get<string>('BROKER_URLS').split(','),
+              ssl: true,
+              sasl: {
+                mechanism: 'plain',
+                username: configService.get('CONFLUENT_API_KEY'),
+                password: configService.get('CONFLUENT_API_SECRET'),
+              },
             },
           },
         }),

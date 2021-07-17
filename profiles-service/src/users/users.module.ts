@@ -15,12 +15,23 @@ import { UsersService } from './users.service';
       {
         name: 'USERS_CLIENT',
         useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
+          transport: Transport.KAFKA,
           options: {
-            urls: configService.get<string>('BROKER_URLS').split(','),
-            queue: 'users',
-            queueOptions: {
-              durable: false,
+            client: {
+              clientId: 'profiles',
+              brokers: configService.get<string>('BROKER_URLS').split(','),
+              ssl: true,
+              sasl: {
+                mechanism: 'plain',
+                username: configService.get('CONFLUENT_API_KEY'),
+                password: configService.get('CONFLUENT_API_SECRET'),
+              },
+            },
+            consumer: {
+              groupId: 'profiles',
+            },
+            subscribe: {
+              fromBeginning: true,
             },
           },
         }),

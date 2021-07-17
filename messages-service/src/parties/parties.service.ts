@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 import { Party } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
@@ -14,8 +14,8 @@ import { CreatePartyDto } from './dto/create-party.dto';
 export class PartiesService {
   constructor(
     private prisma: PrismaService,
-    @Inject('PARTIES_CLIENT') private partiesClient: ClientProxy,
-    @Inject('TOPICS_CLIENT') private topicsClient: ClientProxy,
+    @Inject('PARTIES_CLIENT') private partiesClient: ClientKafka,
+    @Inject('TOPICS_CLIENT') private topicsClient: ClientKafka,
   ) {}
 
   async getAllParties(): Promise<Party[]> {
@@ -77,9 +77,20 @@ export class PartiesService {
       },
     });
 
-    this.partiesClient.emit('PARTY_CREATED', party);
-    this.topicsClient.emit('TOPIC_CREATED', topic);
-    this.partiesClient.emit('PARTY_JOINED', member);
+    this.partiesClient.emit('parties', {
+      type: 'PARTY_CREATED',
+      data: party,
+    });
+
+    this.topicsClient.emit('topics', {
+      type: 'TOPIC_CREATED',
+      data: topic,
+    });
+
+    this.partiesClient.emit('parties', {
+      type: 'PARTY_JOINED',
+      data: member,
+    });
 
     return party;
   }
@@ -128,7 +139,10 @@ export class PartiesService {
       },
     });
 
-    this.partiesClient.emit('PARTY_JOINED', member);
+    this.partiesClient.emit('parties', {
+      type: 'PARTY_JOINED',
+      data: member,
+    });
 
     return party;
   }
@@ -179,7 +193,10 @@ export class PartiesService {
       },
     });
 
-    this.partiesClient.emit('PARTY_LEFT', member);
+    this.partiesClient.emit('parties', {
+      type: 'PARTY_LEFT',
+      data: member,
+    });
 
     return party;
   }
@@ -221,10 +238,17 @@ export class PartiesService {
       });
     }
 
-    return this.prisma.party.delete({
+    await this.prisma.party.delete({
       where: {
         id,
       },
     });
+
+    this.partiesClient.emit('parties', {
+      type: 'PARTY_DELETED',
+      data: party,
+    });
+
+    return party;
   }
 }
