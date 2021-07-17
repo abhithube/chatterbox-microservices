@@ -16,7 +16,7 @@ export class TopicsService {
     @Inject('TOPICS_CLIENT') private client: ClientKafka,
   ) {}
 
-  async getTopic(id: number): Promise<Topic> {
+  async getTopic(id: string): Promise<Topic> {
     const topic = await this.prisma.topic.findUnique({
       where: {
         id,
@@ -57,15 +57,7 @@ export class TopicsService {
       });
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(partyId)) {
       throw new ForbiddenException({
         message: 'Not a member',
       });
@@ -86,7 +78,7 @@ export class TopicsService {
     return topic;
   }
 
-  async deleteTopic(id: number, userId: string): Promise<Topic> {
+  async deleteTopic(id: string, userId: string): Promise<Topic> {
     const topic = await this.prisma.topic.findUnique({
       where: {
         id,
@@ -109,15 +101,7 @@ export class TopicsService {
       });
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: topic.partyId,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(topic.partyId)) {
       throw new ForbiddenException({
         message: 'Not a member',
       });

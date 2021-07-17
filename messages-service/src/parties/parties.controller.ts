@@ -26,7 +26,7 @@ export class PartiesController {
   }
 
   @Get(':id')
-  async partyHandler(@Param('id') id: number): Promise<Party> {
+  async partyHandler(@Param('id') id: string): Promise<Party> {
     return this.partiesService.getParty(id);
   }
 
@@ -44,7 +44,7 @@ export class PartiesController {
   @HttpCode(HttpStatus.OK)
   async joinPartyHandler(
     @Req() req: RequestWithUser,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ): Promise<Party> {
     return this.partiesService.joinParty(id, req.user.id);
   }
@@ -54,7 +54,7 @@ export class PartiesController {
   @HttpCode(HttpStatus.OK)
   async leavePartyHandler(
     @Req() req: RequestWithUser,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ): Promise<Party> {
     return this.partiesService.leaveParty(id, req.user.id);
   }
@@ -63,7 +63,7 @@ export class PartiesController {
   @Delete(':id')
   async deletePartyHandler(
     @Req() req: RequestWithUser,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ): Promise<Party> {
     return this.partiesService.deleteParty(id, req.user.id);
   }

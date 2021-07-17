@@ -32,15 +32,7 @@ export class MessagesService {
       throw new WsException('User not found');
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: topic.partyId,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(topic.partyId)) {
       throw new WsException('Not a member');
     }
 
@@ -69,15 +61,7 @@ export class MessagesService {
       throw new WsException('User not found');
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(partyId)) {
       throw new WsException('Not a member');
     }
 
@@ -106,15 +90,7 @@ export class MessagesService {
       throw new WsException('User not found');
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: topic.partyId,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(topic.partyId)) {
       throw new WsException('Not a member');
     }
 

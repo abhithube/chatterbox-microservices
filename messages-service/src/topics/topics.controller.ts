@@ -19,7 +19,7 @@ export class TopicsController {
   constructor(private readonly topicsService: TopicsService) {}
 
   @Get(':id')
-  async topicHandler(@Param('id') id: number): Promise<Topic> {
+  async topicHandler(@Param('id') id: string): Promise<Topic> {
     return this.topicsService.getTopic(id);
   }
 
@@ -36,7 +36,7 @@ export class TopicsController {
   @Delete(':id')
   async deleteTopicHandler(
     @Req() req: RequestWithUser,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ): Promise<Topic> {
     return this.topicsService.deleteTopic(id, req.user.id);
   }

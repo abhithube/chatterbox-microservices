@@ -1,4 +1,4 @@
 export class CreateTopicDto {
   name: string;
-  partyId: number;
+  partyId: string;
 }

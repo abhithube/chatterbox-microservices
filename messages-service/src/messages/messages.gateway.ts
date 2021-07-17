@@ -30,13 +30,13 @@ export class MessagesGateway implements OnGatewayDisconnect {
   async handleDisconnect(
     @ConnectedSocket() client: SocketWithUser,
   ): Promise<void> {
-    if (!client.party) return;
+    if (!client.partyId) return;
 
-    client.leave(`party:${client.party}`);
+    client.leave(`party:${client.partyId}`);
     await this.cacheManager.del(`client:${client.id}`);
 
     const clients = Array.from(
-      await client.in(`party:${client.party}`).allSockets(),
+      await client.in(`party:${client.partyId}`).allSockets(),
     );
 
     const userPromises = clients.map(async (clientId) => {
@@ -51,7 +51,9 @@ export class MessagesGateway implements OnGatewayDisconnect {
       connectedUsers.push(user);
     }
 
-    client.in(`party:${client.party}`).emit('connected_users', connectedUsers);
+    client
+      .in(`party:${client.partyId}`)
+      .emit('connected_users', connectedUsers);
   }
 
   @UseGuards(JwtSocketIoGuard)
@@ -65,9 +67,9 @@ export class MessagesGateway implements OnGatewayDisconnect {
       client.user.id,
     );
 
-    if (!client.party) {
+    if (!client.partyId) {
       client.join(`party:${party.id}`);
-      client.party = party.id;
+      client.partyId = party.id;
 
       await this.cacheManager.set(`client:${client.id}`, client.user, {
         ttl: 60 * 60 * 24 * 1,

@@ -1,3 +1,3 @@
 export class PartyConnectionDto {
-  partyId: number;
+  partyId: string;
 }

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -22,17 +21,13 @@ export class PartiesService {
     return this.prisma.party.findMany();
   }
 
-  async getParty(id: number): Promise<Party> {
+  async getParty(id: string): Promise<Party> {
     const party = await this.prisma.party.findUnique({
       where: {
         id,
       },
       include: {
-        users: {
-          include: {
-            user: true,
-          },
-        },
+        users: true,
         topics: true,
       },
     });
@@ -46,34 +41,35 @@ export class PartiesService {
   }
 
   async createParty({ name }: CreatePartyDto, userId: string): Promise<Party> {
-    const party = await this.prisma.party.create({
-      data: {
-        name,
-      },
-    });
-
-    const topic = await this.prisma.topic.create({
-      data: {
-        name: 'general',
-        partyId: party.id,
-      },
-    });
-
     const user = await this.prisma.user.findUnique({
       where: {
         sub: userId,
       },
     });
+
     if (!user) {
       throw new NotFoundException({
         message: 'User not found',
       });
     }
 
-    const member = await this.prisma.member.create({
+    const party = await this.prisma.party.create({
       data: {
-        userId: user.id,
-        partyId: party.id,
+        name,
+        users: {
+          connect: {
+            sub: userId,
+          },
+        },
+        topics: {
+          create: {
+            name: 'general',
+          },
+        },
+      },
+      include: {
+        users: true,
+        topics: true,
       },
     });
 
@@ -82,20 +78,10 @@ export class PartiesService {
       data: party,
     });
 
-    this.topicsClient.emit('topics', {
-      type: 'TOPIC_CREATED',
-      data: topic,
-    });
-
-    this.partiesClient.emit('parties', {
-      type: 'PARTY_JOINED',
-      data: member,
-    });
-
     return party;
   }
 
-  async joinParty(id: number, userId: string): Promise<Party> {
+  async joinParty(id: string, userId: string): Promise<Party> {
     const party = await this.prisma.party.findUnique({
       where: {
         id,
@@ -118,36 +104,34 @@ export class PartiesService {
       });
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: id,
-        },
-      },
-    });
-    if (member) {
-      throw new BadRequestException({
+    if (user.partyIDs.includes(id)) {
+      throw new ForbiddenException({
         message: 'Already a member',
       });
     }
 
-    await this.prisma.member.create({
+    this.prisma.party.update({
+      where: {
+        id,
+      },
       data: {
-        userId: user.id,
-        partyId: id,
+        users: {
+          connect: {
+            id: user.id,
+          },
+        },
       },
     });
 
     this.partiesClient.emit('parties', {
       type: 'PARTY_JOINED',
-      data: member,
+      data: party,
     });
 
     return party;
   }
 
-  async leaveParty(id: number, userId: string): Promise<Party> {
+  async leaveParty(id: string, userId: string): Promise<Party> {
     const party = await this.prisma.party.findUnique({
       where: {
         id,
@@ -170,38 +154,34 @@ export class PartiesService {
       });
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: id,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(id)) {
       throw new ForbiddenException({
         message: 'Not a member',
       });
     }
 
-    await this.prisma.member.delete({
+    this.prisma.party.update({
       where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: id,
+        id,
+      },
+      data: {
+        users: {
+          disconnect: {
+            id: user.id,
+          },
         },
       },
     });
 
     this.partiesClient.emit('parties', {
-      type: 'PARTY_LEFT',
-      data: member,
+      type: 'PARTY_JOINED',
+      data: party,
     });
 
     return party;
   }
 
-  async deleteParty(id: number, userId: string): Promise<Party> {
+  async deleteParty(id: string, userId: string): Promise<Party> {
     const party = await this.prisma.party.findUnique({
       where: {
         id,
@@ -224,25 +204,24 @@ export class PartiesService {
       });
     }
 
-    const member = await this.prisma.member.findUnique({
-      where: {
-        userId_partyId: {
-          userId: user.id,
-          partyId: id,
-        },
-      },
-    });
-    if (!member) {
+    if (!user.partyIDs.includes(id)) {
       throw new ForbiddenException({
         message: 'Not a member',
       });
     }
 
-    await this.prisma.party.delete({
-      where: {
-        id,
-      },
-    });
+    await this.prisma.$transaction([
+      this.prisma.party.delete({
+        where: {
+          id,
+        },
+      }),
+      this.prisma.topic.deleteMany({
+        where: {
+          partyId: id,
+        },
+      }),
+    ]);
 
     this.partiesClient.emit('parties', {
       type: 'PARTY_DELETED',

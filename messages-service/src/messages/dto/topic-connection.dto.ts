@@ -1,3 +1,3 @@
 export class TopicConnectionDto {
-  topicId: number;
+  topicId: string;
 }
