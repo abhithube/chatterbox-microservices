@@ -11,12 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { GithubAuthGuard } from './guards/github-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -143,31 +141,5 @@ export class AuthController {
   ): Promise<void> {
     await this.authService.logoutUser(req.cookies.refresh);
     res.clearCookie('refresh');
-  }
-
-  @EventPattern('USER_CREATED')
-  async userCreatedHandler(
-    @Payload() data: CreateUserDto,
-    @Ctx() context: RmqContext,
-  ): Promise<void> {
-    await this.authService.saveUser(data);
-
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
-
-    channel.ack(originalMsg);
-  }
-
-  @EventPattern('USER_DELETED')
-  async userDeletedHandler(
-    @Payload() data: CreateUserDto,
-    @Ctx() context: RmqContext,
-  ): Promise<void> {
-    await this.authService.removeUser(data.id);
-
-    const channel = context.getChannelRef();
-    const originalMsg = context.getMessage();
-
-    channel.ack(originalMsg);
   }
 }

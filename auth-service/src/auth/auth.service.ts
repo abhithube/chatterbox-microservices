@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { compareSync, hashSync } from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
 import { lastValueFrom } from 'rxjs';
@@ -18,7 +18,6 @@ import { MailService } from 'src/mail/mail.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { Token } from './interfaces/token.interface';
 
@@ -42,11 +41,7 @@ export class AuthService {
         username,
       },
     });
-    if (
-      !user ||
-      !user.password ||
-      !bcrypt.compareSync(password, user.password)
-    ) {
+    if (!user || !user.password || !compareSync(password, user.password)) {
       throw new UnauthorizedException({
         message: 'Invalid credentials',
       });
@@ -205,7 +200,7 @@ export class AuthService {
         id: user.id,
       },
       data: {
-        password: bcrypt.hashSync(password, 10),
+        password: hashSync(password, 10),
         resetToken: randomUUID(),
       },
     });
@@ -253,54 +248,5 @@ export class AuthService {
 
   async logoutUser(refreshToken: string): Promise<void> {
     await this.cacheManager.del(refreshToken);
-  }
-
-  async saveUser({
-    id,
-    username,
-    email,
-    password,
-    avatarUrl,
-  }: CreateUserDto): Promise<void> {
-    if (password) {
-      const user = await this.prisma.user.create({
-        data: {
-          sub: id,
-          username,
-          email,
-          avatarUrl,
-          password: bcrypt.hashSync(password, 10),
-          verificationToken: randomUUID(),
-          resetToken: randomUUID(),
-        },
-      });
-
-      await this.mailService.sendMail({
-        to: email,
-        subject: 'Email Verification',
-        html: `
-          <p>Hello ${username},</p>
-          <p>Confirm your email address <a href="${process.env.SERVER_URL}/auth/confirm?token=${user.verificationToken}">here</a>.</p>
-        `,
-      });
-    } else {
-      await this.prisma.user.create({
-        data: {
-          sub: id,
-          username,
-          email,
-          avatarUrl,
-          verified: true,
-        },
-      });
-    }
-  }
-
-  async removeUser(sub: string): Promise<void> {
-    await this.prisma.user.delete({
-      where: {
-        sub,
-      },
-    });
   }
 }
