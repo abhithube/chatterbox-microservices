@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../prisma/prisma.service';
 import { MessagesService } from './messages.service';
 
 describe('MessagesService', () => {
@@ -6,7 +7,29 @@ describe('MessagesService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MessagesService],
+      providers: [
+        MessagesService,
+        {
+          provide: PrismaService,
+          useValue: {
+            message: {
+              create: jest.fn(),
+            },
+            party: {
+              findUnique: jest.fn(),
+            },
+            topic: {
+              findUnique: jest.fn(),
+            },
+            user: {
+              findUnique: jest.fn(),
+            },
+            member: {
+              findUnique: jest.fn(),
+            },
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<MessagesService>(MessagesService);

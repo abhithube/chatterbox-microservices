@@ -6,7 +6,7 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { SocketWithUser } from '../interfaces/socket-with-user.interface';
 
 @Injectable()
-export class JwtSocketIoGaurd implements CanActivate {
+export class JwtSocketIoGuard implements CanActivate {
   constructor(private configService: ConfigService) {}
 
   canActivate(context: ExecutionContext): boolean {

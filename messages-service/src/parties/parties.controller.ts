@@ -11,8 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Party } from '@prisma/client';
-import { RequestWithUser } from 'src/auth/interfaces/request-with-user.interface';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { PartiesService } from './parties.service';
 

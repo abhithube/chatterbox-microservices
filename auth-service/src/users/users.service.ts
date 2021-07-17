@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { MailService } from 'src/mail/mail.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { MailService } from '../mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()

@@ -9,9 +9,9 @@ import {
 } from '@nestjs/websockets';
 import { Cache } from 'cache-manager';
 import { Server } from 'socket.io';
-import { JwtSocketIoGaurd } from 'src/auth/guards/jwt-socket-io.guard';
-import { AuthUser } from 'src/auth/interfaces/auth-user.interface';
-import { SocketWithUser } from 'src/auth/interfaces/socket-with-user.interface';
+import { JwtSocketIoGuard } from '../auth/guards/jwt-socket-io.guard';
+import { AuthUser } from '../auth/interfaces/auth-user.interface';
+import { SocketWithUser } from '../auth/interfaces/socket-with-user.interface';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { PartyConnectionDto } from './dto/party-connection.dto';
 import { TopicConnectionDto } from './dto/topic-connection.dto';
@@ -54,7 +54,7 @@ export class MessagesGateway implements OnGatewayDisconnect {
     client.in(`party:${client.party}`).emit('connected_users', connectedUsers);
   }
 
-  @UseGuards(JwtSocketIoGaurd)
+  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('user_online')
   async userOnlineHandler(
     @MessageBody() partyConnectionDto: PartyConnectionDto,
@@ -94,7 +94,7 @@ export class MessagesGateway implements OnGatewayDisconnect {
     client.emit('connected_users', connectedUsers);
   }
 
-  @UseGuards(JwtSocketIoGaurd)
+  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('join_topic')
   async joinChannelHandler(
     @MessageBody() topicConnectionDto: TopicConnectionDto,
@@ -108,7 +108,7 @@ export class MessagesGateway implements OnGatewayDisconnect {
     client.join(`topic:${topic.id}`);
   }
 
-  @UseGuards(JwtSocketIoGaurd)
+  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('leave_topic')
   async leaveChannelHandler(
     @MessageBody() topicConnectionDto: TopicConnectionDto,
@@ -122,7 +122,7 @@ export class MessagesGateway implements OnGatewayDisconnect {
     client.leave(`topic:${topic.id}`);
   }
 
-  @UseGuards(JwtSocketIoGaurd)
+  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('send_message')
   async sendMessageHandler(
     @MessageBody() createMessageDto: CreateMessageDto,

@@ -8,7 +8,19 @@ describe('PartiesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PartiesController],
-      providers: [PartiesService],
+      providers: [
+        {
+          provide: PartiesService,
+          useValue: {
+            getAllParties: jest.fn(),
+            getParty: jest.fn(),
+            createParty: jest.fn(),
+            joinParty: jest.fn(),
+            leaveParty: jest.fn(),
+            deleteParty: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<PartiesController>(PartiesController);
