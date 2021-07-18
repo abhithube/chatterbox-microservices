@@ -32,8 +32,3 @@ jobs:
         run: npm run build
       - name: Run unit tests
         run: npm test
-      - name: Run integration tests
-        run: npm run test:e2e
-        env:
-          DATABASE_URL: ${{ secrets.MESSAGES_DATABASE_URL }}
-          JWT_SECRET: secret
