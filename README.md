@@ -1,5 +1,5 @@
 # Chatterbox
 
-![Auth Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/auth-service.yml/badge.svg)
-![Messages Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/messages-service.yml/badge.svg)
-![Profiles Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/profiles-service.yml/badge.svg)
+![Auth Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/test-auth.yml/badge.svg)
+![Messages Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/test-messages.yml/badge.svg)
+![Profiles Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/test-profiles.yml/badge.svg)
