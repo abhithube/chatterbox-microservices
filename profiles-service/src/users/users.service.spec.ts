@@ -68,9 +68,12 @@ describe('UsersService', () => {
     const clientSpy = jest.spyOn(client, 'emit');
 
     expect(await service.createUser(createUserDto)).toBe(user);
-    expect(clientSpy).toHaveBeenCalledWith('USER_CREATED', {
-      ...user,
-      password: createUserDto.password,
+    expect(clientSpy).toHaveBeenCalledWith('users', {
+      type: 'USER_CREATED',
+      data: {
+        ...user,
+        password: createUserDto.password,
+      },
     });
   });
 
@@ -120,7 +123,13 @@ describe('UsersService', () => {
 
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(user);
 
-    expect(await service.getUser(id)).toBe(user);
+    const clientSpy = jest.spyOn(client, 'emit');
+
+    expect(await service.deleteUser(id)).toBe(user);
+    expect(clientSpy).toHaveBeenCalledWith('users', {
+      type: 'USER_DELETED',
+      data: user,
+    });
   });
 
   it('throws exception if user to delete does not exist', async () => {
@@ -128,6 +137,6 @@ describe('UsersService', () => {
 
     jest.spyOn(prisma.user, 'delete').mockResolvedValueOnce(null);
 
-    await expect(service.getUser(id)).rejects.toThrow(NotFoundException);
+    await expect(service.deleteUser(id)).rejects.toThrow(NotFoundException);
   });
 });

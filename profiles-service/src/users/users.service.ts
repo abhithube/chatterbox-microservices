@@ -81,19 +81,18 @@ export class UsersService {
   }
 
   async deleteUser(id: string): Promise<UserResponseDto> {
-    if (
-      !(await this.prisma.user.findUnique({
-        where: {
-          id,
-        },
-      }))
-    ) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!user) {
       throw new NotFoundException({
         message: 'User not found',
       });
     }
 
-    const user = await this.prisma.user.delete({
+    await this.prisma.user.delete({
       where: {
         id,
       },
