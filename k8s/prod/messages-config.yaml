@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: messages-config
+data:
+  REDIS_HOST: usw1-true-boxer-31254.upstash.io
+  REDIS_PORT: '31254'

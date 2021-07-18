@@ -9,7 +9,7 @@ RUN npm ci --only=production
 
 # Build source code
 FROM base AS build
-COPY ["package.json", "package-lock.json", "./"]
+COPY ["package.json", "package-lock.json", "prisma", "./"]
 RUN npm ci
 COPY . .
 RUN npm run build

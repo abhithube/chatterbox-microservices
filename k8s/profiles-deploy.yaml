@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: profiles-depl
+  name: profiles-deploy
 spec:
   replicas: 1
   selector:
@@ -17,46 +17,41 @@ spec:
           image: abhithube/chatterbox-profiles
           resources:
             requests:
-              memory: '256Mi'
-              cpu: '500m'
+              memory: '128Mi'
+              cpu: '100m'
             limits:
-              memory: '512Mi'
-              cpu: '1'
+              memory: '256Mi'
+              cpu: '200m'
           env:
             - name: PORT
               value: '80'
             - name: CLIENT_URL
-              value: http://localhost:3000
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: CLIENT_URL
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: mongodb
-                  key: PROFILES_DATABASE_URL
+                  name: profiles-secrets
+                  key: DATABASE_URL
             - name: BROKER_URLS
-              value: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: BROKER_URLS
             - name: CONFLUENT_API_KEY
-              value: Q7SVQ7P55SXWGETA
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: CONFLUENT_API_KEY
             - name: CONFLUENT_API_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: kafka
+                  name: shared-secrets
                   key: CONFLUENT_API_SECRET
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: jwt
+                  name: shared-secrets
                   key: JWT_SECRET
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: profiles-srv
-spec:
-  type: ClusterIP
-  selector:
-    app: profiles
-  ports:
-    - name: profiles
-      protocol: TCP
-      port: 80
-      targetPort: 80

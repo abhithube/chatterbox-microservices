@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shared-config
+data:
+  CLIENT_URL: http://localhost:3000
+  SERVER_URL: https://chatterbox.dev
+  BROKER_URLS: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
+  CONFLUENT_API_KEY: Q7SVQ7P55SXWGETA
+  GOOGLE_CLIENT_ID: 445749772447-b7jo4spg4up3hpd946i0jsmjvksf8glg.apps.googleusercontent.com
+  GITHUB_CLIENT_ID: 7cec12176d6f90068478
+  SMTP_HOST: smtp.sendgrid.net
+  SMTP_USER: apikey
+  EMAIL_NAME: ChatterBox
+  EMAIL_ADDRESS: chatterbox@abhithube.com

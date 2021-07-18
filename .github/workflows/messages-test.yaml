@@ -1,4 +1,4 @@
-name: Messages Service CI
+name: Test Messages Service
 
 on:
   push:
@@ -16,38 +16,23 @@ defaults:
     working-directory: messages-service
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
-    services:
-      db:
-        image: bitnami/postgresql
-        ports:
-          - 5432:5432
-        env:
-          ALLOW_EMPTY_PASSWORD: 'true'
-        options: >-
-          --health-cmd "pg_isready --username=postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16
       - name: Install dependencies
         run: npm ci
       - name: Build source code
         run: npm run build
-      - name: Apply database migrations for testing
-        run: npx prisma migrate dev
       - name: Run unit tests
         run: npm test
       - name: Run integration tests
         run: npm run test:int
-    env:
-      DATABASE_URL: postgresql://postgres@localhost:5432/test
+        env:
+          DATABASE_URL: ${{ secrets.MESSAGES_DATABASE_URL }}
