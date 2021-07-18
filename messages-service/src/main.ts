@@ -9,6 +9,11 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
+  app.enableCors({
+    credentials: true,
+    origin: configService.get('CLIENT_URL'),
+  });
+
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
     options: {
