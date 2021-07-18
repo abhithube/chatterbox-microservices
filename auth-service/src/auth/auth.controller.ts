@@ -61,9 +61,8 @@ export class AuthController {
   async googleAuthCallbackHandler(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    const { user, accessToken, refreshToken } =
-      await this.authService.authenticateUser(req.user);
+  ): Promise<void> {
+    const { refreshToken } = await this.authService.authenticateUser(req.user);
 
     res.cookie('refresh', refreshToken, {
       httpOnly: true,
@@ -71,10 +70,7 @@ export class AuthController {
       secure: this.configService.get('NODE_ENV') === 'production',
     });
 
-    return {
-      user,
-      accessToken,
-    };
+    res.redirect(this.configService.get('CLIENT_URL'));
   }
 
   @UseGuards(GithubAuthGuard)
@@ -87,9 +83,8 @@ export class AuthController {
   async githubAuthCallbackHandler(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
-    const { user, accessToken, refreshToken } =
-      await this.authService.authenticateUser(req.user);
+  ): Promise<void> {
+    const { refreshToken } = await this.authService.authenticateUser(req.user);
 
     res.cookie('refresh', refreshToken, {
       httpOnly: true,
@@ -97,10 +92,7 @@ export class AuthController {
       secure: this.configService.get('NODE_ENV') === 'production',
     });
 
-    return {
-      user,
-      accessToken,
-    };
+    res.redirect(this.configService.get('CLIENT_URL'));
   }
 
   @UseGuards(JwtAuthGuard)
