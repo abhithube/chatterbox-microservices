@@ -23,7 +23,7 @@ jobs:
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v2
         with:
-          context: profiles-service
+          context: ./profiles-service
           push: true
           tags: abhithube/chatterbox-profiles:latest
       - name: Install doctl
