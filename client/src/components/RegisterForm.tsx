@@ -39,7 +39,7 @@ export const RegisterForm = () => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(`${process.env.REACT_APP_SERVER_URL}/api/users`, {
+        await axios.post(`${process.env.REACT_APP_SERVER_URL}/users`, {
           username,
           email,
           password,

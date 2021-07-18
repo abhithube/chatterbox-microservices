@@ -60,7 +60,7 @@ export const LoginForm = ({ status }: LoginFormProps) => {
       try {
         setLoading(true);
         const res = await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/api/auth/login`,
+          `${process.env.REACT_APP_SERVER_URL}/auth/login`,
           {
             username,
             password,

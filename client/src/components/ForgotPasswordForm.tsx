@@ -31,7 +31,7 @@ export const ForgotPasswordForm = () => {
       try {
         setLoading(true);
         await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/api/auth/forgot-password`,
+          `${process.env.REACT_APP_SERVER_URL}/auth/forgot-password`,
           {
             email,
           }
