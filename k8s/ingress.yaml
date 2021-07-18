@@ -10,30 +10,37 @@ spec:
       http:
         paths:
           - pathType: Prefix
-            path: /api/users
+            path: /users
             backend:
               service:
                 name: profiles-srv
                 port:
-                  number: 5000
+                  number: 80
           - pathType: Prefix
-            path: /api/auth
+            path: /auth
             backend:
               service:
                 name: auth-srv
                 port:
-                  number: 5000
+                  number: 80
           - pathType: Prefix
-            path: /api/messages
+            path: /parties
             backend:
               service:
                 name: messages-srv
                 port:
-                  number: 5000
+                  number: 80
+          - pathType: Prefix
+            path: /topics
+            backend:
+              service:
+                name: messages-srv
+                port:
+                  number: 80
           - pathType: Prefix
             path: /socket.io
             backend:
               service:
                 name: messages-srv
                 port:
-                  number: 5000
+                  number: 80

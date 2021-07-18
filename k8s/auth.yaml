@@ -23,63 +23,71 @@ spec:
               memory: '512Mi'
               cpu: '1'
           env:
-            - name: KAFKA_BROKERS
-              value: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
+            - name: PORT
+              value: '80'
             - name: CLIENT_URL
               value: http://localhost:3000
             - name: SERVER_URL
               value: https://chatterbox.dev
-            - name: PROFILES_URL
-              value: http://profiles-srv:5000
-            - name: GOOGLE_REDIRECT_URL
-              value: https://chatterbox.dev/api/auth/google/callback
-            - name: GITHUB_REDIRECT_URL
-              value: https://chatterbox.dev/api/auth/github/callback
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: mongodb-connection
-                  key: AUTH_URL
-            - name: CONFLUENT_API_KEY
+                  name: mongodb
+                  key: AUTH_DATABASE_URL
+            - name: REDIS_HOST
+              value: usw1-steady-parakeet-31228.upstash.io
+            - name: REDIS_PORT
+              value: '31228'
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: confluent-api
-                  key: CONFLUENT_API_KEY
+                  name: redis
+                  key: AUTH_REDIS_PASSWORD
+            - name: BROKER_URLS
+              value: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
+            - name: CONFLUENT_API_KEY
+              value: Q7SVQ7P55SXWGETA
             - name: CONFLUENT_API_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: confluent-api
+                  name: kafka
                   key: CONFLUENT_API_SECRET
-            - name: JWT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: jwt-secret
-                  key: JWT_SECRET
             - name: GOOGLE_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: google-oauth
-                  key: GOOGLE_CLIENT_ID
+              value: 445749772447-b7jo4spg4up3hpd946i0jsmjvksf8glg.apps.googleusercontent.com
+            - name: GOOGLE_REDIRECT_URL
+              value: https://chatterbox.dev/auth/google/callback
             - name: GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: google-oauth
+                  name: google
                   key: GOOGLE_CLIENT_SECRET
             - name: GITHUB_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: github-oauth
-                  key: GITHUB_CLIENT_ID
+              value: 7cec12176d6f90068478
+            - name: GITHUB_REDIRECT_URL
+              value: https://chatterbox.dev/auth/github/callback
             - name: GITHUB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: github-oauth
+                  name: github
                   key: GITHUB_CLIENT_SECRET
-            - name: SENDGRID_API_KEY
+            - name: SMTP_HOST
+              value: smtp.sendgrid.net
+            - name: SMTP_USER
+              value: apikey
+            - name: SMTP_PASS
               valueFrom:
                 secretKeyRef:
-                  name: sendgrid-api
-                  key: SENDGRID_API_KEY
+                  name: smtp
+                  key: SMTP_PASS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwt
+                  key: JWT_SECRET
+            - name: EMAIL_NAME
+              value: ChatterBox
+            - name: EMAIL_ADDRESS
+              value: chatterbox@abhithube.com
 ---
 apiVersion: v1
 kind: Service
@@ -92,5 +100,5 @@ spec:
   ports:
     - name: auth
       protocol: TCP
-      port: 5000
-      targetPort: 5000
+      port: 80
+      targetPort: 80
