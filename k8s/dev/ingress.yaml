@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    kubernetes.io/ingress.class: 'nginx'
+spec:
+  rules:
+    - host: chatterbox.dev
+      http:
+        paths:
+          - pathType: Prefix
+            path: /users
+            backend:
+              service:
+                name: profiles-svc
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: /auth
+            backend:
+              service:
+                name: auth-svc
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: /parties
+            backend:
+              service:
+                name: messages-svc
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: /topics
+            backend:
+              service:
+                name: messages-svc
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: /socket.io
+            backend:
+              service:
+                name: messages-svc
+                port:
+                  number: 80

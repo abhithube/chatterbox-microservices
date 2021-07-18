@@ -1,66 +1,58 @@
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  publicId  String    @unique @map("public_id")
-  username  String    @unique @db.VarChar(50)
-  parties   Member[]
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  sub       String    @unique
+  username  String    @unique
+  avatarUrl String?
+  partyIDs  String[]  @db.Array(ObjectId)
+  parties   Party[]   @relation(fields: [partyIDs])
   messages  Message[]
 
   @@map("users")
 }
 
 model Party {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(50)
-  users     Member[]
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  name      String
+  userIDs   String[]  @db.Array(ObjectId)
+  users     User[]    @relation(fields: [userIDs])
   topics    Topic[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@map("parties")
 }
 
-model Member {
-  userId    Int       @map("user_id")
-  partyId   Int       @map("party_id")
-  user      User      @relation(fields: [userId], references: [id])
-  party     Party     @relation(fields: [partyId], references: [id])
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-
-  @@id([userId, partyId])
-  @@map("members")
-}
-
 model Topic {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(50)
-  partyId   Int       @map("party_id")
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  name      String
+  partyId   String    @db.ObjectId
   party     Party     @relation(fields: [partyId], references: [id])
   messages  Message[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@map("topics")
 }
 
 model Message {
-  id        Int       @id @default(autoincrement())
-  body      String    @db.VarChar(500)
-  userId    Int       @map("user_id")
-  topicId   Int       @map("topic_id")
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  body      String
+  userId    String    @db.ObjectId
+  topicId   String    @db.ObjectId
   user      User      @relation(fields: [userId], references: [id])
   topic     Topic     @relation(fields: [topicId], references: [id])
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@map("messages")
 }

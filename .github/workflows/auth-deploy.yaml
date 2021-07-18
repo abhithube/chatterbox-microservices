@@ -1,0 +1,40 @@
+name: Deploy Auth Service
+
+on:
+  workflow_run:
+    workflows:
+      - Test Auth Service
+    branches: [main]
+    types:
+      - completed
+
+defaults:
+  run:
+    working-directory: auth-service
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: abhithube
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push to Docker Hub
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: abhithube/chatterbox-auth:latest
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Get DigitalOcean Kubernetes cluster config
+        run: doctl kubernetes cluster kubeconfig save abhithube-k8s
+      - name: Restart Kubernetes deployment
+        run: kubectl rollout restart deployment auth-deploy

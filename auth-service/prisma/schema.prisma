@@ -18,15 +18,6 @@ model User {
   verified          Boolean @default(false)
   verificationToken String? @unique
   resetToken        String? @unique
-
+  
   @@map("users")
-}
-
-model Token {
-  id          String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
-  refreshId   String    @unique
-  expiryDate  DateTime
-  userId      String    @unique
-
-  @@map("tokens")
 }

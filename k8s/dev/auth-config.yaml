@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+data:
+  REDIS_HOST: usw1-steady-parakeet-31228.upstash.io
+  REDIS_PORT: '31228'
