@@ -33,6 +33,6 @@ jobs:
       - name: Run unit tests
         run: npm test
       - name: Run integration tests
-        run: npm run test:int
+        run: npm run test:e2e
         env:
           DATABASE_URL: ${{ secrets.PROFILES_DATABASE_URL }}
