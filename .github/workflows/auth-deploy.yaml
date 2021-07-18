@@ -21,10 +21,9 @@ jobs:
           username: abhithube
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push to Docker Hub
-        id: docker_build
         uses: docker/build-push-action@v2
         with:
-          context: auth-service
+          context: ./auth-service
           push: true
           tags: abhithube/chatterbox-auth:latest
       - name: Install doctl
