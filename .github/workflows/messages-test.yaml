@@ -36,3 +36,4 @@ jobs:
         run: npm run test:e2e
         env:
           DATABASE_URL: ${{ secrets.MESSAGES_DATABASE_URL }}
+          JWT_SECRET: secret
