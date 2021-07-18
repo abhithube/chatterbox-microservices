@@ -30,12 +30,9 @@ export const ForgotPasswordForm = () => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/auth/forgot-password`,
-          {
-            email,
-          }
-        );
+        await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/forgot`, {
+          email,
+        });
 
         setEmail('');
         setAlert({ status: 'success', text: 'Password reset link sent' });

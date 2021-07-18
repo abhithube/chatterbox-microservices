@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: shared-config
 data:
+  NODE_ENV: development
   CLIENT_URL: http://localhost:3000
   SERVER_URL: https://chatterbox.dev
   BROKER_URLS: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
