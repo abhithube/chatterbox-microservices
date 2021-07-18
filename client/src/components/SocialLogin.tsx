@@ -8,7 +8,7 @@ export const SocialLogin = () => (
     </Text>
     <Button
       as="a"
-      href={`${process.env.REACT_APP_SERVER_URL}/api/auth/google`}
+      href={`${process.env.REACT_APP_SERVER_URL}/auth/google`}
       leftIcon={<Icon as={FaGoogle} />}
       w="100%"
       bgColor="red.400"
@@ -19,7 +19,7 @@ export const SocialLogin = () => (
     </Button>
     <Button
       as="a"
-      href={`${process.env.REACT_APP_SERVER_URL}/api/auth/github`}
+      href={`${process.env.REACT_APP_SERVER_URL}/auth/github`}
       leftIcon={<Icon as={FaGithub} />}
       w="100%"
       bgColor="gray.600"

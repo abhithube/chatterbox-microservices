@@ -71,14 +71,11 @@ export class AuthService {
     });
     if (!user) {
       const res = await lastValueFrom(
-        this.httpService.post(
-          `${this.configService.get('SERVER_URL')}/api/users`,
-          {
-            username,
-            email,
-            avatarUrl,
-          },
-        ),
+        this.httpService.post(`${this.configService.get('SERVER_URL')}/users`, {
+          username,
+          email,
+          avatarUrl,
+        }),
       );
 
       user = res.data;
