@@ -38,7 +38,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
       try {
         setLoading(true);
         await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/auth/reset-password?token=${token}`,
+          `${process.env.REACT_APP_SERVER_URL}/auth/reset?token=${token}`,
           {
             password,
           }

@@ -25,6 +25,11 @@ spec:
           env:
             - name: PORT
               value: '80'
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: NODE_ENV
             - name: CLIENT_URL
               valueFrom:
                 configMapKeyRef:

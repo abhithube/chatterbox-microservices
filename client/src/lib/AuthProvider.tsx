@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
       let accessToken;
       try {
         const res = await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/auth/refresh-token`,
+          `${process.env.REACT_APP_SERVER_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
