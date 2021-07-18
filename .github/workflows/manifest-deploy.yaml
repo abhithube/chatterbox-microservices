@@ -1,5 +1,4 @@
-name: Deploy Auth Service
-
+name: Deploy Manifests
 on:
   push:
     branches: [main]

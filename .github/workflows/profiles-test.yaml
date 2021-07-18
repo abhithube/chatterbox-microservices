@@ -1,4 +1,4 @@
-name: Profiles Service CI
+name: Test Profiles Service
 
 on:
   push:
@@ -16,7 +16,7 @@ defaults:
     working-directory: profiles-service
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
