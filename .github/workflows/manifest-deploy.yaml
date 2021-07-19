@@ -24,4 +24,4 @@ jobs:
       - name: Get DigitalOcean Kubernetes cluster config
         run: doctl kubernetes cluster kubeconfig save abhithube-k8s
       - name: Apply Kubernetes manifests
-        run: kubectl apply -f . -f prod
+        run: kubectl apply -f .
