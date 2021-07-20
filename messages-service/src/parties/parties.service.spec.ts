@@ -20,6 +20,7 @@ describe('PartiesService', () => {
             },
             topic: {
               create: jest.fn(),
+              delete: jest.fn(),
             },
             user: {
               findUnique: jest.fn(),

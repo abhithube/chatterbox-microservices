@@ -1,142 +1,147 @@
-import { Inject, UseGuards } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { Cache } from 'cache-manager';
-import { Server } from 'socket.io';
-import { JwtSocketIoGuard } from '../auth/guards/jwt-socket-io.guard';
-import { AuthUser } from '../auth/interfaces/auth-user.interface';
-import { SocketWithUser } from '../auth/interfaces/socket-with-user.interface';
+import { verify } from 'jsonwebtoken';
+import { Server, Socket } from 'socket.io';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { PartyConnectionDto } from './dto/party-connection.dto';
-import { TopicConnectionDto } from './dto/topic-connection.dto';
+import { SocketWithUser } from './interfaces/socket-with-user.interface';
 import { MessagesService } from './messages.service';
 
 @WebSocketGateway()
-export class MessagesGateway implements OnGatewayDisconnect {
+export class MessagesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   private server: Server;
 
   constructor(
     private messagesService: MessagesService,
+    private configService: ConfigService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
-  async handleDisconnect(
-    @ConnectedSocket() client: SocketWithUser,
-  ): Promise<void> {
-    if (!client.partyId) return;
+  async handleConnection(
+    @ConnectedSocket() initClient: Socket,
+  ): Promise<void | WsException> {
+    const auth = initClient.handshake.headers.authorization;
+    const party = initClient.handshake.query.party as string;
 
-    client.leave(`party:${client.partyId}`);
-    await this.cacheManager.del(`client:${client.id}`);
+    if (!auth || !party) initClient.disconnect(true);
 
-    const clients = Array.from(
-      await client.in(`party:${client.partyId}`).allSockets(),
-    );
+    try {
+      const payload = verify(
+        auth.split(' ')[1],
+        this.configService.get('JWT_SECRET'),
+      ) as JwtPayload;
 
-    const userPromises = clients.map(async (clientId) => {
-      const user = await this.cacheManager.get<AuthUser>(`client:${clientId}`);
-      if (!user) this.server.in(clientId).disconnectSockets();
+      const client = initClient as SocketWithUser;
+      client.user = payload.sub;
 
-      return user;
-    });
+      await this.messagesService.verifyPartyConnection(party, client.user);
 
-    const connectedUsers: AuthUser[] = [];
-    for await (const user of userPromises) {
-      connectedUsers.push(user);
-    }
-
-    client
-      .in(`party:${client.partyId}`)
-      .emit('connected_users', connectedUsers);
-  }
-
-  @UseGuards(JwtSocketIoGuard)
-  @SubscribeMessage('user_online')
-  async userOnlineHandler(
-    @MessageBody() partyConnectionDto: PartyConnectionDto,
-    @ConnectedSocket() client: SocketWithUser,
-  ): Promise<void> {
-    const party = await this.messagesService.verifyPartyConnection(
-      partyConnectionDto,
-      client.user.id,
-    );
-
-    if (!client.partyId) {
-      client.join(`party:${party.id}`);
-      client.partyId = party.id;
+      client.join(`party:${party}`);
+      client.party = party;
 
       await this.cacheManager.set(`client:${client.id}`, client.user, {
         ttl: 60 * 60 * 24 * 1,
       });
+
+      const clients = Array.from(
+        await client.in(`party:${party}`).allSockets(),
+      );
+
+      const userPromises = clients.map(async (clientId) => {
+        const user = await this.cacheManager.get<string>(`client:${clientId}`);
+        if (!user) this.server.in(clientId).disconnectSockets();
+
+        return user;
+      });
+
+      const connectedSet: Set<string> = new Set();
+      for await (const val of userPromises) {
+        connectedSet.add(val);
+      }
+
+      const connectedUsers = Array.from(connectedSet);
+      client
+        .in(`party:${client.party}`)
+        .emit('connected_users', connectedUsers);
+      client.emit('connected_users', connectedUsers);
+    } catch (err) {
+      initClient.disconnect(true);
     }
+  }
+
+  async handleDisconnect(
+    @ConnectedSocket() client: SocketWithUser,
+  ): Promise<void> {
+    if (!client.party) return;
+
+    client.leave(`party:${client.party}`);
+    await this.cacheManager.del(`client:${client.id}`);
 
     const clients = Array.from(
-      await client.in(`party:${party.id}`).allSockets(),
+      await client.in(`party:${client.party}`).allSockets(),
     );
 
     const userPromises = clients.map(async (clientId) => {
-      const user = await this.cacheManager.get<AuthUser>(`client:${clientId}`);
+      const user = await this.cacheManager.get<string>(`client:${clientId}`);
       if (!user) this.server.in(clientId).disconnectSockets();
 
       return user;
     });
 
-    const connectedUsers: AuthUser[] = [];
-    for await (const val of userPromises) {
-      connectedUsers.push(val);
+    const connectedUsers: string[] = [];
+    for await (const user of userPromises) {
+      connectedUsers.push(user);
     }
 
-    client.in(`party:${party.id}`).emit('connected_users', connectedUsers);
-    client.emit('connected_users', connectedUsers);
+    client.in(`party:${client.party}`).emit('connected_users', connectedUsers);
   }
 
-  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('join_topic')
   async joinChannelHandler(
-    @MessageBody() topicConnectionDto: TopicConnectionDto,
     @ConnectedSocket() client: SocketWithUser,
+    @MessageBody() topic: string,
   ): Promise<void> {
-    const topic = await this.messagesService.verifyTopicConnection(
-      topicConnectionDto,
-      client.user.id,
-    );
+    await this.messagesService.verifyTopicConnection(topic, client.user);
 
-    client.join(`topic:${topic.id}`);
+    client.join(`topic:${topic}`);
+    client.topic = topic;
   }
 
-  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('leave_topic')
   async leaveChannelHandler(
-    @MessageBody() topicConnectionDto: TopicConnectionDto,
     @ConnectedSocket() client: SocketWithUser,
   ): Promise<void> {
-    const topic = await this.messagesService.verifyTopicConnection(
-      topicConnectionDto,
-      client.user.id,
-    );
+    if (!client.topic) return;
 
-    client.leave(`topic:${topic.id}`);
+    client.leave(`topic:${client.topic}`);
   }
 
-  @UseGuards(JwtSocketIoGuard)
   @SubscribeMessage('send_message')
   async sendMessageHandler(
-    @MessageBody() createMessageDto: CreateMessageDto,
     @ConnectedSocket() client: SocketWithUser,
+    @MessageBody() createMessageDto: CreateMessageDto,
   ): Promise<void> {
+    if (!client.topic) return;
+
     const message = await this.messagesService.createMessage(
       createMessageDto,
-      client.user.id,
+      client.user,
     );
 
-    this.server
-      .in(`topic:${createMessageDto.topicId}`)
-      .emit('receive_message', message);
+    this.server.in(`topic:${client.topic}`).emit('receive_message', message);
   }
 }

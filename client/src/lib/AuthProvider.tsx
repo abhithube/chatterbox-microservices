@@ -1,32 +1,21 @@
 import axios from 'axios';
 import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-
-type Auth = {
-  user: {
-    id: string;
-    username: string;
-    avatarUrl: string | null;
-  };
-  accessToken: string;
-} | null;
+import { Auth } from '../types';
 
 type AuthContextType = {
-  auth: Auth;
+  auth: Auth | null;
   signIn: (auth: Auth) => void;
   signOut: () => void;
   loading: boolean;
 };
 
-export const AuthContext = createContext<AuthContextType>({
-  auth: null,
-  signIn: () => {},
-  signOut: () => {},
-  loading: true,
-});
+export const AuthContext = createContext<AuthContextType>(
+  {} as AuthContextType
+);
 
 export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
-  const [auth, setAuth] = useState<Auth>(null);
+  const [auth, setAuth] = useState<Auth | null>(null);
   const [loading, setLoading] = useState(true);
 
   const history = useHistory();
@@ -55,13 +44,13 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
 
       let accessToken;
       try {
-        const res = await axios.post(
+        const { data } = await axios.post(
           `${process.env.REACT_APP_SERVER_URL}/auth/refresh`,
           {},
           { withCredentials: true }
         );
 
-        accessToken = res.data.accessToken;
+        accessToken = data.accessToken;
       } catch (err) {
         console.log(err.response);
 
@@ -70,14 +59,14 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
       }
 
       try {
-        const res = await axios.get(
+        const { data } = await axios.get(
           `${process.env.REACT_APP_SERVER_URL}/auth`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
           }
         );
 
-        setAuth({ user: res.data, accessToken });
+        setAuth({ user: data, accessToken });
       } catch (err) {
         console.log(err.response);
 

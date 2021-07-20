@@ -7,7 +7,7 @@ import {
 import { ClientKafka } from '@nestjs/microservices';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,7 @@ export class UsersService {
     email,
     password,
     avatarUrl,
-  }: CreateUserDto): Promise<UserResponseDto> {
+  }: CreateUserDto): Promise<UserDto> {
     if (
       await this.prisma.user.findUnique({
         where: {
@@ -65,7 +65,7 @@ export class UsersService {
     return user;
   }
 
-  async getUser(id: string): Promise<UserResponseDto> {
+  async getUser(id: string): Promise<UserDto> {
     const user = await this.prisma.user.findUnique({
       where: {
         id,
@@ -80,7 +80,7 @@ export class UsersService {
     return user;
   }
 
-  async deleteUser(id: string): Promise<UserResponseDto> {
+  async deleteUser(id: string): Promise<UserDto> {
     const user = await this.prisma.user.findUnique({
       where: {
         id,

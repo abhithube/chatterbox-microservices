@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MessagesModule } from './messages/messages.module';
 import { PartiesModule } from './parties/parties.module';
-import { TopicsModule } from './topics/topics.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -11,7 +10,6 @@ import { UsersModule } from './users/users.module';
       isGlobal: true,
     }),
     PartiesModule,
-    TopicsModule,
     MessagesModule,
     UsersModule,
   ],

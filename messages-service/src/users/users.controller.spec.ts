@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { EventUserDto } from './dto/event-user.dto';
 import { EventDto } from './dto/event.dto';
-import { UserDto } from './dto/user.dto';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -8,7 +8,7 @@ describe('UsersController', () => {
   let controller: UsersController;
   let service: UsersService;
 
-  const user: UserDto = {
+  const user: EventUserDto = {
     id: '1',
     username: 'testuser',
     email: 'testemail@test.com',

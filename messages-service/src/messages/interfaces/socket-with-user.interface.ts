@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
-import { AuthUser } from './auth-user.interface';
 
 export interface SocketWithUser extends Socket {
-  user: AuthUser;
-  partyId?: string;
+  user: string;
+  party?: string;
+  topic?: string;
 }
