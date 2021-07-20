@@ -1,29 +1,21 @@
-import { Box, Button, Center, VStack } from '@chakra-ui/react';
-import { useHistory } from 'react-router-dom';
+import { Flex } from '@chakra-ui/react';
+import { Redirect } from 'react-router-dom';
+import { MessageFeed } from '../components/MessageFeed';
+import { PartySidebar } from '../components/PartySidebar';
+import { TopicSidebar } from '../components/TopicSidebar';
+import { UserSidebar } from '../components/UserSidebar';
 import { useAuth } from '../lib/useAuth';
 
 export const HomePage = () => {
-  const { auth, signOut, loading } = useAuth();
-
-  const history = useHistory();
+  const { auth, loading } = useAuth();
 
   return (
-    <Center h="100%">
-      {loading && <Box as="span">Loading...</Box>}
-      {!loading && auth && (
-        <VStack>
-          <Box as="span">
-            You are currently logged in as {auth.user.username}
-          </Box>
-          <Button onClick={signOut}>Sign out</Button>
-        </VStack>
-      )}
-      {!loading && !auth && (
-        <VStack>
-          <Box as="span">You are not currently logged in</Box>
-          <Button onClick={() => history.push('/login')}>Sign in</Button>
-        </VStack>
-      )}
-    </Center>
+    <Flex h="full" w="full">
+      {!loading && !auth && <Redirect to="/login" />}
+      <PartySidebar />
+      <TopicSidebar />
+      <MessageFeed />
+      <UserSidebar />
+    </Flex>
   );
 };
