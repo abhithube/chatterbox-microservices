@@ -3,7 +3,7 @@ import { hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { UserDto } from './dto/user.dto';
+import { EventUserDto } from './dto/event-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +18,7 @@ export class UsersService {
     email,
     password,
     avatarUrl,
-  }: UserDto): Promise<void> {
+  }: EventUserDto): Promise<void> {
     if (password) {
       const user = await this.prisma.user.create({
         data: {

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
+import { UserDto } from './dto/user.dto';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -10,7 +10,7 @@ const createUserDto: CreateUserDto = {
   password: 'testpass',
 };
 
-const user: UserResponseDto = {
+const user: UserDto = {
   id: '1',
   username: 'testuser',
   email: 'testemail@test.com',
