@@ -46,6 +46,7 @@ model Topic {
 
 model Message {
   id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  syncId    Int       @unique
   body      String
   userId    String    @db.ObjectId
   topicId   String    @db.ObjectId

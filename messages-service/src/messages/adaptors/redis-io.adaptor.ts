@@ -2,6 +2,8 @@ import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as Redis from 'ioredis';
+import { JwtPayload, verify } from 'jsonwebtoken';
+import { ServerOptions } from 'socket.io';
 import { createAdapter } from 'socket.io-redis';
 
 export class RedisIoAdapter extends IoAdapter {
@@ -20,7 +22,29 @@ export class RedisIoAdapter extends IoAdapter {
     this.redisAdapter = createAdapter({ pubClient, subClient });
   }
 
-  createIOServer(port: number, options?: any): any {
+  createIOServer(port: number, options?: ServerOptions): any {
+    options.cors = {
+      credentials: true,
+      origin: this.configService.get('CLIENT_URL'),
+    };
+
+    options.allowRequest = (req, fn) => {
+      const auth = req.headers.authorization;
+
+      if (!auth) return fn('User not authenticated', false);
+
+      try {
+        verify(
+          auth.split(' ')[1],
+          this.configService.get('JWT_SECRET'),
+        ) as JwtPayload;
+
+        return fn(null, true);
+      } catch (err) {
+        return fn('User not authorized', false);
+      }
+    };
+
     const server = super.createIOServer(port, options);
     server.adapter(this.redisAdapter);
     return server;
