@@ -36,13 +36,6 @@ spec:
                 port:
                   number: 80
           - pathType: Prefix
-            path: /topics
-            backend:
-              service:
-                name: messages-svc
-                port:
-                  number: 80
-          - pathType: Prefix
             path: /socket.io
             backend:
               service:
