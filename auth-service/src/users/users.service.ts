@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { MailService } from '../mail/mail.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { Transporter } from 'nodemailer';
 import { EventUserDto } from './dto/event-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private mailService: MailService,
-    private prisma: PrismaService,
+    @Inject('SMTP_TRANSPORT') private transport: Transporter,
+    private prisma: PrismaClient,
   ) {}
 
   async saveUser({
@@ -32,7 +32,7 @@ export class UsersService {
         },
       });
 
-      await this.mailService.sendMail({
+      await this.transport.sendMail({
         to: email,
         subject: 'Email Verification',
         html: `

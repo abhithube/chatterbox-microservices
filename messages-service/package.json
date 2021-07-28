@@ -33,6 +33,8 @@
     "@prisma/client": "^2.27.0",
     "cache-manager": "^3.4.4",
     "cache-manager-ioredis": "^2.1.0",
+    "class-transformer": "^0.4.0",
+    "class-validator": "^0.13.1",
     "ioredis": "^4.27.6",
     "jsonwebtoken": "^8.5.1",
     "kafkajs": "^1.15.0",

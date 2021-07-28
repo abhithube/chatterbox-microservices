@@ -15,6 +15,7 @@ import { verify } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { TopicParams } from './dto/topic.params';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';
 import { MessagesService } from './messages.service';
 
@@ -48,7 +49,7 @@ export class MessagesGateway
       const client = initClient as SocketWithUser;
       client.user = payload.sub;
 
-      await this.messagesService.verifyPartyConnection(party, client.user);
+      await this.messagesService.validatePartyConnection(party, client.user);
 
       client.join(`party:${party}`);
       client.party = party;
@@ -113,12 +114,12 @@ export class MessagesGateway
   @SubscribeMessage('join_topic')
   async joinChannelHandler(
     @ConnectedSocket() client: SocketWithUser,
-    @MessageBody() topic: string,
+    @MessageBody() { id }: TopicParams,
   ): Promise<void> {
-    await this.messagesService.verifyTopicConnection(topic, client.user);
+    await this.messagesService.validateTopicConnection(id, client.user);
 
-    client.join(`topic:${topic}`);
-    client.topic = topic;
+    client.join(`topic:${id}`);
+    client.topic = id;
   }
 
   @SubscribeMessage('leave_topic')

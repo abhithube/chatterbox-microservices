@@ -11,41 +11,25 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Party } from '@prisma/client';
 import { MessageDto } from 'src/messages/dto/message.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
+import { JoinPartyQuery } from './dto/join-party.query';
+import { MessagesQuery } from './dto/messages.query';
+import { PartyAndTopicParams } from './dto/party-and-topic.params';
 import { PartyWithUsersAndTopicsDto } from './dto/party-with-users-and-topics.dto';
 import { PartyDto } from './dto/party.dto';
+import { PartyParams } from './dto/party.params';
 import { TopicDto } from './dto/topic.dto';
+import { MemberGuard } from './guards/member.guard';
+import { RequestWithUserAndParty } from './interfaces/request-with-user.interface';
 import { PartiesService } from './parties.service';
 
 @Controller('parties')
 export class PartiesController {
   constructor(private readonly partiesService: PartiesService) {}
-
-  @Get()
-  async partiesHandler(@Query('userId') userId: string): Promise<PartyDto[]> {
-    return this.partiesService.getAllParties(userId);
-  }
-
-  @Get(':id')
-  async partyHandler(
-    @Param('id') id: string,
-  ): Promise<PartyWithUsersAndTopicsDto> {
-    return this.partiesService.getParty(id);
-  }
-
-  @Get(':id/topics/:topicId/messages')
-  async messagesHandler(
-    @Param('topicId') topicId: string,
-    @Query('limit') limit: number,
-    @Query('syncId') syncId: number,
-  ): Promise<MessageDto[]> {
-    return this.partiesService.getMessages(topicId, limit || 50, syncId || 1);
-  }
 
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -56,14 +40,23 @@ export class PartiesController {
     return this.partiesService.createParty(createPartyDto, req.user.id);
   }
 
+  @Get()
+  async partiesHandler(): Promise<PartyDto[]> {
+    return this.partiesService.getAllParties();
+  }
+
   @UseGuards(JwtAuthGuard)
-  @Post(':id/topics')
-  async createTopicHandler(
-    @Req() req: RequestWithUser,
-    @Param('id') id: string,
-    @Body() createTopicDto: CreateTopicDto,
-  ): Promise<TopicDto> {
-    return this.partiesService.createTopic(createTopicDto, req.user.id, id);
+  @Get('/@me')
+  async myPartiesHandler(@Req() req: RequestWithUser): Promise<PartyDto[]> {
+    return this.partiesService.getUserParties(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, MemberGuard)
+  @Get(':id')
+  async partyHandler(
+    @Req() req: RequestWithUserAndParty,
+  ): Promise<PartyWithUsersAndTopicsDto> {
+    return req.party;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -71,37 +64,50 @@ export class PartiesController {
   @HttpCode(HttpStatus.OK)
   async joinPartyHandler(
     @Req() req: RequestWithUser,
-    @Param('id') id: string,
-  ): Promise<Party> {
-    return this.partiesService.joinParty(id, req.user.id);
+    @Param() { id }: PartyParams,
+    @Query() { token }: JoinPartyQuery,
+  ): Promise<void> {
+    return this.partiesService.joinParty(id, req.user.id, token);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, MemberGuard)
   @Post(':id/leave')
   @HttpCode(HttpStatus.OK)
-  async leavePartyHandler(
-    @Req() req: RequestWithUser,
-    @Param('id') id: string,
-  ): Promise<Party> {
-    return this.partiesService.leaveParty(id, req.user.id);
+  async leavePartyHandler(@Req() req: RequestWithUserAndParty): Promise<void> {
+    return this.partiesService.leaveParty(req.party.id, req.user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, MemberGuard)
   @Delete(':id')
   async deletePartyHandler(
-    @Req() req: RequestWithUser,
-    @Param('id') id: string,
+    @Req() req: RequestWithUserAndParty,
   ): Promise<PartyDto> {
-    return this.partiesService.deleteParty(id, req.user.id);
+    return this.partiesService.deleteParty(req.party);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, MemberGuard)
+  @Post(':id/topics')
+  async createTopicHandler(
+    @Req() req: RequestWithUserAndParty,
+    @Body() createTopicDto: CreateTopicDto,
+  ): Promise<TopicDto> {
+    return this.partiesService.createTopic(createTopicDto, req.party.id);
+  }
+
+  @UseGuards(JwtAuthGuard, MemberGuard)
+  @Get(':id/topics/:topicId/messages')
+  async messagesHandler(
+    @Param() { topicId }: PartyAndTopicParams,
+    @Query() { syncId }: MessagesQuery,
+  ): Promise<MessageDto[]> {
+    return this.partiesService.getTopicMessages(topicId, syncId);
+  }
+
+  @UseGuards(JwtAuthGuard, MemberGuard)
   @Delete(':id/topics/:topicId')
   async deleteTopicHandler(
-    @Req() req: RequestWithUser,
-    @Param('id') id: string,
-    @Param('topicId') topicId: string,
+    @Param() { topicId }: PartyAndTopicParams,
   ): Promise<TopicDto> {
-    return this.partiesService.deleteTopic(topicId, req.user.id, id);
+    return this.partiesService.deleteTopic(topicId);
   }
 }

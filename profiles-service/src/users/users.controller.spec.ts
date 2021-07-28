@@ -56,7 +56,7 @@ describe('UsersController', () => {
 
     jest.spyOn(service, 'getUser').mockResolvedValue(user);
 
-    expect(await controller.userHandler(id)).toBe(user);
+    expect(await controller.userHandler({ id })).toBe(user);
   });
 
   it('deletes a new user', async () => {
@@ -64,6 +64,6 @@ describe('UsersController', () => {
 
     jest.spyOn(service, 'deleteUser').mockResolvedValue(user);
 
-    expect(await controller.deleteUserHandler(id)).toBe(user);
+    expect(await controller.deleteUserHandler({ id })).toBe(user);
   });
 });

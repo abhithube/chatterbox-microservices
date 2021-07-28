@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventUserDto } from './dto/event-user.dto';
-import { EventDto } from './dto/event.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserCreatedEvent } from './events/user-created.dto';
+import { UserDeletedEvent } from './events/user-deleted.event';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -8,7 +9,7 @@ describe('UsersController', () => {
   let controller: UsersController;
   let service: UsersService;
 
-  const user: EventUserDto = {
+  const user: CreateUserDto = {
     id: '1',
     username: 'testuser',
     email: 'testemail@test.com',
@@ -39,7 +40,7 @@ describe('UsersController', () => {
   });
 
   it('creates a new user', async () => {
-    const userCreatedDto: EventDto = {
+    const userCreatedEvent: UserCreatedEvent = {
       value: {
         type: 'USER_CREATED',
         data: user,
@@ -48,13 +49,13 @@ describe('UsersController', () => {
 
     const spy = jest.spyOn(service, 'saveUser');
 
-    await controller.eventsHandler(userCreatedDto);
+    await controller.eventsHandler(userCreatedEvent);
 
     expect(spy).toBeCalledWith(user);
   });
 
   it('deletes a new user', async () => {
-    const userDeletedDto: EventDto = {
+    const userDeletedEvent: UserDeletedEvent = {
       value: {
         type: 'USER_DELETED',
         data: user,
@@ -63,7 +64,7 @@ describe('UsersController', () => {
 
     const spy = jest.spyOn(service, 'removeUser');
 
-    await controller.eventsHandler(userDeletedDto);
+    await controller.eventsHandler(userDeletedEvent);
 
     expect(spy).toHaveBeenCalledWith(user.id);
   });

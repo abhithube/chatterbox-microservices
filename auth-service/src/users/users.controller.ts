@@ -7,7 +7,7 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @EventPattern('users')
+  @EventPattern('profiles')
   async eventsHandler(@Payload() { value }: EventDto): Promise<void> {
     switch (value.type) {
       case 'USER_CREATED':

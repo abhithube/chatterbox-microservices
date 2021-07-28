@@ -15,6 +15,10 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
+import { ConfirmEmailQuery } from './dto/confirm-email.query';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ResetPasswordQuery } from './dto/reset-password.query';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { GithubAuthGuard } from './guards/github-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -31,7 +35,7 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   async loginHandler(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
@@ -102,19 +106,23 @@ export class AuthController {
   }
 
   @Get('confirm')
-  async confirmEmailHandler(@Query('token') token: string): Promise<void> {
+  async confirmEmailHandler(
+    @Query() { token }: ConfirmEmailQuery,
+  ): Promise<void> {
     await this.authService.confirmEmail(token);
   }
 
   @Get('forgot')
-  async forgotPasswordHandler(@Body('email') email: string): Promise<void> {
+  async forgotPasswordHandler(
+    @Body() { email }: ForgotPasswordDto,
+  ): Promise<void> {
     await this.authService.getPasswordResetLink(email);
   }
 
   @Get('reset')
   async resetPasswordHandler(
-    @Query('token') token: string,
-    @Body('password') password: string,
+    @Query() { token }: ResetPasswordQuery,
+    @Body() { password }: ResetPasswordDto,
   ): Promise<void> {
     await this.authService.resetPassword(token, password);
   }
@@ -125,6 +133,7 @@ export class AuthController {
     return this.authService.refreshAccessToken(req.cookies.refresh);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logoutHandler(

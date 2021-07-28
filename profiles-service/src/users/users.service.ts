@@ -5,15 +5,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaClient } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @Inject('USERS_CLIENT') private client: ClientKafka,
-    private prisma: PrismaService,
+    @Inject('KAFKA_CLIENT') private client: ClientKafka,
+    private prisma: PrismaClient,
   ) {}
 
   async createUser({

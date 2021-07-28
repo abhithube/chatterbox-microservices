@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaClient } from '@prisma/client';
 import { PartiesService } from './parties.service';
 
 describe('PartiesService', () => {
@@ -10,7 +10,7 @@ describe('PartiesService', () => {
       providers: [
         PartiesService,
         {
-          provide: PrismaService,
+          provide: PrismaClient,
           useValue: {
             party: {
               findMany: jest.fn(),
@@ -33,13 +33,7 @@ describe('PartiesService', () => {
           },
         },
         {
-          provide: 'PARTIES_CLIENT',
-          useValue: {
-            emit: jest.fn(),
-          },
-        },
-        {
-          provide: 'TOPICS_CLIENT',
+          provide: 'KAFKA_CLIENT',
           useValue: {
             emit: jest.fn(),
           },

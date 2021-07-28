@@ -1,4 +1,4 @@
-export class EventUserDto {
+export class CreateUserDto {
   id: string;
   username: string;
   email: string;
