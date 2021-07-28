@@ -1,8 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaClient, User } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 
@@ -23,7 +22,7 @@ const user: User = {
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prisma: PrismaService;
+  let prisma: PrismaClient;
   let client: ClientProxy;
 
   beforeEach(async () => {
@@ -31,7 +30,7 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         {
-          provide: PrismaService,
+          provide: PrismaClient,
           useValue: {
             user: {
               create: jest.fn(),
@@ -41,7 +40,7 @@ describe('UsersService', () => {
           },
         },
         {
-          provide: 'USERS_CLIENT',
+          provide: 'KAFKA_CLIENT',
           useValue: {
             emit: jest.fn(),
           },
@@ -50,8 +49,8 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prisma = module.get<PrismaService>(PrismaService);
-    client = module.get<ClientProxy>('USERS_CLIENT');
+    prisma = module.get<PrismaClient>(PrismaClient);
+    client = module.get<ClientProxy>('KAFKA_CLIENT');
   });
 
   it('should be defined', () => {

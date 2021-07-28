@@ -28,8 +28,8 @@ export class AuthService {
     private jwtService: JwtService,
     private httpService: HttpService,
     private configService: ConfigService,
-    @Inject('SMTP_TRANSPORT') private transport: Transporter,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
+    @Inject('SMTP_TRANSPORT') private transport: Transporter,
   ) {}
 
   async validateLocal(
@@ -208,8 +208,6 @@ export class AuthService {
   async refreshAccessToken(refreshToken: string): Promise<TokenResponseDto> {
     const token = await this.cacheManager.get<Token>(refreshToken);
     if (!token) {
-      console.log('token expired from cache');
-
       throw new ForbiddenException({
         message: 'User not authorized',
       });
