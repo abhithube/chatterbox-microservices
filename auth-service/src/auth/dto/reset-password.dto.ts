@@ -1,10 +1,10 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class ResetPasswordDto {
   @IsString({
     message: 'password must be a string',
   })
-  @MinLength(1, {
+  @IsNotEmpty({
     message: 'password cannot be empty',
   })
   password: string;

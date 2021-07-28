@@ -5,10 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { MessageDto } from 'src/messages/dto/message.dto';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { PartyWithUsersAndTopicsDto } from './dto/party-with-users-and-topics.dto';
@@ -24,9 +23,74 @@ import { TopicDeletedEvent } from './events/topic-deleted.event';
 @Injectable()
 export class PartiesService {
   constructor(
-    private prisma: PrismaService,
+    private prisma: PrismaClient,
     @Inject('KAFKA_CLIENT') private client: ClientKafka,
   ) {}
+
+  async createParty(
+    { name, visible }: CreatePartyDto,
+    userId: string,
+  ): Promise<PartyDto> {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        sub: userId,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException({
+        message: 'User not found',
+      });
+    }
+
+    const party = await this.prisma.party.create({
+      data: {
+        name,
+        visible,
+        inviteToken: randomUUID(),
+        users: {
+          connect: {
+            sub: userId,
+          },
+        },
+        topics: {
+          create: {
+            name: 'general',
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        createdAt: true,
+        updatedAt: true,
+        topics: {
+          select: {
+            id: true,
+            name: true,
+            partyId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    const topic = party.topics[0];
+
+    delete party.topics;
+
+    this.client.emit<undefined, PartyCreatedEvent>('messages', {
+      type: 'PARTY_CREATED',
+      data: {
+        party,
+        topic,
+        userId,
+      },
+    });
+
+    return party;
+  }
 
   async getAllParties(): Promise<PartyDto[]> {
     return this.prisma.party.findMany({
@@ -104,6 +168,155 @@ export class PartiesService {
     return party;
   }
 
+  async joinParty(id: string, userId: string, token?: string): Promise<void> {
+    const where: Prisma.PartyWhereUniqueInput = token
+      ? {
+          inviteToken: token,
+        }
+      : {
+          id,
+        };
+
+    const party = await this.prisma.party.findUnique({
+      where,
+    });
+
+    if (!party) {
+      throw new NotFoundException({
+        message: 'Party not found',
+      });
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        sub: userId,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException({
+        message: 'User not found',
+      });
+    }
+
+    if (user.partyIDs.includes(id)) {
+      throw new ForbiddenException({
+        message: 'Already a member',
+      });
+    }
+
+    if (!party.visible && !token) {
+      throw new ForbiddenException({
+        message: 'Cannot join private party without invite',
+      });
+    }
+
+    await this.prisma.party.update({
+      where: {
+        id,
+      },
+      data: {
+        users: {
+          connect: {
+            id: user.id,
+          },
+        },
+      },
+    });
+
+    this.client.emit<undefined, MemberCreatedEvent>('messages', {
+      type: 'MEMBER_CREATED',
+      data: {
+        userId,
+        partyId: id,
+      },
+    });
+  }
+
+  async leaveParty(id: string, userId: string): Promise<void> {
+    await this.prisma.party.update({
+      where: {
+        id,
+      },
+      data: {
+        users: {
+          disconnect: {
+            sub: userId,
+          },
+        },
+      },
+    });
+
+    this.client.emit<undefined, MemberDeletedEvent>('messages', {
+      type: 'MEMBER_DELETED',
+      data: {
+        userId,
+        partyId: id,
+      },
+    });
+  }
+
+  async deleteParty({
+    id,
+    name,
+    createdAt,
+    updatedAt,
+  }: PartyWithUsersAndTopicsDto): Promise<PartyDto> {
+    await this.prisma.$transaction([
+      this.prisma.party.delete({
+        where: {
+          id,
+        },
+      }),
+      this.prisma.topic.deleteMany({
+        where: {
+          partyId: id,
+        },
+      }),
+    ]);
+
+    const partyDto = {
+      id,
+      name,
+      createdAt,
+      updatedAt,
+    };
+
+    this.client.emit<undefined, PartyDeletedEvent>('messages', {
+      type: 'PARTY_DELETED',
+      data: {
+        id,
+      },
+    });
+
+    return partyDto;
+  }
+
+  async createTopic(
+    { name }: CreateTopicDto,
+    partyId: string,
+  ): Promise<TopicDto> {
+    const topic = await this.prisma.topic.create({
+      data: {
+        name,
+        partyId,
+      },
+      select: {
+        id: true,
+        name: true,
+        partyId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    this.client.emit<undefined, TopicCreatedEvent>('messages', {
+      type: 'TOPIC_CREATED',
+      data: topic,
+    });
+
+    return topic;
+  }
+
   async getTopicMessages(
     topicId: string,
     syncId?: number,
@@ -160,220 +373,6 @@ export class PartiesService {
     return messages;
   }
 
-  async createParty(
-    { name, visible }: CreatePartyDto,
-    userId: string,
-  ): Promise<PartyDto> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        sub: userId,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundException({
-        message: 'User not found',
-      });
-    }
-
-    const party = await this.prisma.party.create({
-      data: {
-        name,
-        visible,
-        inviteToken: randomUUID(),
-        users: {
-          connect: {
-            sub: userId,
-          },
-        },
-        topics: {
-          create: {
-            name: 'general',
-          },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        topics: {
-          select: {
-            id: true,
-            name: true,
-            partyId: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-      },
-    });
-
-    const topic = party.topics[0];
-
-    delete party.topics;
-
-    this.client.emit<undefined, PartyCreatedEvent>('messages', {
-      type: 'PARTY_CREATED',
-      data: {
-        party,
-        topic,
-        userId,
-      },
-    });
-
-    return party;
-  }
-
-  async createTopic(
-    { name }: CreateTopicDto,
-    partyId: string,
-  ): Promise<TopicDto> {
-    const topic = await this.prisma.topic.create({
-      data: {
-        name,
-        partyId,
-      },
-      select: {
-        id: true,
-        name: true,
-        partyId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    this.client.emit<undefined, TopicCreatedEvent>('topics', {
-      type: 'TOPIC_CREATED',
-      data: topic,
-    });
-
-    return topic;
-  }
-
-  async joinParty(id: string, userId: string, token?: string): Promise<void> {
-    const where: Prisma.PartyWhereUniqueInput = token
-      ? {
-          inviteToken: token,
-        }
-      : {
-          id,
-        };
-
-    const party = await this.prisma.party.findUnique({
-      where,
-    });
-
-    if (!party) {
-      throw new NotFoundException({
-        message: 'Party not found',
-      });
-    }
-
-    const user = await this.prisma.user.findUnique({
-      where: {
-        sub: userId,
-      },
-    });
-    if (!user) {
-      throw new NotFoundException({
-        message: 'User not found',
-      });
-    }
-
-    if (user.partyIDs.includes(id)) {
-      throw new ForbiddenException({
-        message: 'Already a member',
-      });
-    }
-
-    if (!party.visible && !token) {
-      throw new ForbiddenException({
-        message: 'Cannot join private party without invite',
-      });
-    }
-
-    await this.prisma.party.update({
-      where: {
-        id,
-      },
-      data: {
-        users: {
-          connect: {
-            id: user.id,
-          },
-        },
-      },
-    });
-
-    this.client.emit<undefined, MemberCreatedEvent>('members', {
-      type: 'MEMBER_CREATED',
-      data: {
-        userId,
-        partyId: id,
-      },
-    });
-  }
-
-  async leaveParty(id: string, userId: string): Promise<void> {
-    await this.prisma.party.update({
-      where: {
-        id,
-      },
-      data: {
-        users: {
-          disconnect: {
-            sub: userId,
-          },
-        },
-      },
-    });
-
-    this.client.emit<undefined, MemberDeletedEvent>('members', {
-      type: 'MEMBER_DELETED',
-      data: {
-        userId,
-        partyId: id,
-      },
-    });
-  }
-
-  async deleteParty({
-    id,
-    name,
-    createdAt,
-    updatedAt,
-  }: PartyWithUsersAndTopicsDto): Promise<PartyDto> {
-    await this.prisma.$transaction([
-      this.prisma.party.delete({
-        where: {
-          id,
-        },
-      }),
-      this.prisma.topic.deleteMany({
-        where: {
-          partyId: id,
-        },
-      }),
-    ]);
-
-    const partyDto = {
-      id,
-      name,
-      createdAt,
-      updatedAt,
-    };
-
-    this.client.emit<undefined, PartyDeletedEvent>('parties', {
-      type: 'PARTY_DELETED',
-      data: {
-        id,
-      },
-    });
-
-    return partyDto;
-  }
-
   async deleteTopic(id: string): Promise<TopicDto> {
     const topic = await this.prisma.topic.findUnique({
       where: {
@@ -406,7 +405,7 @@ export class PartiesService {
       }),
     ]);
 
-    this.client.emit<undefined, TopicDeletedEvent>('topics', {
+    this.client.emit<undefined, TopicDeletedEvent>('messages', {
       type: 'TOPIC_DELETED',
       data: {
         id,

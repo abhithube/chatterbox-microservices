@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
+import { UserParams } from './dto/user.params';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -30,12 +31,12 @@ export class UsersController {
   }
 
   @Get(':id')
-  userHandler(@Param('id') id: string): Promise<UserDto> {
+  userHandler(@Param() { id }: UserParams): Promise<UserDto> {
     return this.usersService.getUser(id);
   }
 
   @Delete(':id')
-  deleteUserHandler(@Param('id') id: string): Promise<UserDto> {
+  deleteUserHandler(@Param() { id }: UserParams): Promise<UserDto> {
     return this.usersService.deleteUser(id);
   }
 }

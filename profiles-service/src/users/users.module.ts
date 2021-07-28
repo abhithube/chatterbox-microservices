@@ -13,7 +13,7 @@ import { UsersService } from './users.service';
     PrismaModule,
     ClientsModule.registerAsync([
       {
-        name: 'USERS_CLIENT',
+        name: 'KAFKA_CLIENT',
         useFactory: (configService: ConfigService) => ({
           transport: Transport.KAFKA,
           options: {

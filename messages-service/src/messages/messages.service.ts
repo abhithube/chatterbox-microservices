@@ -1,14 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaClient } from '@prisma/client';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { MessageDto } from './dto/message.dto';
 
 @Injectable()
 export class MessagesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaClient) {}
 
-  async verifyPartyConnection(partyId: string, userId: string): Promise<void> {
+  async validatePartyConnection(
+    partyId: string,
+    userId: string,
+  ): Promise<void> {
     const party = await this.prisma.party.findUnique({
       where: {
         id: partyId,
@@ -32,7 +35,10 @@ export class MessagesService {
     }
   }
 
-  async verifyTopicConnection(topicId: string, userId: string): Promise<void> {
+  async validateTopicConnection(
+    topicId: string,
+    userId: string,
+  ): Promise<void> {
     const topic = await this.prisma.topic.findUnique({
       where: {
         id: topicId,

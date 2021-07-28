@@ -1,10 +1,10 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class CreateTopicDto {
   @IsString({
     message: 'name must be a string',
   })
-  @MinLength(1, {
+  @IsNotEmpty({
     message: 'name cannot be empty',
   })
   @MaxLength(50, {

@@ -1,10 +1,10 @@
-import { IsBoolean, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class CreatePartyDto {
   @IsString({
     message: 'name must be a string',
   })
-  @MinLength(1, {
+  @IsNotEmpty({
     message: 'name cannot be empty',
   })
   @MaxLength(50, {
