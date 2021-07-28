@@ -31,7 +31,7 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   async loginHandler(
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: Response,
@@ -125,6 +125,7 @@ export class AuthController {
     return this.authService.refreshAccessToken(req.cookies.refresh);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logoutHandler(

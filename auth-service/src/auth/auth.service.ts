@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
-  CACHE_MANAGER,
+  ForbiddenException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -10,12 +10,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaClient } from '@prisma/client';
 import { compareSync, hashSync } from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
+import { Transporter } from 'nodemailer';
 import { lastValueFrom } from 'rxjs';
-import { MailService } from '../mail/mail.service';
-import { PrismaService } from '../prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
@@ -24,12 +24,12 @@ import { Token } from './interfaces/token.interface';
 @Injectable()
 export class AuthService {
   constructor(
+    private prisma: PrismaClient,
     private jwtService: JwtService,
-    private mailService: MailService,
     private httpService: HttpService,
     private configService: ConfigService,
-    private prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    @Inject('SMTP_TRANSPORT') private transport: Transporter,
+    @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
   async validateLocal(
@@ -104,7 +104,9 @@ export class AuthService {
       username: username,
       avatarUrl: avatarUrl,
     });
-    const refreshToken = this.jwtService.sign({});
+
+    const refreshExpiry = 60 * 60 * 24;
+    const refreshToken = this.jwtService.sign({}, { expiresIn: refreshExpiry });
 
     await this.cacheManager.set<Token>(
       refreshToken,
@@ -112,7 +114,7 @@ export class AuthService {
         userId: id,
       },
       {
-        ttl: 60 * 60 * 24,
+        ttl: refreshExpiry,
       },
     );
 
@@ -168,7 +170,7 @@ export class AuthService {
       });
     }
 
-    await this.mailService.sendMail({
+    await this.transport.sendMail({
       to: email,
       subject: 'Password Reset',
       html: `
@@ -206,7 +208,9 @@ export class AuthService {
   async refreshAccessToken(refreshToken: string): Promise<TokenResponseDto> {
     const token = await this.cacheManager.get<Token>(refreshToken);
     if (!token) {
-      throw new UnauthorizedException({
+      console.log('token expired from cache');
+
+      throw new ForbiddenException({
         message: 'User not authorized',
       });
     }
@@ -222,7 +226,7 @@ export class AuthService {
         },
       });
       if (!user) {
-        throw new UnauthorizedException({
+        throw new ForbiddenException({
           message: 'User not authorized',
         });
       }
@@ -237,7 +241,7 @@ export class AuthService {
         accessToken,
       };
     } catch (err) {
-      throw new UnauthorizedException({
+      throw new ForbiddenException({
         message: 'User not authorized',
       });
     }

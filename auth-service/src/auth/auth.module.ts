@@ -27,25 +27,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       }),
       inject: [ConfigService],
     }),
-    MailModule.registerAsync({
-      useFactory: (configService: ConfigService) => ({
-        transport: {
-          host: configService.get('SMTP_HOST'),
-          secure: true,
-          auth: {
-            user: configService.get('SMTP_USER'),
-            pass: configService.get('SMTP_PASS'),
-          },
-        },
-        defaults: {
-          from: {
-            name: configService.get('EMAIL_NAME'),
-            address: configService.get('EMAIL_ADDRESS'),
-          },
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    MailModule,
     HttpModule,
     PassportModule,
     JwtModule.registerAsync({
