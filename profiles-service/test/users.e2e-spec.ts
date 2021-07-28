@@ -1,8 +1,8 @@
 import { INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { PrismaClient } from '@prisma/client';
 import * as request from 'supertest';
-import { PrismaService } from '../src/prisma/prisma.service';
 import { CreateUserDto } from '../src/users/dto/create-user.dto';
 import { UsersModule } from '../src/users/users.module';
 
@@ -20,7 +20,7 @@ const newUser: CreateUserDto = {
 
 describe('Users', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let prisma: PrismaClient;
 
   let userId: string;
 
@@ -28,14 +28,15 @@ describe('Users', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [UsersModule, ConfigModule],
     })
-      .overrideProvider('USERS_CLIENT')
+      .overrideProvider('KAFKA_CLIENT')
       .useValue({
         emit: jest.fn(),
       })
       .compile();
 
     app = moduleRef.createNestApplication();
-    prisma = moduleRef.get<PrismaService>(PrismaService);
+    prisma = moduleRef.get<PrismaClient>(PrismaClient);
+
     await app.init();
   });
 
@@ -55,6 +56,8 @@ describe('Users', () => {
   });
 
   afterAll(async () => {
+    await prisma.$disconnect();
+
     await app.close();
   });
 
