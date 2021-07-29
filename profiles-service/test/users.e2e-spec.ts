@@ -57,8 +57,6 @@ describe('Users', () => {
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
-
     await app.close();
   });
 

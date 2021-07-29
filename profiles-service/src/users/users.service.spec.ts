@@ -1,9 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '@prisma/client';
+import { KafkaMessage } from '../kafka/interfaces/kafka-message.interface';
 import { KafkaService } from '../kafka/kafka.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
 const createUserDto: CreateUserDto = {
@@ -68,13 +70,18 @@ describe('UsersService', () => {
     const clientSpy = jest.spyOn(kafka, 'publish');
 
     expect(await service.createUser(createUserDto)).toBe(user);
-    expect(clientSpy).toHaveBeenCalledWith('users', {
-      type: 'USER_CREATED',
-      data: {
-        ...user,
-        password: createUserDto.password,
+
+    const message: KafkaMessage<UserDto & { password: string }> = {
+      key: user.id,
+      value: {
+        type: 'USER_CREATED',
+        data: {
+          ...user,
+          password: createUserDto.password,
+        },
       },
-    });
+    };
+    expect(clientSpy).toHaveBeenCalledWith('profiles', message);
   });
 
   it('throws exception if creating user when username is already taken', async () => {
@@ -126,10 +133,17 @@ describe('UsersService', () => {
     const clientSpy = jest.spyOn(kafka, 'publish');
 
     expect(await service.deleteUser(id)).toBe(user);
-    expect(clientSpy).toHaveBeenCalledWith('users', {
-      type: 'USER_DELETED',
-      data: user,
-    });
+
+    const message: KafkaMessage<Pick<UserDto, 'id'>> = {
+      key: user.id,
+      value: {
+        type: 'USER_DELETED',
+        data: {
+          id: user.id,
+        },
+      },
+    };
+    expect(clientSpy).toHaveBeenCalledWith('profiles', message);
   });
 
   it('throws exception if user to delete does not exist', async () => {
