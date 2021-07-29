@@ -10,12 +10,12 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClient } from '@prisma/client';
 import { compareSync, hashSync } from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
-import { Transporter } from 'nodemailer';
 import { lastValueFrom } from 'rxjs';
+import { MailService } from '../mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
@@ -24,12 +24,12 @@ import { Token } from './interfaces/token.interface';
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaClient,
+    private prisma: PrismaService,
     private jwtService: JwtService,
     private httpService: HttpService,
+    private transport: MailService,
     private configService: ConfigService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
-    @Inject('SMTP_TRANSPORT') private transport: Transporter,
   ) {}
 
   async validateLocal(

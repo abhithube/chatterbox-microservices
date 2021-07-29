@@ -1,8 +1,11 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaClient, User } from '@prisma/client';
+import { User } from '@prisma/client';
+import { KafkaMessage } from '../kafka/interfaces/kafka-message.interface';
+import { KafkaService } from '../kafka/kafka.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
 const createUserDto: CreateUserDto = {
@@ -22,15 +25,15 @@ const user: User = {
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prisma: PrismaClient;
-  let client: ClientProxy;
+  let prisma: PrismaService;
+  let kafka: KafkaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         {
-          provide: PrismaClient,
+          provide: PrismaService,
           useValue: {
             user: {
               create: jest.fn(),
@@ -40,17 +43,17 @@ describe('UsersService', () => {
           },
         },
         {
-          provide: 'KAFKA_CLIENT',
+          provide: KafkaService,
           useValue: {
-            emit: jest.fn(),
+            publish: jest.fn(),
           },
         },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prisma = module.get<PrismaClient>(PrismaClient);
-    client = module.get<ClientProxy>('KAFKA_CLIENT');
+    prisma = module.get<PrismaService>(PrismaService);
+    kafka = module.get<KafkaService>(KafkaService);
   });
 
   it('should be defined', () => {
@@ -64,22 +67,27 @@ describe('UsersService', () => {
       .mockResolvedValueOnce(null);
     jest.spyOn(prisma.user, 'create').mockResolvedValue(user);
 
-    const clientSpy = jest.spyOn(client, 'emit');
+    const clientSpy = jest.spyOn(kafka, 'publish');
 
     expect(await service.createUser(createUserDto)).toBe(user);
-    expect(clientSpy).toHaveBeenCalledWith('users', {
-      type: 'USER_CREATED',
-      data: {
-        ...user,
-        password: createUserDto.password,
+
+    const message: KafkaMessage<UserDto & { password: string }> = {
+      key: user.id,
+      value: {
+        type: 'USER_CREATED',
+        data: {
+          ...user,
+          password: createUserDto.password,
+        },
       },
-    });
+    };
+    expect(clientSpy).toHaveBeenCalledWith('profiles', message);
   });
 
   it('throws exception if creating user when username is already taken', async () => {
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(user);
 
-    const clientSpy = jest.spyOn(client, 'emit');
+    const clientSpy = jest.spyOn(kafka, 'publish');
 
     await expect(service.createUser(createUserDto)).rejects.toThrow(
       BadRequestException,
@@ -93,7 +101,7 @@ describe('UsersService', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(user);
 
-    const clientSpy = jest.spyOn(client, 'emit');
+    const clientSpy = jest.spyOn(kafka, 'publish');
 
     await expect(service.createUser(createUserDto)).rejects.toThrow(
       BadRequestException,
@@ -122,13 +130,20 @@ describe('UsersService', () => {
 
     jest.spyOn(prisma.user, 'findUnique').mockResolvedValueOnce(user);
 
-    const clientSpy = jest.spyOn(client, 'emit');
+    const clientSpy = jest.spyOn(kafka, 'publish');
 
     expect(await service.deleteUser(id)).toBe(user);
-    expect(clientSpy).toHaveBeenCalledWith('users', {
-      type: 'USER_DELETED',
-      data: user,
-    });
+
+    const message: KafkaMessage<Pick<UserDto, 'id'>> = {
+      key: user.id,
+      value: {
+        type: 'USER_DELETED',
+        data: {
+          id: user.id,
+        },
+      },
+    };
+    expect(clientSpy).toHaveBeenCalledWith('profiles', message);
   });
 
   it('throws exception if user to delete does not exist', async () => {

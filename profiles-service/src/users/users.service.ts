@@ -1,20 +1,16 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { PrismaClient } from '@prisma/client';
+import { KafkaService } from '../kafka/kafka.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @Inject('KAFKA_CLIENT') private client: ClientKafka,
-    private prisma: PrismaClient,
-  ) {}
+  constructor(private prisma: PrismaService, private kafka: KafkaService) {}
 
   async createUser({
     username,
@@ -54,11 +50,14 @@ export class UsersService {
       },
     });
 
-    this.client.emit('users', {
-      type: 'USER_CREATED',
-      data: {
-        ...user,
-        password,
+    await this.kafka.publish<UserDto & { password: string }>('profiles', {
+      key: user.id,
+      value: {
+        type: 'USER_CREATED',
+        data: {
+          ...user,
+          password,
+        },
       },
     });
 
@@ -98,9 +97,14 @@ export class UsersService {
       },
     });
 
-    this.client.emit('users', {
-      type: 'USER_DELETED',
-      data: user,
+    await this.kafka.publish<Pick<UserDto, 'id'>>('profiles', {
+      key: id,
+      value: {
+        type: 'USER_DELETED',
+        data: {
+          id,
+        },
+      },
     });
 
     return user;

@@ -13,7 +13,7 @@ import {
 import { Cache } from 'cache-manager';
 import { verify } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
-import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
+import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { TopicParams } from './dto/topic.params';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';

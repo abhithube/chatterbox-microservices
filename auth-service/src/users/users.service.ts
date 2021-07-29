@@ -1,16 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
 import { hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { Transporter } from 'nodemailer';
-import { EventUserDto } from './dto/event-user.dto';
+import { MailService } from 'src/mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @Inject('SMTP_TRANSPORT') private transport: Transporter,
-    private prisma: PrismaClient,
-  ) {}
+  constructor(private prisma: PrismaService, private transport: MailService) {}
 
   async saveUser({
     id,
@@ -18,7 +15,7 @@ export class UsersService {
     email,
     password,
     avatarUrl,
-  }: EventUserDto): Promise<void> {
+  }: CreateUserDto): Promise<void> {
     if (password) {
       const user = await this.prisma.user.create({
         data: {
@@ -53,10 +50,10 @@ export class UsersService {
     }
   }
 
-  async removeUser(sub: string): Promise<void> {
+  async removeUser(id: string): Promise<void> {
     await this.prisma.user.delete({
       where: {
-        sub,
+        sub: id,
       },
     });
   }

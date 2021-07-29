@@ -1,31 +1,24 @@
 import {
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ClientKafka } from '@nestjs/microservices';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { MessageDto } from 'src/messages/dto/message.dto';
+import { KafkaService } from '../kafka/kafka.service';
+import { MessageDto } from '../messages/dto/message.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
+import { MemberDto } from './dto/member.dto';
+import { PartyCreatedDto } from './dto/party-created.dto';
 import { PartyWithUsersAndTopicsDto } from './dto/party-with-users-and-topics.dto';
 import { PartyDto } from './dto/party.dto';
 import { TopicDto } from './dto/topic.dto';
-import { MemberCreatedEvent } from './events/member-created.event';
-import { MemberDeletedEvent } from './events/member-deleted.event';
-import { PartyCreatedEvent } from './events/party-created.event';
-import { PartyDeletedEvent } from './events/party-deleted.event';
-import { TopicCreatedEvent } from './events/topic-created.event';
-import { TopicDeletedEvent } from './events/topic-deleted.event';
 
 @Injectable()
 export class PartiesService {
-  constructor(
-    private prisma: PrismaClient,
-    @Inject('KAFKA_CLIENT') private client: ClientKafka,
-  ) {}
+  constructor(private prisma: PrismaService, private kafka: KafkaService) {}
 
   async createParty(
     { name, visible }: CreatePartyDto,
@@ -80,12 +73,15 @@ export class PartiesService {
 
     delete party.topics;
 
-    this.client.emit<undefined, PartyCreatedEvent>('messages', {
-      type: 'PARTY_CREATED',
-      data: {
-        party,
-        topic,
-        userId,
+    await this.kafka.publish<PartyCreatedDto>('messages', {
+      key: party.id,
+      value: {
+        type: 'PARTY_CREATED',
+        data: {
+          party,
+          topic,
+          userId,
+        },
       },
     });
 
@@ -223,11 +219,14 @@ export class PartiesService {
       },
     });
 
-    this.client.emit<undefined, MemberCreatedEvent>('messages', {
-      type: 'MEMBER_CREATED',
-      data: {
-        userId,
-        partyId: id,
+    await this.kafka.publish<MemberDto>('messages', {
+      key: id,
+      value: {
+        type: 'MEMBER_CREATED',
+        data: {
+          userId,
+          partyId: id,
+        },
       },
     });
   }
@@ -246,11 +245,14 @@ export class PartiesService {
       },
     });
 
-    this.client.emit<undefined, MemberDeletedEvent>('messages', {
-      type: 'MEMBER_DELETED',
-      data: {
-        userId,
-        partyId: id,
+    await this.kafka.publish<MemberDto>('messages', {
+      key: id,
+      value: {
+        type: 'MEMBER_DELETED',
+        data: {
+          userId,
+          partyId: id,
+        },
       },
     });
   }
@@ -281,10 +283,13 @@ export class PartiesService {
       updatedAt,
     };
 
-    this.client.emit<undefined, PartyDeletedEvent>('messages', {
-      type: 'PARTY_DELETED',
-      data: {
-        id,
+    await this.kafka.publish<Pick<PartyDto, 'id'>>('messages', {
+      key: id,
+      value: {
+        type: 'PARTY_DELETED',
+        data: {
+          id,
+        },
       },
     });
 
@@ -309,9 +314,12 @@ export class PartiesService {
       },
     });
 
-    this.client.emit<undefined, TopicCreatedEvent>('messages', {
-      type: 'TOPIC_CREATED',
-      data: topic,
+    await this.kafka.publish<TopicDto>('messages', {
+      key: partyId,
+      value: {
+        type: 'TOPIC_CREATED',
+        data: topic,
+      },
     });
 
     return topic;
@@ -405,10 +413,13 @@ export class PartiesService {
       }),
     ]);
 
-    this.client.emit<undefined, TopicDeletedEvent>('messages', {
-      type: 'TOPIC_DELETED',
-      data: {
-        id,
+    await this.kafka.publish<Pick<TopicDto, 'id'>>('messages', {
+      key: topic.partyId,
+      value: {
+        type: 'TOPIC_DELETED',
+        data: {
+          id,
+        },
       },
     });
 

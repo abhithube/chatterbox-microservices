@@ -1,8 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
 import * as request from 'supertest';
+import { KafkaService } from '../src/kafka/kafka.service';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { CreateUserDto } from '../src/users/dto/create-user.dto';
 import { UsersModule } from '../src/users/users.module';
 
@@ -20,7 +21,7 @@ const newUser: CreateUserDto = {
 
 describe('Users', () => {
   let app: INestApplication;
-  let prisma: PrismaClient;
+  let prisma: PrismaService;
 
   let userId: string;
 
@@ -28,14 +29,16 @@ describe('Users', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [UsersModule, ConfigModule],
     })
-      .overrideProvider('KAFKA_CLIENT')
+      .overrideProvider(KafkaService)
       .useValue({
-        emit: jest.fn(),
+        publish: jest.fn(),
       })
+      .overrideProvider('KAFKA_OPTIONS')
+      .useValue({})
       .compile();
 
     app = moduleRef.createNestApplication();
-    prisma = moduleRef.get<PrismaClient>(PrismaClient);
+    prisma = moduleRef.get<PrismaService>(PrismaService);
 
     await app.init();
   });
@@ -56,8 +59,6 @@ describe('Users', () => {
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
-
     await app.close();
   });
 

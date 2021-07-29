@@ -1,32 +1,21 @@
-import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { createTransport } from 'nodemailer';
+import { DynamicModule, Module } from '@nestjs/common';
+import { MailAsyncOptions } from './interfaces/mail-async-options.interface';
+import { MailService } from './mail.service';
 
-@Module({
-  providers: [
-    {
-      provide: 'SMTP_TRANSPORT',
-      useFactory: (configService: ConfigService) => {
-        return createTransport(
-          {
-            host: configService.get('SMTP_HOST'),
-            secure: true,
-            auth: {
-              user: configService.get('SMTP_USER'),
-              pass: configService.get('SMTP_PASS'),
-            },
-          },
-          {
-            from: {
-              name: configService.get('EMAIL_NAME'),
-              address: configService.get('EMAIL_ADDRESS'),
-            },
-          },
-        );
-      },
-      inject: [ConfigService],
-    },
-  ],
-  exports: ['SMTP_TRANSPORT'],
-})
-export class MailModule {}
+@Module({})
+export class MailModule {
+  static registerAsync(options: MailAsyncOptions): DynamicModule {
+    return {
+      module: MailModule,
+      providers: [
+        {
+          provide: 'MAIL_OPTIONS',
+          useFactory: options.useFactory,
+          inject: options.inject || [],
+        },
+        MailService,
+      ],
+      exports: [MailService],
+    };
+  }
+}

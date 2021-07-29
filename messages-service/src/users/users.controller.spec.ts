@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { KafkaService } from '../kafka/kafka.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserCreatedEvent } from './events/user-created.dto';
-import { UserDeletedEvent } from './events/user-deleted.event';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
@@ -28,6 +27,12 @@ describe('UsersController', () => {
             removeUser: jest.fn(),
           },
         },
+        {
+          provide: KafkaService,
+          useValue: {
+            bindConsumer: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -40,31 +45,17 @@ describe('UsersController', () => {
   });
 
   it('creates a new user', async () => {
-    const userCreatedEvent: UserCreatedEvent = {
-      value: {
-        type: 'USER_CREATED',
-        data: user,
-      },
-    };
-
     const spy = jest.spyOn(service, 'saveUser');
 
-    await controller.eventsHandler(userCreatedEvent);
+    await controller.userCreatedHandler(user);
 
     expect(spy).toBeCalledWith(user);
   });
 
   it('deletes a new user', async () => {
-    const userDeletedEvent: UserDeletedEvent = {
-      value: {
-        type: 'USER_DELETED',
-        data: user,
-      },
-    };
-
     const spy = jest.spyOn(service, 'removeUser');
 
-    await controller.eventsHandler(userDeletedEvent);
+    await controller.userDeletedHandler({ id: user.id });
 
     expect(spy).toHaveBeenCalledWith(user.id);
   });
