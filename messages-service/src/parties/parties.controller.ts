@@ -11,9 +11,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { MessageDto } from 'src/messages/dto/message.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
+import { MessageDto } from '../messages/dto/message.dto';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { JoinPartyQuery } from './dto/join-party.query';

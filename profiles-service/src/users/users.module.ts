@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
 import { AuthModule } from '../auth/auth.module';
+import { KafkaModule } from '../kafka/kafka.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -11,33 +11,21 @@ import { UsersService } from './users.service';
     ConfigModule,
     AuthModule,
     PrismaModule,
-    ClientsModule.registerAsync([
-      {
-        name: 'KAFKA_CLIENT',
-        useFactory: (configService: ConfigService) => ({
-          transport: Transport.KAFKA,
-          options: {
-            client: {
-              clientId: 'profiles',
-              brokers: configService.get<string>('BROKER_URLS').split(','),
-              ssl: true,
-              sasl: {
-                mechanism: 'plain',
-                username: configService.get('CONFLUENT_API_KEY'),
-                password: configService.get('CONFLUENT_API_SECRET'),
-              },
-            },
-            consumer: {
-              groupId: 'profiles',
-            },
-            subscribe: {
-              fromBeginning: true,
-            },
+    KafkaModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        client: {
+          clientId: 'profiles-client',
+          brokers: configService.get<string>('BROKER_URLS').split(','),
+          ssl: true,
+          sasl: {
+            mechanism: 'plain',
+            username: configService.get('CONFLUENT_API_KEY'),
+            password: configService.get('CONFLUENT_API_SECRET'),
           },
-        }),
-        inject: [ConfigService],
-      },
-    ]),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [UsersController],
   providers: [UsersService],

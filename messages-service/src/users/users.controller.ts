@@ -1,25 +1,34 @@
-import { Controller } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
-import { UserCreatedEvent } from './events/user-created.dto';
-import { UserDeletedEvent } from './events/user-deleted.event';
+import { Controller, OnModuleInit } from '@nestjs/common';
+import { SubscribeTo } from '../kafka/kafka.decorator';
+import { KafkaService } from '../kafka/kafka.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
 
 @Controller()
-export class UsersController {
-  constructor(private usersService: UsersService) {}
+export class UsersController implements OnModuleInit {
+  constructor(
+    private usersService: UsersService,
+    private kafka: KafkaService,
+  ) {}
 
-  @EventPattern('profiles')
-  async eventsHandler(
-    @Payload() { value }: UserCreatedEvent | UserDeletedEvent,
-  ): Promise<void> {
-    switch (value.type) {
-      case 'USER_CREATED':
-        await this.usersService.saveUser(value.data);
-        break;
-      case 'USER_DELETED':
-        await this.usersService.removeUser(value.data.id);
-      default:
-        break;
-    }
+  onModuleInit(): void {
+    this.kafka.bindConsumer('profiles', this);
+  }
+
+  @SubscribeTo({
+    topic: 'profiles',
+    event: 'USER_CREATED',
+  })
+  async userCreatedHandler(createUserDto: CreateUserDto): Promise<void> {
+    return this.usersService.saveUser(createUserDto);
+  }
+
+  @SubscribeTo({
+    topic: 'profiles',
+    event: 'USER_DELETED',
+  })
+  async userDeletedHandler({ id }: Pick<UserDto, 'id'>): Promise<void> {
+    return this.usersService.removeUser(id);
   }
 }
