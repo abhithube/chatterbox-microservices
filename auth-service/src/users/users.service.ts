@@ -1,16 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
 import { hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { Transporter } from 'nodemailer';
+import { MailService } from 'src/mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @Inject('SMTP_TRANSPORT') private transport: Transporter,
-    private prisma: PrismaClient,
-  ) {}
+  constructor(private prisma: PrismaService, private transport: MailService) {}
 
   async saveUser({
     id,

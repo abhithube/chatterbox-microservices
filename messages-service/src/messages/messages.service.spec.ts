@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 import { MessagesService } from './messages.service';
 
 describe('MessagesService', () => {
@@ -10,7 +10,7 @@ describe('MessagesService', () => {
       providers: [
         MessagesService,
         {
-          provide: PrismaClient,
+          provide: PrismaService,
           useValue: {
             message: {
               create: jest.fn(),

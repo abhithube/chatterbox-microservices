@@ -1,8 +1,8 @@
 import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
+import { MailService } from 'src/mail/mail.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -13,7 +13,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         {
-          provide: PrismaClient,
+          provide: PrismaService,
           useValue: {},
         },
         {
@@ -24,13 +24,12 @@ describe('AuthService', () => {
           provide: HttpService,
           useValue: {},
         },
-        ConfigService,
         {
-          provide: 'CACHE_MANAGER',
+          provide: MailService,
           useValue: {},
         },
         {
-          provide: 'SMTP_TRANSPORT',
+          provide: 'CACHE_MANAGER',
           useValue: {},
         },
       ],

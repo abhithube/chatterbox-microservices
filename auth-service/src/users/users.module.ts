@@ -28,7 +28,25 @@ import { UsersService } from './users.service';
       }),
       inject: [ConfigService],
     }),
-    MailModule,
+    MailModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get('SMTP_HOST'),
+          secure: true,
+          auth: {
+            user: configService.get('SMTP_USER'),
+            pass: configService.get('SMTP_PASS'),
+          },
+        },
+        defaults: {
+          from: {
+            name: configService.get('EMAIL_NAME'),
+            address: configService.get('EMAIL_ADDRESS'),
+          },
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [UsersController],
   providers: [UsersService],

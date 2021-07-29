@@ -3,10 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { KafkaService } from '../kafka/kafka.service';
 import { MessageDto } from '../messages/dto/message.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { MemberDto } from './dto/member.dto';
@@ -17,7 +18,7 @@ import { TopicDto } from './dto/topic.dto';
 
 @Injectable()
 export class PartiesService {
-  constructor(private prisma: PrismaClient, private kafka: KafkaService) {}
+  constructor(private prisma: PrismaService, private kafka: KafkaService) {}
 
   async createParty(
     { name, visible }: CreatePartyDto,

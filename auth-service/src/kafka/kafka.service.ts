@@ -16,18 +16,20 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   private producer: Producer;
   private consumer: Consumer;
 
-  constructor(@Inject('KAFKA_OPTIONS') options: KafkaOptions) {
+  constructor(
+    @Inject('KAFKA_OPTIONS') { client, producer, consumer }: KafkaOptions,
+  ) {
     this.kafka = new Kafka({
-      ...options.client,
+      ...client,
     });
 
     this.producer = this.kafka.producer({
-      ...options.producer,
+      ...producer,
     });
 
-    if (options.consumer) {
+    if (consumer) {
       this.consumer = this.kafka.consumer({
-        ...options.consumer,
+        ...consumer,
       });
     }
   }

@@ -17,6 +17,14 @@ import { LocalStrategy } from './strategies/local.strategy';
   imports: [
     ConfigModule,
     PrismaModule,
+    PassportModule,
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: '15m' },
+      }),
+      inject: [ConfigService],
+    }),
     CacheModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         store: redisStore,
@@ -27,13 +35,23 @@ import { LocalStrategy } from './strategies/local.strategy';
       }),
       inject: [ConfigService],
     }),
-    MailModule,
     HttpModule,
-    PassportModule,
-    JwtModule.registerAsync({
+    MailModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' },
+        transport: {
+          host: configService.get('SMTP_HOST'),
+          secure: true,
+          auth: {
+            user: configService.get('SMTP_USER'),
+            pass: configService.get('SMTP_PASS'),
+          },
+        },
+        defaults: {
+          from: {
+            name: configService.get('EMAIL_NAME'),
+            address: configService.get('EMAIL_ADDRESS'),
+          },
+        },
       }),
       inject: [ConfigService],
     }),

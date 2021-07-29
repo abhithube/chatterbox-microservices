@@ -1,7 +1,8 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaClient, User } from '@prisma/client';
-import { KafkaService } from 'src/kafka/kafka.service';
+import { User } from '@prisma/client';
+import { KafkaService } from '../kafka/kafka.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersService } from './users.service';
 
@@ -22,7 +23,7 @@ const user: User = {
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prisma: PrismaClient;
+  let prisma: PrismaService;
   let kafka: KafkaService;
 
   beforeEach(async () => {
@@ -30,7 +31,7 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         {
-          provide: PrismaClient,
+          provide: PrismaService,
           useValue: {
             user: {
               create: jest.fn(),
@@ -49,7 +50,7 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prisma = module.get<PrismaClient>(PrismaClient);
+    prisma = module.get<PrismaService>(PrismaService);
     kafka = module.get<KafkaService>(KafkaService);
   });
 
