@@ -63,11 +63,14 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     if (this.consumer) await this.consumer.disconnect();
   }
 
-  bindConsumer<T>(topic: string, instance: T): void {
+  bindConsumer<T = any>(topic: string, instance: T): void {
     subscriberInstanceMap.set(topic, instance);
   }
 
-  async publish<T>(topic: string, message: KafkaMessage<T>): Promise<void> {
+  async publish<T = any>(
+    topic: string,
+    message: KafkaMessage<T>,
+  ): Promise<void> {
     this.producer.send({
       topic,
       messages: [
