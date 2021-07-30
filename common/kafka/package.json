@@ -1,11 +1,11 @@
 {
   "name": "@chttrbx/kafka",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "NestJS module for Kafka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/**.*"
+    "dist/**/*"
   ],
   "scripts": {
     "prebuild": "rimraf dist",
