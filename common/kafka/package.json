@@ -1,11 +1,11 @@
 {
   "name": "@chttrbx/kafka",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "NestJS module for Kafka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/**/*"
+    "dist/**/*.{js,ts}"
   ],
   "scripts": {
     "prebuild": "rimraf dist",
@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@nestjs/common": "^8.0.0",
-    "@nestjs/core": "^8.0.0",
     "kafkajs": "^1.15.0",
     "reflect-metadata": "^0.1.13"
   },
@@ -32,27 +31,8 @@
     "eslint-plugin-prettier": "^3.4.0",
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
-    "ts-jest": "^27.0.3",
     "ts-loader": "^9.2.3",
-    "ts-node": "^10.0.0",
     "tsconfig-paths": "^3.10.1",
     "typescript": "^4.3.5"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
