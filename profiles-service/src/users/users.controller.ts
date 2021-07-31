@@ -1,4 +1,4 @@
-import { JwtAuthGuard, RequestWithUser } from '@chttrbx/jwt';
+import { AuthUser, JwtAuthGuard } from '@chttrbx/jwt';
 import {
   Body,
   Controller,
@@ -6,9 +6,9 @@ import {
   Get,
   Param,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
+import { User } from './decorators/user.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
 import { UserParams } from './dto/user.params';
@@ -24,9 +24,9 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('me')
-  meHandler(@Req() req: RequestWithUser): Promise<UserDto> {
-    return this.usersService.getUser(req.user.id);
+  @Get('@me')
+  meHandler(@User() user: AuthUser): Promise<UserDto> {
+    return this.usersService.getUser(user.id);
   }
 
   @Get(':id')
@@ -34,8 +34,9 @@ export class UsersController {
     return this.usersService.getUser(id);
   }
 
-  @Delete(':id')
-  deleteUserHandler(@Param() { id }: UserParams): Promise<UserDto> {
-    return this.usersService.deleteUser(id);
+  @UseGuards(JwtAuthGuard)
+  @Delete('@me')
+  deleteUserHandler(@User() user: AuthUser): Promise<UserDto> {
+    return this.usersService.deleteUser(user.id);
   }
 }

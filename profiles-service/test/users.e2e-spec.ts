@@ -1,5 +1,6 @@
+import { JwtAuthGuard, RequestWithUser } from '@chttrbx/jwt';
 import { KafkaService } from '@chttrbx/kafka';
-import { INestApplication } from '@nestjs/common';
+import { ExecutionContext, INestApplication } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
@@ -41,6 +42,19 @@ describe('Users', () => {
       .overrideProvider(KafkaService)
       .useValue({
         publish: jest.fn(),
+      })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({
+        canActivate: (context: ExecutionContext) => {
+          const req = context.switchToHttp().getRequest<RequestWithUser>();
+          req.user = {
+            id: userId,
+            username: existingUser.username,
+            avatarUrl: existingUser.avatarUrl,
+          };
+
+          return true;
+        },
       })
       .compile();
 
@@ -94,6 +108,20 @@ describe('Users', () => {
     });
   });
 
+  it(`GET /users/@me - fetches the current user`, async () => {
+    const res = await request(app.getHttpServer()).get('/users/@me');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({
+      id: expect.any(String),
+      username: 'existinguser',
+      email: 'existinguser@test.com',
+      avatarUrl: null,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+  });
+
   it(`GET /users/:id - fetches an existing user`, async () => {
     const res = await request(app.getHttpServer()).get(`/users/${userId}`);
 
@@ -119,8 +147,8 @@ describe('Users', () => {
     });
   });
 
-  it(`DELETE /users/:id - deletes an existing user`, async () => {
-    const res = await request(app.getHttpServer()).delete(`/users/${userId}`);
+  it(`DELETE /users/@me - deletes the current user`, async () => {
+    const res = await request(app.getHttpServer()).delete('/users/@me');
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({
@@ -130,17 +158,6 @@ describe('Users', () => {
       avatarUrl: null,
       createdAt: expect.any(String),
       updatedAt: expect.any(String),
-    });
-  });
-
-  it(`DELETE /users/:id - returns 404 if user not found`, async () => {
-    const res = await request(app.getHttpServer()).delete(
-      '/users/000000000000000000000000',
-    );
-
-    expect(res.statusCode).toBe(404);
-    expect(res.body).toEqual({
-      message: 'User not found',
     });
   });
 });

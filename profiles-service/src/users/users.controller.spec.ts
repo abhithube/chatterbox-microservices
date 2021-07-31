@@ -1,3 +1,4 @@
+import { AuthUser } from '@chttrbx/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
@@ -8,6 +9,11 @@ const createUserDto: CreateUserDto = {
   username: 'testuser',
   email: 'testemail@test.com',
   password: 'testpass',
+};
+
+const authUser: AuthUser = {
+  id: '1',
+  username: createUserDto.username,
 };
 
 const user: UserDto = {
@@ -51,6 +57,12 @@ describe('UsersController', () => {
     expect(await controller.createUserHandler(createUserDto)).toBe(user);
   });
 
+  it('fetches the current user', async () => {
+    jest.spyOn(service, 'getUser').mockResolvedValue(user);
+
+    expect(await controller.meHandler(authUser)).toBe(user);
+  });
+
   it('fetches a user', async () => {
     const id = '1';
 
@@ -59,11 +71,9 @@ describe('UsersController', () => {
     expect(await controller.userHandler({ id })).toBe(user);
   });
 
-  it('deletes a new user', async () => {
-    const id = '1';
-
+  it('deletes the current user', async () => {
     jest.spyOn(service, 'deleteUser').mockResolvedValue(user);
 
-    expect(await controller.deleteUserHandler({ id })).toBe(user);
+    expect(await controller.deleteUserHandler(authUser)).toBe(user);
   });
 });
