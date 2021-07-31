@@ -1,6 +1,6 @@
 import { KafkaService } from '@chttrbx/kafka';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -34,6 +34,10 @@ describe('Users', () => {
         }),
       ],
     })
+      .overrideProvider(ConfigService)
+      .useValue({
+        get: () => 'test',
+      })
       .overrideProvider(KafkaService)
       .useValue({
         publish: jest.fn(),
