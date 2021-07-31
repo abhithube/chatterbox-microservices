@@ -1,8 +1,8 @@
+import { KafkaService } from '@chttrbx/kafka';
 import { INestApplication } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import * as request from 'supertest';
-import { KafkaService } from '../src/kafka/kafka.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { CreateUserDto } from '../src/users/dto/create-user.dto';
 import { UsersModule } from '../src/users/users.module';

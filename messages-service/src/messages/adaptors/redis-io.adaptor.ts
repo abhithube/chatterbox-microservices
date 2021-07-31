@@ -3,7 +3,6 @@ import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as Redis from 'ioredis';
-import { parseUrl } from 'query-string';
 import { ServerOptions } from 'socket.io';
 import { createAdapter } from 'socket.io-redis';
 
@@ -34,14 +33,11 @@ export class RedisIoAdapter extends IoAdapter {
     };
 
     options.allowRequest = (req, fn) => {
-      const auth =
-        req.headers.authorization?.split(' ')[1] ||
-        (parseUrl(req.url).query.token as string);
-
+      const auth = req.headers.authorization;
       if (!auth) return fn('User not authenticated', false);
 
       try {
-        this.jwtService.verify(auth);
+        this.jwtService.verify(auth.split(' ')[1]);
 
         return fn(null, true);
       } catch (err) {

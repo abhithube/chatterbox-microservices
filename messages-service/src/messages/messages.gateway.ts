@@ -33,15 +33,13 @@ export class MessagesGateway
   async handleConnection(
     @ConnectedSocket() initClient: Socket,
   ): Promise<void | WsException> {
-    const auth =
-      initClient.handshake.headers.authorization?.split(' ')[1] ||
-      (initClient.handshake.query.token as string);
+    const auth = initClient.handshake.headers.authorization;
     const party = initClient.handshake.query.party as string;
 
     if (!auth || !party) initClient.disconnect(true);
 
     try {
-      const { id } = this.jwtService.verify(auth);
+      const { id } = this.jwtService.verify(auth.split(' ')[1]);
 
       const client = initClient as SocketWithUser;
       client.user = id;
