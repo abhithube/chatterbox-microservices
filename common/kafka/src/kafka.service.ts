@@ -5,7 +5,10 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { Consumer, Kafka, Producer } from 'kafkajs';
-import { subscriberHandlerMap, subscriberInstanceMap } from './decorators';
+import {
+  subscriberHandlerMap,
+  subscriberInstanceMap,
+} from './decorators/kafka.decorator';
 import { KafkaEvent, KafkaMessage, KafkaOptions } from './interfaces';
 
 @Injectable()

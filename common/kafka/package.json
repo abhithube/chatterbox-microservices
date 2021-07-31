@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/kafka",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "NestJS module for Kafka",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

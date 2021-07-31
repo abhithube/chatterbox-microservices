@@ -1,1 +1,1 @@
-export * from './kafka.decorator';
+export { SubscribeTo } from './kafka.decorator';
