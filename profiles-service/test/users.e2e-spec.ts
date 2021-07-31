@@ -27,14 +27,17 @@ describe('Users', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [UsersModule, ConfigModule],
+      imports: [
+        UsersModule,
+        ConfigModule.forRoot({
+          isGlobal: true,
+        }),
+      ],
     })
       .overrideProvider(KafkaService)
       .useValue({
         publish: jest.fn(),
       })
-      .overrideProvider('KAFKA_OPTIONS')
-      .useValue({})
       .compile();
 
     app = moduleRef.createNestApplication();

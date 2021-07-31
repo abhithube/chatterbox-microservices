@@ -1,14 +1,13 @@
 import { JwtModule } from '@chttrbx/jwt';
 import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
   imports: [
-    ConfigModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secretOrKey: configService.get('JWT_SECRET'),
