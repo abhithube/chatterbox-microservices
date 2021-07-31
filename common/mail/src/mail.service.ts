@@ -10,7 +10,7 @@ export class MailService {
     this.transporter = createTransport(transport, defaults);
   }
 
-  async sendMail(sendMailOptions: SendMailOptions): Promise<void> {
-    this.transporter.sendMail(sendMailOptions);
+  async send(options: SendMailOptions): Promise<void> {
+    this.transporter.sendMail(options);
   }
 }
