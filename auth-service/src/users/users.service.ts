@@ -1,13 +1,16 @@
+import { MailService } from '@chttrbx/mail';
 import { Injectable } from '@nestjs/common';
 import { hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { MailService } from 'src/mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService, private transport: MailService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async saveUser({
     id,
@@ -29,7 +32,7 @@ export class UsersService {
         },
       });
 
-      await this.transport.sendMail({
+      await this.mailService.send({
         to: email,
         subject: 'Email Verification',
         html: `

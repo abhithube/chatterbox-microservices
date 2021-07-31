@@ -1,3 +1,4 @@
+import { KafkaService } from '@chttrbx/kafka';
 import {
   ForbiddenException,
   Injectable,
@@ -5,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { KafkaService } from '../kafka/kafka.service';
 import { MessageDto } from '../messages/dto/message.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';

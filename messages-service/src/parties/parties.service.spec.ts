@@ -1,5 +1,5 @@
+import { KafkaService } from '@chttrbx/kafka';
 import { Test, TestingModule } from '@nestjs/testing';
-import { KafkaService } from '../kafka/kafka.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { PartiesService } from './parties.service';
 

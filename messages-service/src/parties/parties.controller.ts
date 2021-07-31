@@ -1,3 +1,4 @@
+import { JwtAuthGuard, RequestWithUser } from '@chttrbx/jwt';
 import {
   Body,
   Controller,
@@ -11,8 +12,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { MessageDto } from '../messages/dto/message.dto';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
@@ -24,7 +23,7 @@ import { PartyDto } from './dto/party.dto';
 import { PartyParams } from './dto/party.params';
 import { TopicDto } from './dto/topic.dto';
 import { MemberGuard } from './guards/member.guard';
-import { RequestWithUserAndParty } from './interfaces/request-with-user.interface';
+import { RequestWithUserAndParty } from './interfaces/request-with-user-and-party.interface';
 import { PartiesService } from './parties.service';
 
 @Controller('parties')

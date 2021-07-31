@@ -1,3 +1,4 @@
+import { JwtService } from '@chttrbx/jwt';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -17,14 +18,15 @@ async function bootstrap() {
     }),
   );
 
-  const configService = app.get(ConfigService);
+  const configService = app.get<ConfigService>(ConfigService);
+  const jwtService = app.get<JwtService>(JwtService);
 
   app.enableCors({
     credentials: true,
     origin: configService.get('CLIENT_URL'),
   });
 
-  app.useWebSocketAdapter(new RedisIoAdapter(app, configService));
+  app.useWebSocketAdapter(new RedisIoAdapter(app, configService, jwtService));
 
   const port = configService.get('PORT');
   await app.listen(port, () => console.log(`Listening on port ${port}...`));

@@ -1,15 +1,20 @@
+import { JwtService } from '@chttrbx/jwt';
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import * as Redis from 'ioredis';
-import { JwtPayload, verify } from 'jsonwebtoken';
+import { parseUrl } from 'query-string';
 import { ServerOptions } from 'socket.io';
 import { createAdapter } from 'socket.io-redis';
 
 export class RedisIoAdapter extends IoAdapter {
   private redisAdapter: any;
 
-  constructor(app: INestApplication, private configService: ConfigService) {
+  constructor(
+    app: INestApplication,
+    private configService: ConfigService,
+    private jwtService: JwtService,
+  ) {
     super(app);
 
     const pubClient = new Redis({
@@ -29,15 +34,14 @@ export class RedisIoAdapter extends IoAdapter {
     };
 
     options.allowRequest = (req, fn) => {
-      const auth = req.headers.authorization;
+      const auth =
+        req.headers.authorization?.split(' ')[1] ||
+        (parseUrl(req.url).query.token as string);
 
       if (!auth) return fn('User not authenticated', false);
 
       try {
-        verify(
-          auth.split(' ')[1],
-          this.configService.get('JWT_SECRET'),
-        ) as JwtPayload;
+        this.jwtService.verify(auth);
 
         return fn(null, true);
       } catch (err) {
