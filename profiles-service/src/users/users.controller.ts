@@ -1,3 +1,4 @@
+import { JwtAuthGuard, RequestWithUser } from '@chttrbx/jwt';
 import {
   Body,
   Controller,
@@ -8,8 +9,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
 import { UserParams } from './dto/user.params';

@@ -1,5 +1,5 @@
+import { JwtService } from '@chttrbx/jwt';
 import { Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,9 +11,7 @@ import {
   WsException,
 } from '@nestjs/websockets';
 import { Cache } from 'cache-manager';
-import { verify } from 'jsonwebtoken';
 import { Server, Socket } from 'socket.io';
-import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { TopicParams } from './dto/topic.params';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';
@@ -28,7 +26,7 @@ export class MessagesGateway
 
   constructor(
     private messagesService: MessagesService,
-    private configService: ConfigService,
+    private jwtService: JwtService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
@@ -41,13 +39,10 @@ export class MessagesGateway
     if (!auth || !party) initClient.disconnect(true);
 
     try {
-      const payload = verify(
-        auth.split(' ')[1],
-        this.configService.get('JWT_SECRET'),
-      ) as JwtPayload;
+      const { id } = this.jwtService.verify(auth.split(' ')[1]);
 
       const client = initClient as SocketWithUser;
-      client.user = payload.sub;
+      client.user = id;
 
       await this.messagesService.validatePartyConnection(party, client.user);
 

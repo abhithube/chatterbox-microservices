@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { PartyParams } from '../dto/party.params';
-import { RequestWithUserAndParty } from '../interfaces/request-with-user.interface';
+import { RequestWithUserAndParty } from '../interfaces/request-with-user-and-party.interface';
 import { PartiesService } from '../parties.service';
 
 @Injectable()

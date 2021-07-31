@@ -1,3 +1,4 @@
+import { MailService } from '@chttrbx/mail';
 import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
@@ -14,7 +15,6 @@ import { compareSync, hashSync } from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
 import { lastValueFrom } from 'rxjs';
-import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { AuthUserDto } from './dto/auth-user.dto';
@@ -27,7 +27,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private httpService: HttpService,
-    private transport: MailService,
+    private mailService: MailService,
     private configService: ConfigService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
@@ -170,7 +170,7 @@ export class AuthService {
       });
     }
 
-    await this.transport.sendMail({
+    await this.mailService.send({
       to: email,
       subject: 'Password Reset',
       html: `

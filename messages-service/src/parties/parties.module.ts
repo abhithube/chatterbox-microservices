@@ -1,7 +1,7 @@
+import { JwtModule } from '@chttrbx/jwt';
+import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from '../auth/auth.module';
-import { KafkaModule } from '../kafka/kafka.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PartiesController } from './parties.controller';
 import { PartiesService } from './parties.service';
@@ -9,7 +9,12 @@ import { PartiesService } from './parties.service';
 @Module({
   imports: [
     ConfigModule,
-    AuthModule,
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secretOrKey: configService.get('JWT_SECRET'),
+      }),
+      inject: [ConfigService],
+    }),
     PrismaModule,
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({

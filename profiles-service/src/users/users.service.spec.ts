@@ -1,8 +1,7 @@
+import { KafkaMessage, KafkaService } from '@chttrbx/kafka';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '@prisma/client';
-import { KafkaMessage } from '../kafka/interfaces/kafka-message.interface';
-import { KafkaService } from '../kafka/kafka.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';

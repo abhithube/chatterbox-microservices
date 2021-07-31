@@ -1,7 +1,7 @@
+import { KafkaModule } from '@chttrbx/kafka';
+import { MailModule } from '@chttrbx/mail';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { KafkaModule } from '../kafka/kafka.module';
-import { MailModule } from '../mail/mail.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';

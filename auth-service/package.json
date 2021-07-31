@@ -21,6 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@chttrbx/kafka": "^1.0.5",
+    "@chttrbx/mail": "^1.0.1",
     "@nestjs/axios": "^0.0.1",
     "@nestjs/common": "^8.0.4",
     "@nestjs/config": "^1.0.0",
@@ -36,7 +38,6 @@
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "cookie-parser": "^1.4.5",
-    "kafkajs": "^1.15.0",
     "nodemailer": "^6.6.3",
     "passport": "^0.4.1",
     "passport-github2": "^0.1.12",

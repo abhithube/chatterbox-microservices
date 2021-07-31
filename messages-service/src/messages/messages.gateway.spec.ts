@@ -1,4 +1,4 @@
-import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@chttrbx/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MessagesGateway } from './messages.gateway';
 import { MessagesService } from './messages.service';
@@ -18,17 +18,17 @@ describe('MessagesGateway', () => {
           },
         },
         {
+          provide: JwtService,
+          useValue: {
+            verify: jest.fn(),
+          },
+        },
+        {
           provide: 'CACHE_MANAGER',
           useValue: {
             get: jest.fn(),
             set: jest.fn(),
             del: jest.fn(),
-          },
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(),
           },
         },
       ],

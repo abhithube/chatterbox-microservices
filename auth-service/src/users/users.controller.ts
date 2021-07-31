@@ -1,6 +1,5 @@
+import { KafkaService, SubscribeTo } from '@chttrbx/kafka';
 import { Controller, OnModuleInit } from '@nestjs/common';
-import { SubscribeTo } from '../kafka/kafka.decorator';
-import { KafkaService } from '../kafka/kafka.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
