@@ -9,8 +9,10 @@ export class JwtService {
     this.secret = secretOrKey;
   }
 
-  sign(authUser: AuthUser): string {
-    return jwt.sign(authUser, this.secret);
+  sign(authUser: AuthUser, expiresIn: string | number): string {
+    return jwt.sign(authUser, this.secret, {
+      expiresIn,
+    });
   }
 
   verify(token: string): AuthUser {
