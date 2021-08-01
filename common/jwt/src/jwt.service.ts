@@ -9,14 +9,18 @@ export class JwtService {
     this.secret = secretOrKey;
   }
 
+  sign(authUser: AuthUser): string {
+    return jwt.sign(authUser, this.secret);
+  }
+
   verify(token: string): AuthUser {
-    const { sub, username, avatarUrl } = jwt.verify(
+    const { id, username, avatarUrl } = jwt.verify(
       token,
       this.secret,
     ) as JwtPayload;
 
     return {
-      id: sub,
+      id,
       username,
       avatarUrl,
     };
