@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/jwt",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "NestJS module for JWT authorization",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
