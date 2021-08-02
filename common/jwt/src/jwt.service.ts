@@ -12,7 +12,7 @@ export class JwtService {
 
   sign(authUser: AuthUser, expiresIn?: string | number): string {
     return jwt.sign(authUser, this.options.secretOrKey, {
-      expiresIn: expiresIn || this.options.expiresIn,
+      expiresIn: expiresIn || this.options.expiresIn || '1h',
     });
   }
 
