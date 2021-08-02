@@ -4,21 +4,22 @@ import { AuthUser, JwtOptions, JwtPayload } from './interfaces';
 
 @Injectable()
 export class JwtService {
-  private secret: string;
-  constructor(@Inject('JWT_OPTIONS') { secretOrKey }: JwtOptions) {
-    this.secret = secretOrKey;
+  private options: JwtOptions;
+
+  constructor(@Inject('JWT_OPTIONS') options: JwtOptions) {
+    this.options = options;
   }
 
-  sign(authUser: AuthUser, expiresIn: string | number): string {
-    return jwt.sign(authUser, this.secret, {
-      expiresIn,
+  sign(authUser: AuthUser, expiresIn?: string | number): string {
+    return jwt.sign(authUser, this.options.secretOrKey, {
+      expiresIn: expiresIn || this.options.expiresIn,
     });
   }
 
   verify(token: string): AuthUser {
     const { id, username, avatarUrl } = jwt.verify(
       token,
-      this.secret,
+      this.options.secretOrKey,
     ) as JwtPayload;
 
     return {
