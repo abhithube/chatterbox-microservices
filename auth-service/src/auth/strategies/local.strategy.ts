@@ -1,8 +1,8 @@
+import { AuthUser } from '@chttrbx/jwt';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { AuthService } from '../auth.service';
-import { AuthUserDto } from '../dto/auth-user.dto';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
@@ -10,7 +10,7 @@ export class LocalStrategy extends PassportStrategy(Strategy, 'local') {
     super();
   }
 
-  async validate(username: string, password: string): Promise<AuthUserDto> {
+  async validate(username: string, password: string): Promise<AuthUser> {
     return this.authService.validateLocal(username, password);
   }
 }

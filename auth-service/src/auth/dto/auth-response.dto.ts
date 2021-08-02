@@ -1,6 +1,6 @@
-import { AuthUserDto } from './auth-user.dto';
+import { AuthUser } from '@chttrbx/jwt';
 
 export class AuthResponseDto {
-  user: AuthUserDto;
+  user: AuthUser;
   accessToken: string;
 }

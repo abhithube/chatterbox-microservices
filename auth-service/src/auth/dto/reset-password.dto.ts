@@ -1,6 +1,11 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class ResetPasswordDto {
+  @IsUUID(4, {
+    message: 'token must be a valid UUID',
+  })
+  token: string;
+
   @IsString({
     message: 'password must be a string',
   })

@@ -1,46 +1,107 @@
+import { AuthUser, JwtService } from '@chttrbx/jwt';
+import { KafkaService } from '@chttrbx/kafka';
 import { MailService } from '@chttrbx/mail';
-import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   ForbiddenException,
-  Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { compareSync, hashSync } from 'bcrypt';
-import { Cache } from 'cache-manager';
 import { randomUUID } from 'crypto';
-import { lastValueFrom } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { AuthUserDto } from './dto/auth-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { TokenResponseDto } from './dto/token-response.dto';
-import { Token } from './interfaces/token.interface';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
-    private httpService: HttpService,
-    private mailService: MailService,
-    private configService: ConfigService,
-    @Inject('CACHE_MANAGER') private cacheManager: Cache,
+    private jwt: JwtService,
+    private kafka: KafkaService,
+    private transport: MailService,
+    private config: ConfigService,
   ) {}
 
-  async validateLocal(
-    username: string,
-    password: string,
-  ): Promise<AuthUserDto> {
+  async registerUser({
+    username,
+    email,
+    password,
+  }: CreateUserDto): Promise<AuthUser> {
+    let existingUser = await this.prisma.user.findUnique({
+      where: {
+        username,
+      },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException({
+        message: 'Username already taken',
+      });
+    }
+
+    existingUser = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException({
+        message: 'Email already taken',
+      });
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashSync(password, 10),
+        verificationToken: randomUUID(),
+        resetToken: randomUUID(),
+      },
+    });
+
+    await this.kafka.publish<UserDto>('users', {
+      key: user.id,
+      value: {
+        type: 'USER_CREATED',
+        data: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+        },
+      },
+    });
+
+    await this.transport.send({
+      to: user.email,
+      subject: 'Email Verification',
+      html: `
+        <p>Hello ${user.username},</p>
+        <p>Confirm your email address <a href="${process.env.SERVER_URL}/auth/confirm?token=${user.verificationToken}">here</a>.</p>
+      `,
+    });
+
+    return {
+      id: user.id,
+      username: user.username,
+      avatarUrl: user.avatarUrl,
+    };
+  }
+
+  async validateLocal(username: string, password: string): Promise<AuthUser> {
     const user = await this.prisma.user.findUnique({
       where: {
         username,
       },
     });
+
     if (!user || !user.password || !compareSync(password, user.password)) {
       throw new UnauthorizedException({
         message: 'Invalid credentials',
@@ -53,7 +114,7 @@ export class AuthService {
     }
 
     return {
-      id: user.sub,
+      id: user.id,
       username: user.username,
       avatarUrl: user.avatarUrl,
     };
@@ -63,69 +124,36 @@ export class AuthService {
     username: string,
     email: string,
     avatarUrl: string,
-  ): Promise<AuthUserDto> {
+  ): Promise<AuthUser> {
     let user = await this.prisma.user.findUnique({
       where: {
         email,
       },
     });
     if (!user) {
-      const res = await lastValueFrom(
-        this.httpService.post(`${this.configService.get('SERVER_URL')}/users`, {
+      user = await this.prisma.user.create({
+        data: {
           username,
           email,
           avatarUrl,
-        }),
-      );
-
-      user = res.data;
-    }
-
-    if (!user) {
-      throw new InternalServerErrorException({
-        message: 'Something went wrong',
+        },
       });
     }
 
     return {
-      id: user.sub,
+      id: user.id,
       username: user.username,
       avatarUrl: user.avatarUrl,
     };
   }
 
-  async authenticateUser({
-    id,
-    username,
-    avatarUrl,
-  }: AuthUserDto): Promise<AuthResponseDto & { refreshToken: string }> {
-    const accessToken = this.jwtService.sign({
-      sub: id,
-      username: username,
-      avatarUrl: avatarUrl,
-    });
-
-    const refreshExpiry = 60 * 60 * 24;
-    const refreshToken = this.jwtService.sign({}, { expiresIn: refreshExpiry });
-
-    await this.cacheManager.set<Token>(
-      refreshToken,
-      {
-        userId: id,
-      },
-      {
-        ttl: refreshExpiry,
-      },
-    );
-
+  async authenticateUser(
+    authUser: AuthUser,
+  ): Promise<AuthResponseDto & { refreshToken: string }> {
     return {
-      user: {
-        id,
-        username,
-        avatarUrl,
-      },
-      accessToken,
-      refreshToken,
+      user: authUser,
+      accessToken: this.jwt.sign(authUser),
+      refreshToken: this.jwt.sign(authUser, 60 * 60 * 24),
     };
   }
 
@@ -136,7 +164,7 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new BadRequestException({
+      throw new ForbiddenException({
         message: 'Invalid verification code',
       });
     }
@@ -165,19 +193,19 @@ export class AuthService {
     }
 
     if (!user.verified) {
-      throw new BadRequestException({
+      throw new ForbiddenException({
         message: 'Email not verified',
       });
     }
 
-    await this.mailService.send({
+    await this.transport.send({
       to: email,
       subject: 'Password Reset',
       html: `
       <p>Hello ${user.username},</p>
-      <p>Reset your password <a href="${this.configService.get(
-        'SERVER_URL',
-      )}/reset?token=${user.resetToken}">here</>.</p>
+      <p>Reset your password <a href="${this.config.get(
+        'CLIENT_URL',
+      )}/reset?token=${user.resetToken}">here.</p>
       `,
     });
   }
@@ -189,8 +217,8 @@ export class AuthService {
       },
     });
     if (!user) {
-      throw new BadRequestException({
-        message: 'Invalid verification code',
+      throw new ForbiddenException({
+        message: 'Invalid reset code',
       });
     }
 
@@ -206,21 +234,12 @@ export class AuthService {
   }
 
   async refreshAccessToken(refreshToken: string): Promise<TokenResponseDto> {
-    const token = await this.cacheManager.get<Token>(refreshToken);
-    if (!token) {
-      throw new ForbiddenException({
-        message: 'User not authorized',
-      });
-    }
-
     try {
-      this.jwtService.verify(refreshToken, {
-        secret: this.configService.get('JWT_SECRET'),
-      });
+      const { id } = this.jwt.verify(refreshToken);
 
       const user = await this.prisma.user.findUnique({
         where: {
-          sub: token.userId,
+          id,
         },
       });
       if (!user) {
@@ -229,8 +248,8 @@ export class AuthService {
         });
       }
 
-      const accessToken = this.jwtService.sign({
-        sub: user.sub,
+      const accessToken = this.jwt.sign({
+        id: user.id,
         username: user.username,
         avatarUrl: user.avatarUrl,
       });
@@ -245,7 +264,21 @@ export class AuthService {
     }
   }
 
-  async logoutUser(refreshToken: string): Promise<void> {
-    await this.cacheManager.del(refreshToken);
+  async deleteUser(id: string): Promise<void> {
+    await this.prisma.user.delete({
+      where: {
+        id,
+      },
+    });
+
+    await this.kafka.publish<Pick<UserDto, 'id'>>('users', {
+      key: id,
+      value: {
+        type: 'USER_DELETED',
+        data: {
+          id,
+        },
+      },
+    });
   }
 }
