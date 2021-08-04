@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: profiles-deploy
+  name: parties-deploy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: profiles
+      app: parties
   template:
     metadata:
       labels:
-        app: profiles
+        app: parties
     spec:
       containers:
-        - name: profiles
-          image: abhithube/chatterbox-profiles
+        - name: parties
+          image: abhithube/chatterbox-parties
           resources:
             requests:
               memory: '128Mi'
@@ -38,7 +38,7 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: profiles-secrets
+                  name: parties-secrets
                   key: DATABASE_URL
             - name: BROKER_URLS
               valueFrom:

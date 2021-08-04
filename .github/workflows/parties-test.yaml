@@ -1,19 +1,19 @@
-name: Test Profiles Service
+name: Test Parties Service
 
 on:
   push:
     branches: [main]
     paths:
-      - 'profiles-service/**'
+      - 'parties-service/**'
   pull_request:
     branches: [main]
     paths:
-      - 'profiles-service/**'
+      - 'parties-service/**'
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: profiles-service
+    working-directory: parties-service
 
 jobs:
   test:
@@ -30,10 +30,3 @@ jobs:
         run: npm ci
       - name: Build source code
         run: npm run build
-      - name: Run unit tests
-        run: npm test
-      - name: Run integration tests
-        run: npm run test:e2e
-        env:
-          DATABASE_URL: ${{ secrets.PROFILES_DATABASE_URL }}
-          JWT_SECRET: secret
