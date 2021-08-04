@@ -16,7 +16,7 @@ async function bootstrap() {
     }),
   );
 
-  const configService = app.get(ConfigService);
+  const configService = app.get<ConfigService>(ConfigService);
 
   app.enableCors({
     credentials: true,

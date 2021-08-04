@@ -8,12 +8,11 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 import { Cache } from 'cache-manager';
 import { Server, Socket } from 'socket.io';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { TopicParams } from './dto/topic.params';
+import { TopicConnectionDto } from './dto/topic-connection.dto';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';
 import { MessagesService } from './messages.service';
 
@@ -30,9 +29,7 @@ export class MessagesGateway
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
-  async handleConnection(
-    @ConnectedSocket() initClient: Socket,
-  ): Promise<void | WsException> {
+  async handleConnection(@ConnectedSocket() initClient: Socket): Promise<void> {
     const auth = initClient.handshake.headers.authorization;
     const party = initClient.handshake.query.party as string;
 
@@ -109,12 +106,12 @@ export class MessagesGateway
   @SubscribeMessage('join_topic')
   async joinChannelHandler(
     @ConnectedSocket() client: SocketWithUser,
-    @MessageBody() { id }: TopicParams,
+    @MessageBody() { topicId }: TopicConnectionDto,
   ): Promise<void> {
-    await this.messagesService.validateTopicConnection(id, client.user);
+    await this.messagesService.validateTopicConnection(topicId, client.user);
 
-    client.join(`topic:${id}`);
-    client.topic = id;
+    client.join(`topic:${topicId}`);
+    client.topic = topicId;
   }
 
   @SubscribeMessage('leave_topic')

@@ -2,7 +2,7 @@
   "eslint.workingDirectories": [
     "./auth-service",
     "./messages-service",
-    "./profiles-service",
+    "./parties-service",
     "./common"
   ]
 }

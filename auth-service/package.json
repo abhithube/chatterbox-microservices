@@ -21,9 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@chttrbx/jwt": "^1.0.8",
-    "@chttrbx/kafka": "^1.0.5",
-    "@chttrbx/mail": "^1.0.1",
+    "@chttrbx/jwt": "^1.0.9",
+    "@chttrbx/kafka": "^1.0.7",
+    "@chttrbx/mail": "^1.0.2",
     "@nestjs/common": "^8.0.4",
     "@nestjs/config": "^1.0.0",
     "@nestjs/core": "^8.0.4",

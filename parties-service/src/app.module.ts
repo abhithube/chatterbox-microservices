@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { PartiesModule } from './parties/parties.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -7,6 +8,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PartiesModule,
     UsersModule,
   ],
 })

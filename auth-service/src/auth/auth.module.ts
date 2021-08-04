@@ -2,7 +2,7 @@ import { JwtModule } from '@chttrbx/jwt';
 import { KafkaModule } from '@chttrbx/kafka';
 import { MailModule } from '@chttrbx/mail';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthController } from './auth.controller';
@@ -13,7 +13,6 @@ import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [
-    ConfigModule,
     PrismaModule,
     PassportModule,
     JwtModule.registerAsync({

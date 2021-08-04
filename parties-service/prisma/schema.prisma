@@ -1,0 +1,45 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+model User {
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  publicId  String    @unique
+  username  String    @unique
+  avatarUrl String?
+  partyIDs  String[]  @db.Array(ObjectId)
+  parties   Party[]   @relation(fields: [partyIDs])
+
+  @@map("users")
+}
+
+model Party {
+  id          String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  name        String
+  visible     Boolean   @default(false)
+  inviteToken String    @unique
+  userIDs     String[]  @db.Array(ObjectId)
+  users       User[]    @relation(fields: [userIDs])
+  topics      Topic[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("parties")
+}
+
+model Topic {
+  id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  name      String
+  partyId   String    @db.ObjectId
+  party     Party     @relation(fields: [partyId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("topics")
+}

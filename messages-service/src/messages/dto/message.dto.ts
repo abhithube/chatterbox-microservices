@@ -5,7 +5,5 @@ export class MessageDto {
   syncId: number;
   body: string;
   user: UserDto;
-  topicId: string;
   createdAt: Date;
-  updatedAt: Date;
 }

@@ -137,8 +137,6 @@ export class AuthController {
   async refreshTokenHandler(
     @Cookies('refresh') refresh: string,
   ): Promise<TokenResponseDto> {
-    console.log(refresh);
-
     return this.authService.refreshAccessToken(refresh);
   }
 

@@ -3,7 +3,7 @@ export class CreateUserDto {
   username: string;
   email: string;
   password?: string;
-  avatarUrl?: string;
+  avatarUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

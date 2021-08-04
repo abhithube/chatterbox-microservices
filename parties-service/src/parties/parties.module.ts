@@ -3,22 +3,22 @@ import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { PartiesController } from './parties.controller';
+import { PartiesService } from './parties.service';
 
 @Module({
   imports: [
+    PrismaModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secretOrKey: configService.get('JWT_SECRET'),
       }),
       inject: [ConfigService],
     }),
-    PrismaModule,
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         client: {
-          clientId: 'profiles-client',
+          clientId: 'parties-client',
           brokers: configService.get<string>('BROKER_URLS').split(','),
           ssl: true,
           sasl: {
@@ -31,7 +31,7 @@ import { UsersService } from './users.service';
       inject: [ConfigService],
     }),
   ],
-  controllers: [UsersController],
-  providers: [UsersService],
+  controllers: [PartiesController],
+  providers: [PartiesService],
 })
-export class UsersModule {}
+export class PartiesModule {}

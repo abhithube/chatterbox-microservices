@@ -1,9 +1,9 @@
 import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { PartiesController } from './parties.controller';
-import { PartiesService } from './parties.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [
@@ -11,7 +11,7 @@ import { PartiesService } from './parties.service';
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         client: {
-          clientId: 'messages-client',
+          clientId: 'parties-client',
           brokers: configService.get<string>('BROKER_URLS').split(','),
           ssl: true,
           sasl: {
@@ -21,13 +21,13 @@ import { PartiesService } from './parties.service';
           },
         },
         consumer: {
-          groupId: 'messages-consumer-group',
+          groupId: 'parties-consumer-group',
         },
       }),
       inject: [ConfigService],
     }),
   ],
-  controllers: [PartiesController],
-  providers: [PartiesService],
+  controllers: [UsersController],
+  providers: [UsersService],
 })
-export class PartiesModule {}
+export class UsersModule {}
