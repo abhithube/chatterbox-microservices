@@ -1,14 +1,14 @@
 import { JwtModule } from '@chttrbx/jwt';
 import { CacheModule, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import * as redisStore from 'cache-manager-ioredis';
 import { PrismaModule } from '../prisma/prisma.module';
+import { MessagesController } from './messages.controller';
 import { MessagesGateway } from './messages.gateway';
 import { MessagesService } from './messages.service';
 
 @Module({
   imports: [
-    ConfigModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secretOrKey: configService.get('JWT_SECRET'),
@@ -27,6 +27,7 @@ import { MessagesService } from './messages.service';
       inject: [ConfigService],
     }),
   ],
+  controllers: [MessagesController],
   providers: [MessagesGateway, MessagesService],
 })
 export class MessagesModule {}

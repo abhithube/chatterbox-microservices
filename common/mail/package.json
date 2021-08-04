@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/mail",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "NestJS module for sending mail",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

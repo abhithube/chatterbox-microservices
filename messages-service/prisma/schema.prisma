@@ -10,38 +10,20 @@ generator client {
 
 model User {
   id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
-  sub       String    @unique
+  publicId  String    @unique
   username  String    @unique
   avatarUrl String?
-  partyIDs  String[]  @db.Array(ObjectId)
-  parties   Party[]   @relation(fields: [partyIDs])
+  partyIDs  String[]
   messages  Message[]
 
   @@map("users")
 }
 
-model Party {
-  id          String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
-  name        String
-  visible     Boolean   @default(false)
-  inviteToken String    @unique
-  userIDs     String[]  @db.Array(ObjectId)
-  users       User[]    @relation(fields: [userIDs])
-  topics      Topic[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@map("parties")
-}
-
 model Topic {
   id        String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
-  name      String
-  partyId   String    @db.ObjectId
-  party     Party     @relation(fields: [partyId], references: [id])
+  publicId  String    @unique
+  partyId   String
   messages  Message[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
 
   @@map("topics")
 }

@@ -11,12 +11,7 @@ describe('UsersService', () => {
         UsersService,
         {
           provide: PrismaService,
-          useValue: {
-            user: {
-              create: jest.fn(),
-              delete: jest.fn(),
-            },
-          },
+          useValue: {},
         },
       ],
     }).compile();

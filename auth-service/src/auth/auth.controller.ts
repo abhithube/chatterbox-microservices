@@ -1,30 +1,27 @@
+import { AuthUser, Cookies, JwtAuthGuard, User } from '@chttrbx/jwt';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Post,
-  Query,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { AuthUserDto } from './dto/auth-user.dto';
-import { ConfirmEmailQuery } from './dto/confirm-email.query';
+import { ConfirmEmailDto } from './dto/confirm-email.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { ResetPasswordQuery } from './dto/reset-password.query';
 import { TokenResponseDto } from './dto/token-response.dto';
 import { GithubAuthGuard } from './guards/github-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
-import { RequestWithUser } from './interfaces/request-with-user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -33,20 +30,28 @@ export class AuthController {
     private configService: ConfigService,
   ) {}
 
+  @Post('register')
+  async registerHandler(
+    @Body() createUserDto: CreateUserDto,
+  ): Promise<AuthUser> {
+    return this.authService.registerUser(createUserDto);
+  }
+
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async loginHandler(
-    @Req() req: RequestWithUser,
+    @User() authUser: AuthUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<AuthResponseDto> {
     const { user, accessToken, refreshToken } =
-      await this.authService.authenticateUser(req.user);
+      await this.authService.authenticateUser(authUser);
 
     res.cookie('refresh', refreshToken, {
       httpOnly: true,
-      sameSite: 'none',
-      secure: true,
+      sameSite:
+        this.configService.get('NODE_ENV') === 'production' ? 'none' : true,
+      secure: this.configService.get('NODE_ENV') === 'production',
     });
 
     return {
@@ -63,15 +68,15 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleAuthCallbackHandler(
-    @Req() req: RequestWithUser,
+    @User() authUser: AuthUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const { refreshToken } = await this.authService.authenticateUser(req.user);
+    const { refreshToken } = await this.authService.authenticateUser(authUser);
 
     res.cookie('refresh', refreshToken, {
       httpOnly: true,
       sameSite: 'none',
-      secure: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
     });
 
     res.redirect(this.configService.get('CLIENT_URL'));
@@ -85,62 +90,73 @@ export class AuthController {
   @UseGuards(GithubAuthGuard)
   @Get('github/callback')
   async githubAuthCallbackHandler(
-    @Req() req: RequestWithUser,
+    @User() authUser: AuthUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    const { refreshToken } = await this.authService.authenticateUser(req.user);
+    const { refreshToken } = await this.authService.authenticateUser(authUser);
 
     res.cookie('refresh', refreshToken, {
       httpOnly: true,
       sameSite: 'none',
-      secure: true,
+      secure: this.configService.get('NODE_ENV') === 'production',
     });
 
     res.redirect(this.configService.get('CLIENT_URL'));
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
-  async authHandler(@Req() req: RequestWithUser): Promise<AuthUserDto> {
-    return req.user;
+  @Get('@me')
+  async authHandler(@User() authUser: AuthUser): Promise<AuthUser> {
+    return authUser;
   }
 
-  @Get('confirm')
-  async confirmEmailHandler(
-    @Query() { token }: ConfirmEmailQuery,
-  ): Promise<void> {
-    await this.authService.confirmEmail(token);
+  @Post('confirm')
+  @HttpCode(HttpStatus.OK)
+  async confirmEmailHandler(@Body() { token }: ConfirmEmailDto): Promise<void> {
+    return this.authService.confirmEmail(token);
   }
 
-  @Get('forgot')
+  @Post('forgot')
+  @HttpCode(HttpStatus.OK)
   async forgotPasswordHandler(
     @Body() { email }: ForgotPasswordDto,
   ): Promise<void> {
-    await this.authService.getPasswordResetLink(email);
+    return this.authService.getPasswordResetLink(email);
   }
 
-  @Get('reset')
+  @Post('reset')
+  @HttpCode(HttpStatus.OK)
   async resetPasswordHandler(
-    @Query() { token }: ResetPasswordQuery,
-    @Body() { password }: ResetPasswordDto,
+    @Body() { token, password }: ResetPasswordDto,
   ): Promise<void> {
-    await this.authService.resetPassword(token, password);
+    return this.authService.resetPassword(token, password);
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refreshTokenHandler(@Req() req: Request): Promise<TokenResponseDto> {
-    return this.authService.refreshAccessToken(req.cookies.refresh);
+  async refreshTokenHandler(
+    @Cookies('refresh') refresh: string,
+  ): Promise<TokenResponseDto> {
+    return this.authService.refreshAccessToken(refresh);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logoutHandler(
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<void> {
-    await this.authService.logoutUser(req.cookies.refresh);
+    res.clearCookie('refresh');
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('@me')
+  @HttpCode(HttpStatus.OK)
+  async deleteHandler(
+    @User() { id }: AuthUser,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    await this.authService.deleteUser(id);
     res.clearCookie('refresh');
   }
 }

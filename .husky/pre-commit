@@ -7,5 +7,5 @@ npx lint-staged
 cd ../messages-service
 npx lint-staged
 
-cd ../profiles-service
+cd ../parties-service
 npx lint-staged

@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: auth-config
 data:
-  REDIS_HOST: usw1-merry-macaque-31253.upstash.io
-  REDIS_PORT: '31253'
+  GOOGLE_CLIENT_ID: 445749772447-b7jo4spg4up3hpd946i0jsmjvksf8glg.apps.googleusercontent.com
+  GITHUB_CLIENT_ID: 7cec12176d6f90068478

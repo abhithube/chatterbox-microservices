@@ -9,15 +9,16 @@ generator client {
 }
 
 model User {
-  id                String  @id @db.ObjectId @default(dbgenerated()) @map("_id")
-  sub               String  @unique
-  username          String  @unique
-  email             String  @unique
+  id                String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
+  username          String    @unique
+  email             String    @unique
   avatarUrl         String?
   password          String?
-  verified          Boolean @default(false)
-  verificationToken String? @unique
-  resetToken        String? @unique
+  verified          Boolean   @default(false)
+  verificationToken String?   @unique
+  resetToken        String?   @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   
   @@map("users")
 }

@@ -1,41 +1,42 @@
+import { JwtModule } from '@chttrbx/jwt';
+import { KafkaModule } from '@chttrbx/kafka';
 import { MailModule } from '@chttrbx/mail';
-import { HttpModule } from '@nestjs/axios';
-import { CacheModule, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import * as redisStore from 'cache-manager-ioredis';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GithubStrategy } from './strategies/github.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [
-    ConfigModule,
     PrismaModule,
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '15m' },
+        secretOrKey: configService.get('JWT_SECRET'),
+        expiresIn: '15m',
       }),
       inject: [ConfigService],
     }),
-    CacheModule.registerAsync({
+    KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        store: redisStore,
-        host: configService.get('REDIS_HOST'),
-        port: configService.get('REDIS_PORT'),
-        password: configService.get('REDIS_PASSWORD'),
-        tls: {},
+        client: {
+          clientId: 'auth-client',
+          brokers: configService.get<string>('BROKER_URLS')?.split(','),
+          ssl: true,
+          sasl: {
+            mechanism: 'plain',
+            username: configService.get('CONFLUENT_API_KEY'),
+            password: configService.get('CONFLUENT_API_SECRET'),
+          },
+        },
       }),
       inject: [ConfigService],
     }),
-    HttpModule,
     MailModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         transport: {
@@ -57,12 +58,6 @@ import { LocalStrategy } from './strategies/local.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-    GoogleStrategy,
-    GithubStrategy,
-  ],
+  providers: [AuthService, LocalStrategy, GoogleStrategy, GithubStrategy],
 })
 export class AuthModule {}

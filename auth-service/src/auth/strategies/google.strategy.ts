@@ -1,9 +1,9 @@
+import { AuthUser } from '@chttrbx/jwt';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import { AuthService } from '../auth.service';
-import { AuthUserDto } from '../dto/auth-user.dto';
 import { GoogleProfile } from '../interfaces/google-profile.interface';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     _accessToken: string,
     _refreshToken: string,
     profile: GoogleProfile,
-  ): Promise<AuthUserDto> {
+  ): Promise<AuthUser> {
     return this.authService.validateOAuth(
       profile.displayName,
       profile.emails[0].value,

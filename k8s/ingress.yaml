@@ -15,13 +15,6 @@ spec:
       http:
         paths:
           - pathType: Prefix
-            path: /users
-            backend:
-              service:
-                name: profiles-svc
-                port:
-                  number: 80
-          - pathType: Prefix
             path: /auth
             backend:
               service:
@@ -30,6 +23,13 @@ spec:
                   number: 80
           - pathType: Prefix
             path: /parties
+            backend:
+              service:
+                name: parties-svc
+                port:
+                  number: 80
+          - pathType: Prefix
+            path: /messages
             backend:
               service:
                 name: messages-svc

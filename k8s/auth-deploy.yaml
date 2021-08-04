@@ -45,21 +45,6 @@ spec:
                 secretKeyRef:
                   name: auth-secrets
                   key: DATABASE_URL
-            - name: REDIS_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-config
-                  key: REDIS_HOST
-            - name: REDIS_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-config
-                  key: REDIS_PORT
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secrets
-                  key: REDIS_PASSWORD
             - name: BROKER_URLS
               valueFrom:
                 configMapKeyRef:
@@ -78,22 +63,22 @@ spec:
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: shared-config
+                  name: auth-config
                   key: GOOGLE_CLIENT_ID
             - name: GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: shared-secrets
+                  name: auth-secrets
                   key: GOOGLE_CLIENT_SECRET
             - name: GITHUB_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: shared-config
+                  name: auth-config
                   key: GITHUB_CLIENT_ID
             - name: GITHUB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: shared-secrets
+                  name: auth-secrets
                   key: GITHUB_CLIENT_SECRET
             - name: SMTP_HOST
               valueFrom:

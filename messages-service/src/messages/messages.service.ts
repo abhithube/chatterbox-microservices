@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -12,18 +16,9 @@ export class MessagesService {
     partyId: string,
     userId: string,
   ): Promise<void> {
-    const party = await this.prisma.party.findUnique({
-      where: {
-        id: partyId,
-      },
-    });
-    if (!party) {
-      throw new WsException('Party not found');
-    }
-
     const user = await this.prisma.user.findUnique({
       where: {
-        sub: userId,
+        id: userId,
       },
     });
     if (!user) {
@@ -41,7 +36,7 @@ export class MessagesService {
   ): Promise<void> {
     const topic = await this.prisma.topic.findUnique({
       where: {
-        id: topicId,
+        publicId: topicId,
       },
     });
     if (!topic) {
@@ -50,15 +45,11 @@ export class MessagesService {
 
     const user = await this.prisma.user.findUnique({
       where: {
-        sub: userId,
+        publicId: userId,
       },
     });
     if (!user) {
       throw new WsException('User not found');
-    }
-
-    if (!user.partyIDs.includes(topic.partyId)) {
-      throw new WsException('Not a member');
     }
   }
 
@@ -68,7 +59,7 @@ export class MessagesService {
   ): Promise<MessageDto> {
     const topic = await this.prisma.topic.findUnique({
       where: {
-        id: topicId,
+        publicId: topicId,
       },
     });
     if (!topic) {
@@ -77,15 +68,11 @@ export class MessagesService {
 
     const user = await this.prisma.user.findUnique({
       where: {
-        sub: userId,
+        publicId: userId,
       },
     });
     if (!user) {
       throw new WsException('User not found');
-    }
-
-    if (!user.partyIDs.includes(topic.partyId)) {
-      throw new WsException('Not a member');
     }
 
     const prev = await this.prisma.message.findFirst({
@@ -97,22 +84,99 @@ export class MessagesService {
       },
     });
 
-    return this.prisma.message.create({
+    const message = await this.prisma.message.create({
       data: {
         body,
         syncId: prev ? prev.syncId + 1 : 1,
         userId: user.id,
         topicId,
       },
-      select: {
-        id: true,
-        body: true,
-        syncId: true,
+      include: {
         user: true,
-        topicId: true,
-        createdAt: true,
-        updatedAt: true,
       },
     });
+
+    return {
+      id: message.id,
+      body: message.body,
+      syncId: message.syncId,
+      user: {
+        id: message.user.publicId,
+        username: message.user.username,
+        avatarUrl: message.user.avatarUrl,
+      },
+      createdAt: message.createdAt,
+    };
+  }
+
+  async getMessages(
+    topicId: string,
+    userId: string,
+    syncId?: number,
+  ): Promise<MessageDto[]> {
+    const topic = await this.prisma.topic.findUnique({
+      where: {
+        publicId: topicId,
+      },
+    });
+    if (!topic) {
+      throw new NotFoundException({
+        message: 'Topic not found',
+      });
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        publicId: userId,
+      },
+    });
+    if (!user.partyIDs.includes(topic.partyId)) {
+      throw new ForbiddenException({
+        message: 'Not a member',
+      });
+    }
+
+    if (!syncId) {
+      const last = await this.prisma.message.findFirst({
+        where: {
+          topicId,
+        },
+        orderBy: {
+          syncId: 'desc',
+        },
+      });
+
+      if (!last) return [];
+
+      syncId = last.syncId + 1;
+    }
+
+    const messages = await this.prisma.message.findMany({
+      where: {
+        topicId,
+        syncId: {
+          lt: syncId,
+        },
+      },
+      include: {
+        user: true,
+      },
+      take: 50,
+      orderBy: {
+        syncId: 'desc',
+      },
+    });
+
+    return messages.map((message) => ({
+      id: message.id,
+      body: message.body,
+      syncId: message.syncId,
+      user: {
+        id: message.user.publicId,
+        username: message.user.username,
+        avatarUrl: message.user.avatarUrl,
+      },
+      createdAt: message.createdAt,
+    }));
   }
 }
