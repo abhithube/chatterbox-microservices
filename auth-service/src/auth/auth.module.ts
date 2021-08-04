@@ -26,7 +26,7 @@ import { LocalStrategy } from './strategies/local.strategy';
       useFactory: (configService: ConfigService) => ({
         client: {
           clientId: 'auth-client',
-          brokers: configService.get<string>('BROKER_URLS').split(','),
+          brokers: configService.get<string>('BROKER_URLS')?.split(','),
           ssl: true,
           sasl: {
             mechanism: 'plain',

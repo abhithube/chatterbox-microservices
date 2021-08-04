@@ -12,7 +12,7 @@ import { PartiesService } from './parties.service';
       useFactory: (configService: ConfigService) => ({
         client: {
           clientId: 'messages-client',
-          brokers: configService.get<string>('BROKER_URLS').split(','),
+          brokers: configService.get<string>('BROKER_URLS')?.split(','),
           ssl: true,
           sasl: {
             mechanism: 'plain',
