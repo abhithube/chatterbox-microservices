@@ -8,10 +8,12 @@ import { User } from '@prisma/client';
 import { hashSync } from 'bcrypt';
 import * as cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
-import { AuthResponseDto } from 'src/auth/dto/auth-response.dto';
 import * as request from 'supertest';
 import { AuthModule } from '../src/auth/auth.module';
+import { AuthResponseDto } from '../src/auth/dto/auth-response.dto';
 import { CreateUserDto } from '../src/auth/dto/create-user.dto';
+import { GithubStrategy } from '../src/auth/strategies/github.strategy';
+import { GoogleStrategy } from '../src/auth/strategies/google.strategy';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 const verified = 'verified';
@@ -49,6 +51,10 @@ describe('Auth', () => {
       .useValue({
         send: jest.fn(),
       })
+      .overrideProvider(GoogleStrategy)
+      .useValue({})
+      .overrideProvider(GithubStrategy)
+      .useValue({})
       .compile();
 
     app = moduleRef.createNestApplication();
