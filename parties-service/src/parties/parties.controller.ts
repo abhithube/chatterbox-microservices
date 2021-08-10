@@ -37,11 +37,6 @@ export class PartiesController {
     return this.partiesService.createParty(createPartyDto, req.user.id);
   }
 
-  @Get()
-  async partiesHandler(): Promise<PartyDto[]> {
-    return this.partiesService.getAllParties();
-  }
-
   @UseGuards(JwtAuthGuard)
   @Get('/@me')
   async myPartiesHandler(@Req() req: RequestWithUser): Promise<PartyDto[]> {

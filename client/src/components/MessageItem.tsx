@@ -8,8 +8,8 @@ type MessageProps = {
 export const MessageItem = ({ message }: MessageProps) => {
   return (
     <Flex>
-      <Avatar src={message.user.avatarUrl} />
-      <Box ml={4} color="gray.50">
+      <Avatar src={message.user.avatarUrl || undefined} />
+      <Box ml={4}>
         <Box>
           <Box as="span" fontWeight="bold">
             {message.user.username}

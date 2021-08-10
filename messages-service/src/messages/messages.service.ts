@@ -18,7 +18,7 @@ export class MessagesService {
   ): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        publicId: userId,
       },
     });
     if (!user) {

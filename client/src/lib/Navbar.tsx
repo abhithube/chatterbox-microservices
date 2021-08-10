@@ -35,21 +35,14 @@ export const Navbar = () => {
           </Box>
           <HStack spacing="4">
             {!loading && auth && (
-              <>
-                <Link as={RouterLink} to="/profile" _hover={{}}>
-                  Profile
-                </Link>
-                <Link as="button" onClick={handleClick} _hover={{}}>
-                  Logout
-                </Link>
-              </>
+              <Link as="button" onClick={handleClick} _hover={{}}>
+                Logout
+              </Link>
             )}
             {!loading && !auth && (
-              <>
-                <Link as={RouterLink} to="/login" _hover={{}}>
-                  Join
-                </Link>
-              </>
+              <Link as={RouterLink} to="/login" _hover={{}}>
+                Join
+              </Link>
             )}
           </HStack>
         </HStack>

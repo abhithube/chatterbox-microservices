@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { createContext, PropsWithChildren, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Auth } from '../types';
+import { User } from '../types';
 
 type AuthContextType = {
-  auth: Auth | null;
-  signIn: (auth: Auth) => void;
+  auth: User | null;
+  signIn: (auth: User, accessToken: string) => void;
   signOut: () => void;
   loading: boolean;
 };
@@ -15,23 +15,21 @@ export const AuthContext = createContext<AuthContextType>(
 );
 
 export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
-  const [auth, setAuth] = useState<Auth | null>(null);
+  const [auth, setAuth] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const history = useHistory();
 
-  const signIn = (auth: Auth) => {
+  const signIn = (auth: User, accessToken: string) => {
+    localStorage.setItem('token', accessToken);
     setAuth(auth);
   };
 
   const signOut = async () => {
     try {
-      await axios.post(
-        `${process.env.REACT_APP_SERVER_URL}/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
+      await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/logout`, {});
 
+      localStorage.removeItem('token');
       setAuth(null);
     } catch (err) {
       console.log(err.response);
@@ -42,31 +40,12 @@ export const AuthProvider = ({ children }: PropsWithChildren<{}>) => {
     (async () => {
       setLoading(true);
 
-      let accessToken;
-      try {
-        const { data } = await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        accessToken = data.accessToken;
-      } catch (err) {
-        console.log(err.response);
-
-        setLoading(false);
-        return;
-      }
-
       try {
         const { data } = await axios.get(
-          `${process.env.REACT_APP_SERVER_URL}/auth`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
+          `${process.env.REACT_APP_SERVER_URL}/auth/@me`
         );
 
-        setAuth({ user: data, accessToken });
+        setAuth(data);
       } catch (err) {
         console.log(err.response);
 
