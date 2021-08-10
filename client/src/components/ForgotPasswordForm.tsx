@@ -11,7 +11,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { FaEnvelope } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../lib/Alert';
@@ -24,7 +24,7 @@ export const ForgotPasswordForm = () => {
 
   const history = useHistory();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     (async () => {

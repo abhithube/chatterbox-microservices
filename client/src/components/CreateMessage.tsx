@@ -7,20 +7,28 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  Spinner,
 } from '@chakra-ui/react';
-import { FormEvent, useState } from 'react';
-import { FaPlay, FaUser } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaComment, FaPlay } from 'react-icons/fa';
 import { useSocket } from '../lib/useSocket';
 import { useTopic } from '../lib/useTopic';
 
-export const CreateMessage = () => {
+type CreateMessageProps = {
+  isReady: boolean;
+  setIsReady: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
   const { socket } = useSocket();
   const { topic } = useTopic();
 
   const [message, setMessage] = useState('');
 
-  const handleClick = async (e: FormEvent) => {
+  const handleClick = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    setIsReady(false);
 
     socket!.emit('send_message', {
       body: message,
@@ -34,28 +42,28 @@ export const CreateMessage = () => {
     <Box as="form" onSubmit={handleClick} w="full">
       {topic && (
         <Flex>
-          <FormControl id="username" isRequired>
+          <FormControl id="message" isRequired>
             <InputGroup>
               <InputLeftElement
-                children={<Icon as={FaUser} color="gray.300" />}
+                children={<Icon as={FaComment} color="gray.300" />}
                 pointerEvents="none"
               />
               <Input
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                placeholder={`Message ${topic!.name}...`}
-                color="gray.50"
+                placeholder={`Message #${topic!.name}`}
               />
             </InputGroup>
           </FormControl>
           <IconButton
             aria-label="create-message-button"
             icon={<Icon as={FaPlay} />}
+            isLoading={!isReady}
+            spinner={<Spinner />}
+            colorScheme="teal"
             type="submit"
-            w="100%"
-            bgColor="teal.400"
-            _hover={{ bgColor: 'teal.500' }}
-            color="gray.50"
+            ml={4}
+            w={16}
           />
         </Flex>
       )}

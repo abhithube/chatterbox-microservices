@@ -12,11 +12,12 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
-import { FormEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaLock, FaUser } from 'react-icons/fa';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../lib/Alert';
 import { useAuth } from '../lib/useAuth';
+import { User } from '../types';
 
 type LoginFormProps = {
   status: string | null;
@@ -53,22 +54,24 @@ export const LoginForm = ({ status }: LoginFormProps) => {
     }
   }, [status]);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     (async () => {
       try {
         setLoading(true);
-        const res = await axios.post(
+        const { data } = await axios.post<{ user: User; accessToken: string }>(
           `${process.env.REACT_APP_SERVER_URL}/auth/login`,
           {
             username,
             password,
           },
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
 
-        signIn({ user: res.data.user, accessToken: res.data.accessToken });
+        signIn(data.user, data.accessToken);
         history.push('/');
       } catch (err) {
         if (axios.isAxiosError(err)) {

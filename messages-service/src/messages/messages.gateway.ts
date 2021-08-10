@@ -106,12 +106,12 @@ export class MessagesGateway
   @SubscribeMessage('join_topic')
   async joinChannelHandler(
     @ConnectedSocket() client: SocketWithUser,
-    @MessageBody() { topicId }: TopicConnectionDto,
+    @MessageBody() { topic }: TopicConnectionDto,
   ): Promise<void> {
-    await this.messagesService.validateTopicConnection(topicId, client.user);
+    await this.messagesService.validateTopicConnection(topic, client.user);
 
-    client.join(`topic:${topicId}`);
-    client.topic = topicId;
+    client.join(`topic:${topic}`);
+    client.topic = topic;
   }
 
   @SubscribeMessage('leave_topic')

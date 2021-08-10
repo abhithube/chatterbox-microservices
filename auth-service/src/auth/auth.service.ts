@@ -136,6 +136,20 @@ export class AuthService {
           username,
           email,
           avatarUrl,
+          verified: true,
+        },
+      });
+
+      await this.kafka.publish<UserDto>('users', {
+        key: user.id,
+        value: {
+          type: 'USER_CREATED',
+          data: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            avatarUrl: user.avatarUrl,
+          },
         },
       });
     }

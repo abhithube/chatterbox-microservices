@@ -10,7 +10,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../lib/Alert';
@@ -26,7 +26,7 @@ export const RegisterForm = () => {
 
   const history = useHistory();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== passwordConfirm) {
@@ -39,7 +39,7 @@ export const RegisterForm = () => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(`${process.env.REACT_APP_SERVER_URL}/users`, {
+        await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/register`, {
           username,
           email,
           password,

@@ -6,37 +6,39 @@ import {
   List,
   ListItem,
 } from '@chakra-ui/react';
-import { useParty } from '../lib/useParty';
+import { User } from '../types';
 
-export const UserSidebar = () => {
-  const { party, online } = useParty();
+type UserSidebarProps = {
+  users: User[];
+  online: string[];
+};
 
+export const UserSidebar = ({ users, online }: UserSidebarProps) => {
   return (
-    <Box h="full" w={64} bgColor="gray.700">
-      <Heading pt={4} fontSize="2xl" textAlign="center" color="gray.50">
+    <Box h="full" bgColor="gray.200">
+      <Heading pt={4} fontSize="2xl" textAlign="center">
         Users
       </Heading>
       <List mt={4} pl={4}>
-        {online &&
-          party?.users.map(user => (
-            <ListItem
-              key={user.id}
-              display="flex"
-              alignItems="center"
-              mb={2}
-              w="75%"
-            >
-              <Avatar src={user.avatarUrl}>
-                <AvatarBadge
-                  boxSize={5}
-                  bgColor={online.includes(user.id) ? 'green.400' : 'red.400'}
-                />
-              </Avatar>
-              <Box as="span" ml={2} color="gray.50">
-                {user.username}
-              </Box>
-            </ListItem>
-          ))}
+        {users.map(user => (
+          <ListItem
+            key={user.id}
+            display="flex"
+            alignItems="center"
+            mb={2}
+            w="75%"
+          >
+            <Avatar src={user.avatarUrl || undefined}>
+              <AvatarBadge
+                boxSize={5}
+                bgColor={online.includes(user.id) ? 'green.400' : 'red.400'}
+              />
+            </Avatar>
+            <Box as="span" ml={2}>
+              {user.username}
+            </Box>
+          </ListItem>
+        ))}
       </List>
     </Box>
   );

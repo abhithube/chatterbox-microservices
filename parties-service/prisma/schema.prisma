@@ -22,7 +22,6 @@ model User {
 model Party {
   id          String    @id @db.ObjectId @default(dbgenerated()) @map("_id")
   name        String
-  visible     Boolean   @default(false)
   inviteToken String    @unique
   userIDs     String[]  @db.Array(ObjectId)
   users       User[]    @relation(fields: [userIDs])

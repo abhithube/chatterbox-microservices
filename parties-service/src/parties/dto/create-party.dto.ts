@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
 export class CreatePartyDto {
   @IsString({
@@ -11,9 +11,4 @@ export class CreatePartyDto {
     message: 'name cannot exceed 50 characters',
   })
   name: string;
-
-  @IsBoolean({
-    message: 'visible must be a boolean',
-  })
-  visible: boolean;
 }

@@ -6,7 +6,7 @@ import { PartyDto } from './dto/party.dto';
 import { TopicDto } from './dto/topic.dto';
 import { PartiesService } from './parties.service';
 
-@Controller('parties')
+@Controller()
 export class PartiesController {
   constructor(
     private partiesService: PartiesService,

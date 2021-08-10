@@ -7,7 +7,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import axios from 'axios';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../lib/Alert';
 
@@ -24,7 +24,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
 
   const history = useHistory();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== passwordConfirm) {

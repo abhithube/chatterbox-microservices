@@ -4,7 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
@@ -20,7 +19,7 @@ export class PartiesService {
   constructor(private prisma: PrismaService, private kafka: KafkaService) {}
 
   async createParty(
-    { name, visible }: CreatePartyDto,
+    { name }: CreatePartyDto,
     userId: string,
   ): Promise<PartyDto> {
     const user = await this.prisma.user.findUnique({
@@ -37,7 +36,6 @@ export class PartiesService {
     const party = await this.prisma.party.create({
       data: {
         name,
-        visible,
         inviteToken: randomUUID(),
         users: {
           connect: {
@@ -55,6 +53,10 @@ export class PartiesService {
       },
     });
 
+    const partyDto = {
+      id: party.id,
+      name: party.name,
+    };
     const topic = party.topics[0];
 
     await this.kafka.publish<PartyCreatedDto>('parties', {
@@ -62,10 +64,7 @@ export class PartiesService {
       value: {
         type: 'PARTY_CREATED',
         data: {
-          party: {
-            id: party.id,
-            name: party.name,
-          },
+          party: partyDto,
           topic: {
             id: topic.id,
             name: topic.name,
@@ -76,20 +75,7 @@ export class PartiesService {
       },
     });
 
-    return party;
-  }
-
-  async getAllParties(): Promise<PartyDto[]> {
-    const parties = await this.prisma.party.findMany({
-      where: {
-        visible: true,
-      },
-    });
-
-    return parties.map(({ id, name }) => ({
-      id,
-      name,
-    }));
+    return partyDto;
   }
 
   async getUserParties(userId: string): Promise<PartyDto[]> {
@@ -142,22 +128,15 @@ export class PartiesService {
     };
   }
 
-  async joinParty(id: string, userId: string, token?: string): Promise<void> {
-    const where: Prisma.PartyWhereUniqueInput = token
-      ? {
-          inviteToken: token,
-        }
-      : {
-          id,
-        };
-
+  async joinParty(id: string, userId: string, token: string): Promise<void> {
     const party = await this.prisma.party.findUnique({
-      where,
+      where: {
+        inviteToken: token,
+      },
     });
-
     if (!party) {
-      throw new NotFoundException({
-        message: 'Party not found',
+      throw new ForbiddenException({
+        message: 'Invalid invite token',
       });
     }
 
@@ -175,12 +154,6 @@ export class PartiesService {
     if (user.partyIDs.includes(id)) {
       throw new ForbiddenException({
         message: 'Already a member',
-      });
-    }
-
-    if (!party.visible && !token) {
-      throw new ForbiddenException({
-        message: 'Cannot join private party without invite',
       });
     }
 
