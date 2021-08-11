@@ -8,7 +8,6 @@ import {
   HttpStatus,
   Param,
   Post,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -57,7 +56,7 @@ export class PartiesController {
   async joinPartyHandler(
     @Req() req: RequestWithUser,
     @Param() { id }: PartyParams,
-    @Query() { token }: JoinPartyQuery,
+    @Body() { token }: JoinPartyQuery,
   ): Promise<void> {
     return this.partiesService.joinParty(id, req.user.id, token);
   }
