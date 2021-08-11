@@ -1,27 +1,18 @@
-import {
-  Avatar,
-  Flex,
-  Heading,
-  Tab,
-  TabList,
-  Tabs,
-  Tooltip,
-} from '@chakra-ui/react';
+import { Avatar, Flex, Tab, TabList, Tabs, Tooltip } from '@chakra-ui/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useParty } from '../lib/useParty';
-import { Party, PartyWithUsersAndTopics } from '../types';
+import { PartyWithUsersAndTopics } from '../types';
 import { PartyModal } from './PartyModal';
 
 type PartiesSidebarProps = {
-  parties: Party[];
-  addParty: (party: Party) => void;
+  initId: string;
 };
 
-export const PartiesSidebar = ({ parties, addParty }: PartiesSidebarProps) => {
-  const { selectParty } = useParty();
+export const PartiesSidebar = ({ initId }: PartiesSidebarProps) => {
+  const { selectParty, parties, addParty } = useParty();
 
-  const [id, setId] = useState(localStorage.getItem('party') || parties[0].id);
+  const [id, setId] = useState(initId);
   const [tabIndex, setTabIndex] = useState(0);
 
   useEffect(() => {
@@ -50,10 +41,10 @@ export const PartiesSidebar = ({ parties, addParty }: PartiesSidebarProps) => {
   };
 
   return (
-    <Flex direction="column" align="center" h="full" w={32} bgColor="gray.200">
-      <Heading pt={4} fontSize="2xl" textAlign="center">
+    <Flex direction="column" align="center" h="full" w={24} bgColor="gray.300">
+      {/* <Heading pt={4} fontSize="2xl" textAlign="center">
         Parties
-      </Heading>
+      </Heading> */}
       <Tabs
         index={tabIndex}
         onChange={i => setTabIndex(i)}
@@ -64,7 +55,10 @@ export const PartiesSidebar = ({ parties, addParty }: PartiesSidebarProps) => {
             <Tab
               key={party.id}
               onClick={() => handleClick(party.id)}
-              _selected={{ bgColor: 'gray.300' }}
+              p={2}
+              borderLeftWidth={3}
+              borderLeftColor="gray.300"
+              _selected={{ borderLeftColor: 'teal.500' }}
             >
               <Tooltip label={party.name} placement="right">
                 <Avatar name={party.name} />

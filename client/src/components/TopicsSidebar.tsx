@@ -28,13 +28,18 @@ export const TopicsSidebar = () => {
     if (!party) return;
 
     setTopics(party.topics);
-    setTabIndex(0);
+
+    const savedIndex = party.topics.findIndex(
+      topic => topic.id === localStorage.getItem('topic')
+    );
+    setTabIndex(savedIndex >= 0 ? savedIndex : 0);
   }, [party]);
 
   useEffect(() => {
-    if (!topics) return;
+    if (topics.length === 0) return;
 
     selectTopic(topics[tabIndex]);
+    localStorage.setItem('topic', topics[tabIndex].id);
   }, [tabIndex, topics, selectTopic]);
 
   useEffect(() => {
@@ -78,7 +83,10 @@ export const TopicsSidebar = () => {
               key={topic.id}
               w="full"
               padding={1}
-              _selected={{ bgColor: 'gray.300' }}
+              _selected={{
+                bgColor: 'gray.200',
+                fontWeight: 'bold',
+              }}
             >
               <HStack>
                 <Box as="span" fontSize="lg" color="gray.500">

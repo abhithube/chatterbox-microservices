@@ -7,12 +7,13 @@ import { PartyProvider } from './lib/PartyProvider';
 import { ProtectedRoute } from './lib/ProtectedRoute';
 import { SocketProvider } from './lib/SocketProvider';
 import { TopicProvider } from './lib/TopicProvider';
+import { ConfirmPage } from './pages/ConfirmPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { InvitePage } from './pages/InvitePage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundErrorPage } from './pages/NotFoundErrorPage';
-import { PartiesPage } from './pages/PartiesPage';
+import { PartyPage } from './pages/PartyPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ServerErrorPage } from './pages/ServerErrorPage';
@@ -68,14 +69,11 @@ export const App = () => (
                 <Box h="calc(100% - 48px)">
                   <Switch>
                     <Route exact path="/" component={HomePage} />
-                    <ProtectedRoute
-                      exact
-                      path="/parties"
-                      component={PartiesPage}
-                    />
+                    <ProtectedRoute path="/parties/:id" component={PartyPage} />
                     <ProtectedRoute path="/invite" component={InvitePage} />
                     <Route path="/register" component={RegisterPage} />
                     <Route path="/login" component={LoginPage} />
+                    <Route path="/confirm" component={ConfirmPage} />
                     <Route path="/forgot" component={ForgotPasswordPage} />
                     <Route path="/reset" component={ResetPasswordPage} />
                     <Route path="/error" component={ServerErrorPage} />
