@@ -26,7 +26,10 @@ export const InvitePage = () => {
         setLoading(true);
 
         const res = await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/parties/${partyId}/join?token=${token}`
+          `${process.env.REACT_APP_SERVER_URL}/parties/${partyId}/join`,
+          {
+            token,
+          }
         );
 
         if (res.status !== 200) setError(true);

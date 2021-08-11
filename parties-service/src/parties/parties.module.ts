@@ -33,5 +33,6 @@ import { PartiesService } from './parties.service';
   ],
   controllers: [PartiesController],
   providers: [PartiesService],
+  exports: [PartiesService],
 })
 export class PartiesModule {}

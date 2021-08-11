@@ -84,7 +84,7 @@ export class AuthService {
       subject: 'Email Verification',
       html: `
         <p>Hello ${user.username},</p>
-        <p>Confirm your email address <a href="${process.env.SERVER_URL}/auth/confirm?token=${user.verificationToken}">here</a>.</p>
+        <p>Confirm your email address <a href="${process.env.CLIENT_URL}/confirm?token=${user.verificationToken}">here</a>.</p>
       `,
     });
 

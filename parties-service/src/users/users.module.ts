@@ -1,12 +1,14 @@
 import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PartiesModule } from '../parties/parties.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
   imports: [
+    PartiesModule,
     PrismaModule,
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
