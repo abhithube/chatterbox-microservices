@@ -16,23 +16,38 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
 import axios from 'axios';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaComments, FaPlus } from 'react-icons/fa';
 import { useParty } from '../lib/useParty';
 import { Topic } from '../types';
 
 type TopicModalProps = {
+  count: number;
   addTopic: (topic: Topic) => void;
 };
 
-export const TopicModal = ({ addTopic }: TopicModalProps) => {
+export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
   const { party } = useParty();
 
   const [name, setName] = useState('');
 
+  const inputRef = useRef(null);
+
+  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const handleClick = () => {
+    if (count >= 10) {
+      toast({
+        status: 'error',
+        isClosable: true,
+        description: 'A party cannot exceed 10 topics',
+      });
+    } else onOpen();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +75,7 @@ export const TopicModal = ({ addTopic }: TopicModalProps) => {
         leftIcon={<Icon as={FaPlus} />}
         colorScheme="teal"
         variant="outline"
-        onClick={onOpen}
+        onClick={handleClick}
       >
         New Topic
       </Button>
@@ -69,6 +84,7 @@ export const TopicModal = ({ addTopic }: TopicModalProps) => {
         onClose={onClose}
         isCentered
         returnFocusOnClose={false}
+        initialFocusRef={inputRef}
       >
         <ModalOverlay />
         <ModalContent>
@@ -88,6 +104,7 @@ export const TopicModal = ({ addTopic }: TopicModalProps) => {
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder="Enter a name..."
+                      ref={inputRef}
                     />
                   </InputGroup>
                 </FormControl>

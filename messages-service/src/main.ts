@@ -5,6 +5,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { RedisIoAdapter } from './messages/adaptors/redis-io.adaptor';
 
+declare const module: any;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
@@ -30,5 +32,10 @@ async function bootstrap() {
 
   const port = configService.get('PORT');
   await app.listen(port, () => console.log(`Listening on port ${port}...`));
+
+  if (module.hot) {
+    module.hot.accept();
+    module.hot.dispose(() => app.close());
+  }
 }
 bootstrap();

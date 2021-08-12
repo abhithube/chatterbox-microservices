@@ -99,7 +99,7 @@ export const TopicsSidebar = () => {
         </TabList>
       </Tabs>
       <Box mt={4}>
-        <TopicModal addTopic={addTopic} />
+        <TopicModal count={topics.length} addTopic={addTopic} />
       </Box>
     </Flex>
   );

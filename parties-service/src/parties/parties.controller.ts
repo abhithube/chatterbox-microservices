@@ -80,7 +80,7 @@ export class PartiesController {
     @Req() req: RequestWithUserAndParty,
     @Body() createTopicDto: CreateTopicDto,
   ): Promise<TopicDto> {
-    return this.partiesService.createTopic(createTopicDto, req.party.id);
+    return this.partiesService.createTopic(createTopicDto, req.party);
   }
 
   @UseGuards(JwtAuthGuard, MemberGuard)

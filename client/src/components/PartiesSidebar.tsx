@@ -42,9 +42,6 @@ export const PartiesSidebar = ({ initId }: PartiesSidebarProps) => {
 
   return (
     <Flex direction="column" align="center" h="full" w={24} bgColor="gray.300">
-      {/* <Heading pt={4} fontSize="2xl" textAlign="center">
-        Parties
-      </Heading> */}
       <Tabs
         index={tabIndex}
         onChange={i => setTabIndex(i)}
@@ -67,7 +64,7 @@ export const PartiesSidebar = ({ initId }: PartiesSidebarProps) => {
           ))}
         </TabList>
       </Tabs>
-      <PartyModal addParty={addParty} />
+      <PartyModal count={parties.length} addParty={addParty} />
     </Flex>
   );
 };
