@@ -33,6 +33,12 @@ export class PartiesService {
       });
     }
 
+    if (user.partyIDs.length >= 10) {
+      throw new ForbiddenException({
+        message: 'Max party count exceeded',
+      });
+    }
+
     const party = await this.prisma.party.create({
       data: {
         name,
@@ -137,6 +143,11 @@ export class PartiesService {
     if (!party) {
       throw new ForbiddenException({
         message: 'Invalid invite token',
+      });
+    }
+    if (party.userIDs.length >= 10) {
+      throw new ForbiddenException({
+        message: 'Max member count exceeded',
       });
     }
 
@@ -244,12 +255,18 @@ export class PartiesService {
 
   async createTopic(
     { name }: CreateTopicDto,
-    partyId: string,
+    { id, topics }: PartyWithUsersAndTopicsDto,
   ): Promise<TopicDto> {
+    if (topics.length >= 10) {
+      throw new ForbiddenException({
+        message: 'Max topic count exceeded',
+      });
+    }
+
     const topic = await this.prisma.topic.create({
       data: {
         name,
-        partyId,
+        partyId: id,
       },
     });
 
@@ -260,7 +277,7 @@ export class PartiesService {
     };
 
     await this.kafka.publish<TopicDto>('parties', {
-      key: partyId,
+      key: id,
       value: {
         type: 'TOPIC_CREATED',
         data: topicDto,

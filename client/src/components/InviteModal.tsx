@@ -11,9 +11,10 @@ import {
   ModalOverlay,
   Text,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
-import { FaPlus } from 'react-icons/fa';
+import { FaUserPlus } from 'react-icons/fa';
 import { useParty } from '../lib/useParty';
 
 export const InviteModal = () => {
@@ -22,6 +23,7 @@ export const InviteModal = () => {
   const [link, setLink] = useState('');
   const [isCopied, setIsCopied] = useState(false);
 
+  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
@@ -32,7 +34,17 @@ export const InviteModal = () => {
     );
   }, [party]);
 
-  const handleClick = async () => {
+  const handleClick = () => {
+    if (party!.users.length >= 10) {
+      toast({
+        status: 'error',
+        isClosable: true,
+        description: 'A party cannot exceed 10 members',
+      });
+    } else onOpen();
+  };
+
+  const handleCopy = async () => {
     await navigator.clipboard.writeText(link);
     setIsCopied(true);
   };
@@ -40,8 +52,8 @@ export const InviteModal = () => {
   return (
     <>
       <Button
-        leftIcon={<Icon as={FaPlus} />}
-        onClick={onOpen}
+        leftIcon={<Icon as={FaUserPlus} />}
+        onClick={handleClick}
         colorScheme="teal"
       >
         Invite
@@ -71,7 +83,7 @@ export const InviteModal = () => {
               <Text overflowX="auto" whiteSpace="nowrap">
                 {link}
               </Text>
-              <Button colorScheme="teal" onClick={handleClick} ml={4} px={6}>
+              <Button colorScheme="teal" onClick={handleCopy} ml={4} px={6}>
                 {isCopied ? 'Copied' : 'Copy'}
               </Button>
             </Flex>

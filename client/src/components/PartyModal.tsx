@@ -18,20 +18,35 @@ import {
   ModalOverlay,
   Tooltip,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { FaPlus, FaUserFriends } from 'react-icons/fa';
 import { Party } from '../types';
 
 type PartyModalProps = {
+  count: number;
   addParty: (party: Party) => void;
 };
 
-export const PartyModal = ({ addParty }: PartyModalProps) => {
+export const PartyModal = ({ count, addParty }: PartyModalProps) => {
   const [name, setName] = useState('');
 
+  const inputRef = useRef(null);
+
+  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const handleClick = () => {
+    if (count >= 10) {
+      toast({
+        status: 'error',
+        isClosable: true,
+        description: 'You cannot be a member of more than 10 parties',
+      });
+    } else onOpen();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +70,7 @@ export const PartyModal = ({ addParty }: PartyModalProps) => {
         <IconButton
           icon={<Icon as={FaPlus} />}
           aria-label="add-party-button"
-          onClick={onOpen}
+          onClick={handleClick}
           colorScheme="teal"
           variant="outline"
           w="12"
@@ -68,6 +83,7 @@ export const PartyModal = ({ addParty }: PartyModalProps) => {
         onClose={onClose}
         isCentered
         returnFocusOnClose={false}
+        initialFocusRef={inputRef}
       >
         <ModalOverlay />
         <ModalContent>
@@ -87,6 +103,7 @@ export const PartyModal = ({ addParty }: PartyModalProps) => {
                       value={name}
                       onChange={e => setName(e.target.value)}
                       placeholder="Enter a name..."
+                      ref={inputRef}
                     />
                   </InputGroup>
                 </FormControl>
