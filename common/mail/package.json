@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/mail",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "NestJS module for sending mail",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,23 +15,23 @@
     "lint": "eslint \"src/**/*.ts\" --fix"
   },
   "dependencies": {
-    "@nestjs/common": "^8.0.0",
+    "@nestjs/common": "^8.0.6",
     "nodemailer": "^6.6.3",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
-    "@nestjs/cli": "^8.0.0",
-    "@nestjs/schematics": "^8.0.0",
-    "@types/node": "^16.0.0",
+    "@nestjs/cli": "^8.1.1",
+    "@nestjs/schematics": "^8.0.2",
+    "@types/node": "^16.6.0",
     "@types/nodemailer": "^6.4.4",
-    "@typescript-eslint/eslint-plugin": "^4.28.2",
-    "@typescript-eslint/parser": "^4.28.2",
-    "eslint": "^7.30.0",
+    "@typescript-eslint/eslint-plugin": "^4.29.1",
+    "@typescript-eslint/parser": "^4.29.1",
+    "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
     "prettier": "^2.3.2",
     "rimraf": "^3.0.2",
-    "ts-loader": "^9.2.3",
+    "ts-loader": "^9.2.5",
     "tsconfig-paths": "^3.10.1",
     "typescript": "^4.3.5"
   }
