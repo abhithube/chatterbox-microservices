@@ -74,15 +74,18 @@ export const LoginForm = ({ status }: LoginFormProps) => {
         signIn(data.user, data.accessToken);
         history.push('/');
       } catch (err) {
+        console.log(err.response);
+
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 400) {
             setAlert({
               status: 'error',
-              text: 'Invalid credentials',
+              text: err.response.data.message,
             });
-            setLoading(false);
           }
         } else history.push('/error');
+      } finally {
+        setLoading(false);
       }
     })();
   };
@@ -128,13 +131,11 @@ export const LoginForm = ({ status }: LoginFormProps) => {
       </VStack>
       <Button
         type="submit"
+        colorScheme="teal"
         isLoading={loading}
         loadingText="Loading..."
         mt={4}
         w="100%"
-        bgColor="teal.400"
-        _hover={{ bgColor: 'teal.500' }}
-        color="gray.50"
       >
         Sign in
       </Button>

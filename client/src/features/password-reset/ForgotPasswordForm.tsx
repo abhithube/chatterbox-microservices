@@ -38,7 +38,7 @@ export const ForgotPasswordForm = () => {
         setAlert({ status: 'success', text: 'Password reset link sent' });
       } catch (err) {
         if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) {
+          if (err.response?.status === 400) {
             setAlert({
               status: 'error',
               text: 'User not found with this email address',
@@ -74,12 +74,10 @@ export const ForgotPasswordForm = () => {
       <ButtonGroup mt={4} w="100%">
         <Button
           type="submit"
+          colorScheme="teal"
           isLoading={loading}
           loadingText="Loading..."
           w="66%"
-          bgColor="teal.400"
-          _hover={{ bgColor: 'teal.500' }}
-          color="gray.50"
         >
           Submit
         </Button>

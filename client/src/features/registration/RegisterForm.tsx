@@ -47,19 +47,14 @@ export const RegisterForm = () => {
 
         history.push('/login?registered=true');
       } catch (err) {
+        console.log(err.response);
+
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 400) {
-            if (err.response.statusText.includes('Username')) {
-              setAlert({
-                status: 'error',
-                text: 'Username already taken',
-              });
-            } else if (err.response.statusText.includes('Email')) {
-              setAlert({
-                status: 'error',
-                text: 'Email already taken',
-              });
-            }
+            setAlert({
+              status: 'error',
+              text: err.response.data.message,
+            });
           }
         } else history.push('/error');
       } finally {
@@ -134,13 +129,11 @@ export const RegisterForm = () => {
       </VStack>
       <Button
         type="submit"
+        colorScheme="teal"
         isLoading={loading}
         loadingText="Loading..."
         mt={4}
         w="100%"
-        bgColor="teal.400"
-        _hover={{ bgColor: 'teal.500' }}
-        color="gray.50"
       >
         Sign up
       </Button>

@@ -13,7 +13,7 @@ async function bootstrap() {
       whitelist: true,
       exceptionFactory: (errors) =>
         new BadRequestException({
-          messages: errors.map((error) => Object.values(error.constraints)[0]),
+          message: Object.values(errors[0].constraints)[0],
         }),
     }),
   );

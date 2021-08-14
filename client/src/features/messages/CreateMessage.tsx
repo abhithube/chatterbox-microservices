@@ -58,9 +58,9 @@ export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
           <IconButton
             aria-label="create-message-button"
             icon={<Icon as={FaPlay} />}
+            colorScheme="teal"
             isLoading={!isReady}
             spinner={<Spinner />}
-            colorScheme="teal"
             type="submit"
             ml={4}
             w={16}

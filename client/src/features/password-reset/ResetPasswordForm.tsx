@@ -37,12 +37,10 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/auth/reset?token=${token}`,
-          {
-            password,
-          }
-        );
+        await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/reset`, {
+          token,
+          password,
+        });
 
         history.push('/login?reset=true');
       } catch (err) {
@@ -84,13 +82,11 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
       </VStack>
       <Button
         type="submit"
+        colorScheme="teal"
         isLoading={loading}
         loadingText="Loading..."
         mt={4}
         w="100%"
-        bgColor="teal.400"
-        _hover={{ bgColor: 'teal.500' }}
-        color="gray.50"
       >
         Submit
       </Button>

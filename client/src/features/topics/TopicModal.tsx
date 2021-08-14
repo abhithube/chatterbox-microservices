@@ -21,6 +21,8 @@ import {
 import axios from 'axios';
 import { useRef, useState } from 'react';
 import { FaComments, FaPlus } from 'react-icons/fa';
+import { useHistory } from 'react-router-dom';
+import { Alert, AlertMessage } from '../../common/components/Alert';
 import { useParty } from '../../common/hooks/useParty';
 import { Topic } from '../../types';
 
@@ -34,8 +36,12 @@ export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
 
   const [name, setName] = useState('');
 
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<AlertMessage | null>(null);
+
   const inputRef = useRef(null);
 
+  const history = useHistory();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -53,6 +59,8 @@ export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
+
       const { data } = await axios.post<Topic>(
         `${process.env.REACT_APP_SERVER_URL}/parties/${party!.id}/topics`,
         {
@@ -61,11 +69,23 @@ export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
       );
 
       setName('');
+      setAlert(null);
       onClose();
 
       addTopic(data);
     } catch (err) {
       console.log(err.response);
+
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 400) {
+          setAlert({
+            status: 'error',
+            text: err.response.data.message,
+          });
+        }
+      } else history.push('/error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,6 +112,7 @@ export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
           <ModalCloseButton />
           <Box as="form" onSubmit={handleSubmit}>
             <ModalBody>
+              {alert && <Alert status={alert.status}>{alert.text}</Alert>}
               <Flex direction="column" mt={2}>
                 <FormControl id="name">
                   <FormLabel>Topic Name</FormLabel>
@@ -111,7 +132,12 @@ export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
               </Flex>
             </ModalBody>
             <ModalFooter>
-              <Button type="submit" colorScheme="teal">
+              <Button
+                type="submit"
+                colorScheme="teal"
+                isLoading={loading}
+                loadingText="Loading..."
+              >
                 Submit
               </Button>
             </ModalFooter>

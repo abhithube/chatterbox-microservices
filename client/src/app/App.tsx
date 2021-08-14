@@ -54,6 +54,8 @@ axios.interceptors.response.use(
         console.log(err.response);
       }
     }
+
+    return Promise.reject(err);
   }
 );
 

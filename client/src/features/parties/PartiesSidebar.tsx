@@ -36,7 +36,6 @@ export const PartiesSidebar = ({ initId }: PartiesSidebarProps) => {
   }, [id, parties]);
 
   const handleClick = (id: string) => {
-    localStorage.setItem('party', id);
     setId(id);
   };
 

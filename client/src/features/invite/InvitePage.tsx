@@ -47,10 +47,7 @@ export const InvitePage = () => {
       {loading && <Spinner />}
       {!loading && error && (
         <>
-          <Text>
-            There was an error joining the requested party. Please verify your
-            invite link.
-          </Text>
+          <Text>There was an error joining the requested party.</Text>
           <Button
             colorScheme="red"
             variant="outline"
