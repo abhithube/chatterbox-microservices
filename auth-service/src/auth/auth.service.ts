@@ -6,7 +6,6 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { compareSync, hashSync } from 'bcrypt';
@@ -103,12 +102,12 @@ export class AuthService {
     });
 
     if (!user || !user.password || !compareSync(password, user.password)) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         message: 'Invalid credentials',
       });
     }
     if (!user.verified) {
-      throw new UnauthorizedException({
+      throw new BadRequestException({
         message: 'Email not verified',
       });
     }
