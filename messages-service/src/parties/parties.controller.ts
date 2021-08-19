@@ -1,7 +1,6 @@
 import { KafkaService, SubscribeTo } from '@chttrbx/kafka';
 import { Controller } from '@nestjs/common';
 import { MemberDto } from './dto/member.dto';
-import { PartyCreatedDto } from './dto/party-created.dto';
 import { PartyDto } from './dto/party.dto';
 import { TopicDto } from './dto/topic.dto';
 import { PartiesService } from './parties.service';
@@ -21,13 +20,12 @@ export class PartiesController {
     topic: 'parties',
     event: 'PARTY_CREATED',
   })
-  async partyCreatedHandler({
-    party,
-    topic,
-    userId,
-  }: PartyCreatedDto): Promise<void> {
-    await this.partiesService.saveTopic(topic);
-    return this.partiesService.saveMember({ userId, partyId: party.id });
+  async partyCreatedHandler({ id, users, topics }: PartyDto): Promise<void> {
+    await this.partiesService.saveTopic(topics[0]);
+    return this.partiesService.saveMember({
+      userId: users[0].id,
+      partyId: id,
+    });
   }
 
   @SubscribeTo({
