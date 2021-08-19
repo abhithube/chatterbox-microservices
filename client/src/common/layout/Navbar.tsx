@@ -1,22 +1,22 @@
 import { Box, Container, HStack, Icon, Link } from '@chakra-ui/react';
-import axios from 'axios';
+import { useEffect } from 'react';
 import { FaReplyAll } from 'react-icons/fa';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { getAuth, selectAuth, signOut } from '../../features/login/authSlice';
 
 export const Navbar = () => {
-  const { auth, loading, signOut } = useAuth();
+  const { user, isLoading } = useAppSelector(selectAuth);
+  const dispatch = useAppDispatch();
 
   const history = useHistory();
 
-  const handleClick = async () => {
-    await axios.post(
-      `${process.env.REACT_APP_SERVER_URL}/auth/logout`,
-      {},
-      { withCredentials: true }
-    );
+  useEffect(() => {
+    if (!user) dispatch(getAuth());
+  }, [user, dispatch]);
 
-    signOut();
+  const handleClick = async () => {
+    dispatch(signOut());
 
     history.push('/login?logout=true');
   };
@@ -34,12 +34,12 @@ export const Navbar = () => {
             </Link>
           </Box>
           <HStack spacing="4">
-            {!loading && auth && (
+            {!isLoading && user && (
               <Link as="button" onClick={handleClick} _hover={{}}>
                 Logout
               </Link>
             )}
-            {!loading && !auth && (
+            {!isLoading && !user && (
               <Link as={RouterLink} to="/login" _hover={{}}>
                 Join
               </Link>

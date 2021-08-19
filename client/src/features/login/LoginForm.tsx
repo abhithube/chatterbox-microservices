@@ -11,13 +11,12 @@ import {
   Link,
   VStack,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { FaLock, FaUser } from 'react-icons/fa';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
+import { useAppDispatch } from '../../app/hooks';
 import { Alert, AlertMessage } from '../../common/components/Alert';
-import { useAuth } from '../../common/hooks/useAuth';
-import { User } from '../../types';
+import { signIn } from './authSlice';
 
 type LoginFormProps = {
   status: string | null;
@@ -27,10 +26,10 @@ export const LoginForm = ({ status }: LoginFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const dispatch = useAppDispatch();
+
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState<AlertMessage | null>(null);
-
-  const { signIn } = useAuth();
 
   const history = useHistory();
 
@@ -48,6 +47,9 @@ export const LoginForm = ({ status }: LoginFormProps) => {
       case 'reset':
         setAlert({ status: 'success', text: 'Your password has been reset' });
         break;
+      case 'logout':
+        setAlert({ status: 'success', text: 'You have been logged out' });
+        break;
       default:
         setAlert(null);
         break;
@@ -60,32 +62,18 @@ export const LoginForm = ({ status }: LoginFormProps) => {
     (async () => {
       try {
         setLoading(true);
-        const { data } = await axios.post<{ user: User; accessToken: string }>(
-          `${process.env.REACT_APP_SERVER_URL}/auth/login`,
-          {
-            username,
-            password,
-          },
-          {
-            withCredentials: true,
-          }
-        );
 
-        signIn(data.user, data.accessToken);
+        await dispatch(signIn({ username, password })).unwrap();
         history.push('/');
       } catch (err) {
-        console.log(err.response);
+        if (err.message === 'Invalid credentials') {
+          setAlert({
+            status: 'error',
+            text: err.message,
+          });
 
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 400) {
-            setAlert({
-              status: 'error',
-              text: err.response.data.message,
-            });
-          }
+          setLoading(false);
         } else history.push('/error');
-      } finally {
-        setLoading(false);
       }
     })();
   };

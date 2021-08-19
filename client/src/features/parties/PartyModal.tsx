@@ -20,19 +20,20 @@ import {
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { useRef, useState } from 'react';
 import { FaPlus, FaUserFriends } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
+import { useAppDispatch } from '../../app/hooks';
 import { Alert, AlertMessage } from '../../common/components/Alert';
-import { Party } from '../../types';
+import { createParty } from './partiesSlice';
 
 type PartyModalProps = {
   count: number;
-  addParty: (party: Party) => void;
 };
 
-export const PartyModal = ({ count, addParty }: PartyModalProps) => {
+export const PartyModal = ({ count }: PartyModalProps) => {
+  const dispatch = useAppDispatch();
+
   const [name, setName] = useState('');
 
   const [loading, setLoading] = useState(false);
@@ -60,28 +61,21 @@ export const PartyModal = ({ count, addParty }: PartyModalProps) => {
     try {
       setLoading(true);
 
-      const { data } = await axios.post<Party>(
-        `${process.env.REACT_APP_SERVER_URL}/parties`,
-        {
+      await dispatch(
+        createParty({
           name,
-        }
-      );
+        })
+      ).unwrap();
 
       setName('');
       setAlert(null);
       onClose();
-
-      addParty(data);
     } catch (err) {
-      console.log(err.response);
-
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 400) {
-          setAlert({
-            status: 'error',
-            text: err.response.data.message,
-          });
-        }
+      if (err.message) {
+        setAlert({
+          status: 'error',
+          text: err.message,
+        });
       } else history.push('/error');
     } finally {
       setLoading(false);
