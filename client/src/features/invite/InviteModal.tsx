@@ -15,10 +15,11 @@ import {
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
-import { useParty } from '../../common/hooks/useParty';
+import { useAppSelector } from '../../app/hooks';
+import { selectParties } from '../parties/partiesSlice';
 
 export const InviteModal = () => {
-  const { party } = useParty();
+  const { activeParty: party } = useAppSelector(selectParties);
 
   const [link, setLink] = useState('');
   const [isCopied, setIsCopied] = useState(false);

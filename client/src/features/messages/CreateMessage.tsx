@@ -11,8 +11,9 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaComment, FaPlay } from 'react-icons/fa';
-import { useSocket } from '../../common/hooks/useSocket';
-import { useTopic } from '../../common/hooks/useTopic';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { selectParties } from '../parties/partiesSlice';
+import { sendMessage } from './messagesSlice';
 
 type CreateMessageProps = {
   isReady: boolean;
@@ -20,27 +21,29 @@ type CreateMessageProps = {
 };
 
 export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
-  const { socket } = useSocket();
-  const { topic } = useTopic();
+  const { activeTopic } = useAppSelector(selectParties);
+  const dispatch = useAppDispatch();
 
   const [message, setMessage] = useState('');
 
   const handleClick = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setIsReady(false);
+    // setIsReady(false);
 
-    socket!.emit('send_message', {
-      body: message,
-      topicId: topic!.id,
-    });
+    dispatch(
+      sendMessage({
+        body: message,
+        topicId: activeTopic!.id,
+      })
+    );
 
     setMessage('');
   };
 
   return (
     <Box as="form" onSubmit={handleClick} w="full">
-      {topic && (
+      {activeTopic && (
         <Flex>
           <FormControl id="message" isRequired>
             <InputGroup>
@@ -51,7 +54,7 @@ export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
               <Input
                 value={message}
                 onChange={e => setMessage(e.target.value)}
-                placeholder={`Message #${topic!.name}`}
+                placeholder={`Message #${activeTopic!.name}`}
               />
             </InputGroup>
           </FormControl>

@@ -1,6 +1,6 @@
 import { RequestWithUser } from '@chttrbx/jwt';
-import { PartyWithUsersAndTopicsDto } from '../dto/party-with-users-and-topics.dto';
+import { PartyDto } from '../dto/party.dto';
 
 export interface RequestWithUserAndParty extends RequestWithUser {
-  party: PartyWithUsersAndTopicsDto;
+  party: PartyDto;
 }

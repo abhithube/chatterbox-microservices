@@ -1,15 +1,27 @@
+import { useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { useParty } from '../hooks/useParty';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { selectAuth } from '../../features/login/authSlice';
+import { getParties, selectParties } from '../../features/parties/partiesSlice';
 
 export const HomePage = () => {
-  const { auth, loading } = useAuth();
-  const { party } = useParty();
+  const { user, isLoading: userLoading } = useAppSelector(selectAuth);
+  const { data: parties, isLoading: partiesLoading } =
+    useAppSelector(selectParties);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (user) dispatch(getParties());
+  }, [user, dispatch]);
 
   return (
     <>
-      {!loading && !auth && <Redirect to="/login" />}
-      {!loading && party && <Redirect to={`/parties/${party.id}`} />}
+      {!userLoading && !user && <Redirect to="/login" />}
+      {!partiesLoading && (
+        <Redirect
+          to={`/parties/${parties[0].id}/topics/${parties[0].topics[0].id}`}
+        />
+      )}
     </>
   );
 };

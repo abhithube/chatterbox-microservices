@@ -15,7 +15,6 @@ import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { JoinPartyQuery } from './dto/join-party.query';
 import { PartyAndTopicParams } from './dto/party-and-topic.params';
-import { PartyWithUsersAndTopicsDto } from './dto/party-with-users-and-topics.dto';
 import { PartyDto } from './dto/party.dto';
 import { PartyParams } from './dto/party.params';
 import { TopicDto } from './dto/topic.dto';
@@ -44,9 +43,7 @@ export class PartiesController {
 
   @UseGuards(JwtAuthGuard, MemberGuard)
   @Get(':id')
-  async partyHandler(
-    @Req() req: RequestWithUserAndParty,
-  ): Promise<PartyWithUsersAndTopicsDto> {
+  async partyHandler(@Req() req: RequestWithUserAndParty): Promise<PartyDto> {
     return req.party;
   }
 

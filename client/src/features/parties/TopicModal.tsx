@@ -22,17 +22,16 @@ import axios from 'axios';
 import { useRef, useState } from 'react';
 import { FaComments, FaPlus } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
+import { useAppDispatch } from '../../app/hooks';
 import { Alert, AlertMessage } from '../../common/components/Alert';
-import { useParty } from '../../common/hooks/useParty';
-import { Topic } from '../../types';
+import { createTopic } from './partiesSlice';
 
 type TopicModalProps = {
   count: number;
-  addTopic: (topic: Topic) => void;
 };
 
-export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
-  const { party } = useParty();
+export const TopicModal = ({ count }: TopicModalProps) => {
+  const dispatch = useAppDispatch();
 
   const [name, setName] = useState('');
 
@@ -61,18 +60,11 @@ export const TopicModal = ({ count, addTopic }: TopicModalProps) => {
     try {
       setLoading(true);
 
-      const { data } = await axios.post<Topic>(
-        `${process.env.REACT_APP_SERVER_URL}/parties/${party!.id}/topics`,
-        {
-          name,
-        }
-      );
+      dispatch(createTopic({ name }));
 
       setName('');
       setAlert(null);
       onClose();
-
-      addTopic(data);
     } catch (err) {
       console.log(err.response);
 

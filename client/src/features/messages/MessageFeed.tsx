@@ -1,86 +1,45 @@
 import { Box, Button, Spinner, Stack, Text } from '@chakra-ui/react';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { useAuth } from '../../common/hooks/useAuth';
-import { useParty } from '../../common/hooks/useParty';
-import { useSocket } from '../../common/hooks/useSocket';
-import { useTopic } from '../../common/hooks/useTopic';
-import { Message } from '../../types';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { selectParties } from '../parties/partiesSlice';
 import { CreateMessage } from './CreateMessage';
 import { MessageItem } from './MessageItem';
+import {
+  // addMessage,
+  clearMessages,
+  getMessages,
+  // Message,
+  selectMessages,
+} from './messagesSlice';
 
 export const MessageFeed = () => {
-  const { auth } = useAuth();
-  const { socket } = useSocket();
-  const { party } = useParty();
-  const { topic } = useTopic();
+  const { activeTopic } = useAppSelector(selectParties);
+  const { data: messages, isLoading } = useAppSelector(selectMessages);
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
 
   const [isReady, setIsReady] = useState(true);
 
   useEffect(() => {
-    if (!topic || topic.partyId !== party?.id) return;
+    if (!activeTopic) return;
 
-    setMessages([]);
-    setLoading(true);
-
-    (async () => {
-      try {
-        const { data } = await axios.get<Message[]>(
-          `${process.env.REACT_APP_SERVER_URL}/messages?topicId=${topic?.id}`
-        );
-
-        setMessages(data);
-      } catch (err) {
-        console.log(err.response);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [auth, party, topic]);
+    dispatch(clearMessages());
+    dispatch(getMessages({}));
+  }, [activeTopic, dispatch]);
 
   useEffect(() => {
-    if (!socket) return;
+    // socketClient.on('receive_message', (message: Message) => {
+    //   dispatch(addMessage(message));
+    //   setIsReady(true);
+    // });
+  }, [dispatch]);
 
-    socket.on('receive_message', (message: Message) => {
-      setMessages(prev => {
-        if (prev.length === 0) return [message];
-
-        if (prev[0].syncId + 1 === message.syncId) {
-          return [message, ...prev];
-        } else {
-          return prev;
-        }
-      });
-
-      setIsReady(true);
-    });
-  }, [socket]);
-
-  const handleClick = async () => {
-    setLoading(true);
-
-    try {
-      const { data } = await axios.get<Message[]>(
-        `${process.env.REACT_APP_SERVER_URL}/parties/${party!.id}/topics/${
-          topic?.id
-        }/messages?syncId=${messages[messages.length - 1].syncId}`
-      );
-
-      setMessages(prev => {
-        if (prev[prev.length - 1].syncId - 1 === data[0].syncId) {
-          return [...prev, ...data];
-        } else {
-          return prev;
-        }
-      });
-    } catch (err) {
-      console.log(err.response);
-    } finally {
-      setLoading(false);
-    }
+  const handleClick = () => {
+    dispatch(
+      getMessages({
+        syncId: messages[messages.length - 1].syncId,
+      })
+    );
   };
 
   return (
@@ -93,9 +52,11 @@ export const MessageFeed = () => {
         h="85%"
         overflowY="auto"
       >
-        {loading && <Spinner color="teal.500" />}
-        {!loading && messages.length === 0 && (
-          <Text color="gray.500">This is the beginning of #{topic?.name}</Text>
+        {isLoading && <Spinner color="teal.500" />}
+        {!isLoading && messages.length === 0 && (
+          <Text color="gray.500">
+            This is the beginning of #{activeTopic?.name}
+          </Text>
         )}
         {messages.map(message => (
           <MessageItem key={message.id} message={message} />

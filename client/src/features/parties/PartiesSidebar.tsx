@@ -1,69 +1,39 @@
-import { Avatar, Flex, Tab, TabList, Tabs, Tooltip } from '@chakra-ui/react';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { useParty } from '../../common/hooks/useParty';
-import { PartyWithUsersAndTopics } from '../../types';
+import { Avatar, Flex, Link, Tooltip } from '@chakra-ui/react';
+import { useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import { getParties, selectParties } from './partiesSlice';
 import { PartyModal } from './PartyModal';
 
-type PartiesSidebarProps = {
-  initId: string;
-};
-
-export const PartiesSidebar = ({ initId }: PartiesSidebarProps) => {
-  const { selectParty, parties, addParty } = useParty();
-
-  const [id, setId] = useState(initId);
-  const [tabIndex, setTabIndex] = useState(0);
+export const PartiesSidebar = () => {
+  const { data: parties, activeParty } = useAppSelector(selectParties);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    try {
-      (async () => {
-        const { data } = await axios.get<PartyWithUsersAndTopics>(
-          `${process.env.REACT_APP_SERVER_URL}/parties/${id}`
-        );
-
-        selectParty(data);
-      })();
-    } catch (err) {
-      console.log(err.response);
-    }
-  }, [id, parties, selectParty]);
-
-  useEffect(() => {
-    if (!parties) return;
-
-    setTabIndex(parties.findIndex(party => party.id === id));
-  }, [id, parties]);
-
-  const handleClick = (id: string) => {
-    setId(id);
-  };
+    if (parties.length === 0) dispatch(getParties());
+  }, [parties, dispatch]);
 
   return (
-    <Flex direction="column" align="center" h="full" w={24} bgColor="gray.300">
-      <Tabs
-        index={tabIndex}
-        onChange={i => setTabIndex(i)}
-        orientation="vertical"
-      >
-        <TabList alignItems="center" spacing="4" mt="4">
-          {parties.map(party => (
-            <Tab
-              key={party.id}
-              onClick={() => handleClick(party.id)}
-              p={2}
-              borderLeftWidth={3}
-              borderLeftColor="gray.300"
-              _selected={{ borderLeftColor: 'teal.500' }}
-            >
-              <Tooltip label={party.name} placement="right">
-                <Avatar name={party.name} />
-              </Tooltip>
-            </Tab>
-          ))}
-        </TabList>
-      </Tabs>
-      <PartyModal count={parties.length} addParty={addParty} />
+    <Flex direction="column" align="center" pt={4} h="full" bgColor="gray.300">
+      {parties.map(party => (
+        <Link
+          key={party.id}
+          as={RouterLink}
+          to={`/parties/${party.id}/topics/${party.topics[0].id}`}
+          m={2}
+          px={2}
+          borderLeftWidth={3}
+          borderLeftColor={
+            party.id === activeParty?.id ? 'teal.500' : 'gray.300'
+          }
+          _hover={{}}
+        >
+          <Tooltip label={party.name} placement="right">
+            <Avatar name={party.name} />
+          </Tooltip>
+        </Link>
+      ))}
+      <PartyModal count={parties.length} />
     </Flex>
   );
 };

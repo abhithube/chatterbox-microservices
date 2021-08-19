@@ -2,10 +2,11 @@ import { Button, ButtonGroup, Center, Spinner, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
-import { useAuth } from '../../common/hooks/useAuth';
+import { useAppSelector } from '../../app/hooks';
+import { selectAuth } from '../login/authSlice';
 
 export const InvitePage = () => {
-  const { auth } = useAuth();
+  const { user } = useAppSelector(selectAuth);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -19,7 +20,7 @@ export const InvitePage = () => {
   const token = query.get('token');
 
   useEffect(() => {
-    if (!auth || !partyId || !token) return;
+    if (!user || !partyId || !token) return;
 
     (async () => {
       try {
@@ -40,7 +41,7 @@ export const InvitePage = () => {
         setLoading(false);
       }
     })();
-  }, [auth, history, partyId, token]);
+  }, [user, history, partyId, token]);
 
   return (
     <Center h="100%">

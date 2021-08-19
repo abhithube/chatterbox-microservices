@@ -1,9 +1,12 @@
+import { Spinner } from '@chakra-ui/react';
 import { Redirect, Route } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAppSelector } from '../../app/hooks';
+import { selectAuth } from '../../features/login/authSlice';
 
 type ProtectedRouteProps = {
   exact?: boolean;
   path: string;
+  inverted?: boolean;
   component: React.ComponentType;
 };
 
@@ -11,10 +14,13 @@ export const ProtectedRoute = ({
   exact = false,
   path,
   component,
+  inverted = false,
 }: ProtectedRouteProps) => {
-  const { auth, loading } = useAuth();
+  const { user, isLoading } = useAppSelector(selectAuth);
 
-  return loading ? null : auth ? (
+  if (isLoading) return <Spinner />;
+
+  return user && !inverted ? (
     <Route exact={exact} path={path} component={component} />
   ) : (
     <Redirect to="/login" />

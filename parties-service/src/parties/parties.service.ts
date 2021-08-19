@@ -9,8 +9,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { MemberDto } from './dto/member.dto';
-import { PartyCreatedDto } from './dto/party-created.dto';
-import { PartyWithUsersAndTopicsDto } from './dto/party-with-users-and-topics.dto';
 import { PartyDto } from './dto/party.dto';
 import { TopicDto } from './dto/topic.dto';
 
@@ -56,28 +54,30 @@ export class PartiesService {
       },
       include: {
         topics: true,
+        users: true,
       },
     });
 
-    const partyDto = {
+    const partyDto: PartyDto = {
       id: party.id,
       name: party.name,
+      inviteToken: party.inviteToken,
+      users: party.users.map(({ publicId, username, avatarUrl }) => ({
+        id: publicId,
+        username,
+        avatarUrl,
+      })),
+      topics: party.topics.map(({ id, name, partyId }) => ({
+        id,
+        name,
+        partyId,
+      })),
     };
-    const topic = party.topics[0];
-
-    await this.kafka.publish<PartyCreatedDto>('parties', {
+    await this.kafka.publish<PartyDto>('parties', {
       key: party.id,
       value: {
         type: 'PARTY_CREATED',
-        data: {
-          party: partyDto,
-          topic: {
-            id: topic.id,
-            name: topic.name,
-            partyId: topic.partyId,
-          },
-          userId,
-        },
+        data: partyDto,
       },
     });
 
@@ -93,15 +93,30 @@ export class PartiesService {
           },
         },
       },
+      include: {
+        users: true,
+        topics: true,
+      },
     });
 
-    return parties.map(({ id, name }) => ({
+    return parties.map(({ id, name, inviteToken, users, topics }) => ({
       id,
       name,
+      inviteToken,
+      users: users.map(({ publicId, username, avatarUrl }) => ({
+        id: publicId,
+        username,
+        avatarUrl,
+      })),
+      topics: topics.map(({ id, name, partyId }) => ({
+        id,
+        name,
+        partyId,
+      })),
     }));
   }
 
-  async getParty(id: string): Promise<PartyWithUsersAndTopicsDto> {
+  async getParty(id: string): Promise<PartyDto> {
     const party = await this.prisma.party.findUnique({
       where: {
         id,
@@ -193,10 +208,7 @@ export class PartiesService {
     });
   }
 
-  async leaveParty(
-    { id, users }: PartyWithUsersAndTopicsDto,
-    userId: string,
-  ): Promise<void> {
+  async leaveParty({ id, users }: PartyDto, userId: string): Promise<void> {
     if (users.length === 1) {
       throw new ForbiddenException({
         message: 'Party must have at least one member',
@@ -255,7 +267,7 @@ export class PartiesService {
 
   async createTopic(
     { name }: CreateTopicDto,
-    { id, topics }: PartyWithUsersAndTopicsDto,
+    { id, topics }: PartyDto,
   ): Promise<TopicDto> {
     if (topics.length >= 10) {
       throw new ForbiddenException({
