@@ -4,7 +4,6 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
-  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -12,14 +11,13 @@ import {
 import { Cache } from 'cache-manager';
 import { Server, Socket } from 'socket.io';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { PartyConnectionDto } from './dto/party-connection.dto';
 import { TopicConnectionDto } from './dto/topic-connection.dto';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';
 import { MessagesService } from './messages.service';
 
 @WebSocketGateway()
-export class MessagesGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
-{
+export class MessagesGateway implements OnGatewayConnection {
   @WebSocketServer()
   private server: Server;
 
@@ -29,54 +27,41 @@ export class MessagesGateway
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
-  async handleConnection(@ConnectedSocket() initClient: Socket): Promise<void> {
-    const auth = initClient.handshake.headers.authorization;
-    const party = initClient.handshake.query.party as string;
-
-    if (!auth || !party) initClient.disconnect(true);
+  async handleConnection(@ConnectedSocket() client: Socket): Promise<void> {
+    const auth = client.handshake.headers.authorization;
+    if (!auth) client.disconnect(true);
 
     try {
       const { id } = this.jwtService.verify(auth.split(' ')[1]);
 
-      const client = initClient as SocketWithUser;
-      client.user = id;
-
-      await this.messagesService.validatePartyConnection(party, client.user);
-
-      client.join(`party:${party}`);
-      client.party = party;
-
-      await this.cacheManager.set(`client:${client.id}`, client.user, {
-        ttl: 60 * 60 * 24 * 1,
-      });
-
-      const clients = Array.from(
-        await client.in(`party:${party}`).allSockets(),
-      );
-
-      const userPromises = clients.map(async (clientId) => {
-        const user = await this.cacheManager.get<string>(`client:${clientId}`);
-        if (!user) this.server.in(clientId).disconnectSockets();
-
-        return user;
-      });
-
-      const connectedSet: Set<string> = new Set();
-      for await (const val of userPromises) {
-        connectedSet.add(val);
-      }
-
-      const connectedUsers = Array.from(connectedSet);
-      client
-        .in(`party:${client.party}`)
-        .emit('connected_users', connectedUsers);
-      client.emit('connected_users', connectedUsers);
+      (client as SocketWithUser).user = id;
     } catch (err) {
-      initClient.disconnect(true);
+      client.disconnect(true);
     }
   }
 
-  async handleDisconnect(
+  @SubscribeMessage('join_party')
+  async joinPartyHandler(
+    @ConnectedSocket() client: SocketWithUser,
+    @MessageBody() { party }: PartyConnectionDto,
+  ): Promise<void> {
+    await this.messagesService.validatePartyConnection(party, client.user);
+
+    client.join(`party:${party}`);
+    client.party = party;
+
+    await this.cacheManager.set(`client:${client.id}`, client.user, {
+      ttl: 60 * 60 * 24 * 1,
+    });
+
+    const connectedUsers = await this.getConnectedUsers(client);
+    this.server
+      .in(`party:${client.party}`)
+      .emit('connected_users', connectedUsers);
+  }
+
+  @SubscribeMessage('leave_party')
+  async leavePartyHandler(
     @ConnectedSocket() client: SocketWithUser,
   ): Promise<void> {
     if (!client.party) return;
@@ -84,27 +69,12 @@ export class MessagesGateway
     client.leave(`party:${client.party}`);
     await this.cacheManager.del(`client:${client.id}`);
 
-    const clients = Array.from(
-      await client.in(`party:${client.party}`).allSockets(),
-    );
-
-    const userPromises = clients.map(async (clientId) => {
-      const user = await this.cacheManager.get<string>(`client:${clientId}`);
-      if (!user) this.server.in(clientId).disconnectSockets();
-
-      return user;
-    });
-
-    const connectedUsers: string[] = [];
-    for await (const user of userPromises) {
-      connectedUsers.push(user);
-    }
-
+    const connectedUsers = await this.getConnectedUsers(client);
     client.in(`party:${client.party}`).emit('connected_users', connectedUsers);
   }
 
   @SubscribeMessage('join_topic')
-  async joinChannelHandler(
+  async joinTopicHandler(
     @ConnectedSocket() client: SocketWithUser,
     @MessageBody() { topic }: TopicConnectionDto,
   ): Promise<void> {
@@ -115,7 +85,7 @@ export class MessagesGateway
   }
 
   @SubscribeMessage('leave_topic')
-  async leaveChannelHandler(
+  async leaveTopicHandler(
     @ConnectedSocket() client: SocketWithUser,
   ): Promise<void> {
     if (!client.topic) return;
@@ -136,5 +106,23 @@ export class MessagesGateway
     );
 
     this.server.in(`topic:${client.topic}`).emit('receive_message', message);
+  }
+
+  async getConnectedUsers(client: SocketWithUser): Promise<string[]> {
+    const clients = await client.in(`party:${client.party}`).allSockets();
+
+    const userPromises = [...clients.keys()].map(async (clientId) => {
+      const user = await this.cacheManager.get<string>(`client:${clientId}`);
+      if (!user) this.server.in(clientId).disconnectSockets();
+
+      return user;
+    });
+
+    const connectedSet: Set<string> = new Set();
+    for await (const user of userPromises) {
+      connectedSet.add(user);
+    }
+
+    return [...connectedSet.keys()];
   }
 }
