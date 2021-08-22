@@ -1,10 +1,10 @@
-import { UserDto } from '../../users/dto/user.dto';
+import { AuthUser } from '@chttrbx/jwt';
 import { TopicDto } from './topic.dto';
 
 export class PartyDto {
   id: string;
   name: string;
   inviteToken: string;
-  users: UserDto[];
+  users: AuthUser[];
   topics: TopicDto[];
 }

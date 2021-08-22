@@ -2,5 +2,5 @@ export class CreateUserDto {
   id: string;
   username: string;
   email: string;
-  avatarUrl: string | null;
+  avatarUrl?: string;
 }

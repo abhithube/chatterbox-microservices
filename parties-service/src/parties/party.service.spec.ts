@@ -1,19 +1,14 @@
 import { KafkaService } from '@chttrbx/kafka';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../prisma/prisma.service';
-import { PartiesService } from './parties.service';
+import { PartyService } from './party.service';
 
-describe('PartiesService', () => {
-  let service: PartiesService;
+describe('PartyService', () => {
+  let service: PartyService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        PartiesService,
-        {
-          provide: PrismaService,
-          useValue: {},
-        },
+        PartyService,
         {
           provide: KafkaService,
           useValue: {
@@ -23,7 +18,7 @@ describe('PartiesService', () => {
       ],
     }).compile();
 
-    service = module.get<PartiesService>(PartiesService);
+    service = module.get<PartyService>(PartyService);
   });
 
   it('should be defined', () => {

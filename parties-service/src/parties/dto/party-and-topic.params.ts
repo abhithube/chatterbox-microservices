@@ -1,19 +1,13 @@
-import { IsHexadecimal, Length } from 'class-validator';
+import { IsUUID } from 'class-validator';
 
 export class PartyAndTopicParams {
-  @IsHexadecimal({
-    message: 'id must be a valid hex string',
-  })
-  @Length(24, 24, {
-    message: 'id must be a valid BSON ObjectId',
+  @IsUUID(4, {
+    message: 'id must be a valid UUID',
   })
   id: string;
 
-  @IsHexadecimal({
-    message: 'topicId must be a valid hex string',
-  })
-  @Length(24, 24, {
-    message: 'topicId must be a valid BSON ObjectId',
+  @IsUUID(4, {
+    message: 'topicId must be a valid UUID',
   })
   topicId: string;
 }

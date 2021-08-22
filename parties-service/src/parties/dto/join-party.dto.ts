@@ -1,6 +1,6 @@
 import { IsUUID } from 'class-validator';
 
-export class JoinPartyQuery {
+export class JoinPartyDto {
   @IsUUID(4, {
     message: 'token must be a valid UUID',
   })

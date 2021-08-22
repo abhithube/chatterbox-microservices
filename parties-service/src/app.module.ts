@@ -1,15 +1,25 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { PartiesModule } from './parties/parties.module';
-import { UsersModule } from './users/users.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PartyModule } from './parties/party.module';
+import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    PartiesModule,
-    UsersModule,
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        type: 'mongodb',
+        url: configService.get('DATABASE_URL'),
+        autoLoadEntities: true,
+        keepConnectionAlive: true,
+      }),
+      inject: [ConfigService],
+    }),
+    PartyModule,
+    UserModule,
   ],
 })
 export class AppModule {}

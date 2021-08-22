@@ -1,15 +1,16 @@
 import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PartiesModule } from '../parties/parties.module';
-import { PrismaModule } from '../prisma/prisma.module';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PartyModule } from '../parties/party.module';
+import { UserController } from './user.controller';
+import { UserRepository } from './user.repository';
+import { UserService } from './user.service';
 
 @Module({
   imports: [
-    PartiesModule,
-    PrismaModule,
+    PartyModule,
+    TypeOrmModule.forFeature([UserRepository]),
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         client: {
@@ -29,7 +30,8 @@ import { UsersService } from './users.service';
       inject: [ConfigService],
     }),
   ],
-  controllers: [UsersController],
-  providers: [UsersService],
+  controllers: [UserController],
+  providers: [UserService],
+  exports: [UserService],
 })
-export class UsersModule {}
+export class UserModule {}
