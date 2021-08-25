@@ -1,17 +1,17 @@
 import { JwtService } from '@chttrbx/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MessagesGateway } from './messages.gateway';
-import { MessagesService } from './messages.service';
+import { MessageGateway } from './message.gateway';
+import { MessageService } from './message.service';
 
-describe('MessagesGateway', () => {
-  let gateway: MessagesGateway;
+describe('MessageGateway', () => {
+  let gateway: MessageGateway;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        MessagesGateway,
+        MessageGateway,
         {
-          provide: MessagesService,
+          provide: MessageService,
           useValue: {
             saveUser: jest.fn(),
             removeUser: jest.fn(),
@@ -34,7 +34,7 @@ describe('MessagesGateway', () => {
       ],
     }).compile();
 
-    gateway = module.get<MessagesGateway>(MessagesGateway);
+    gateway = module.get<MessageGateway>(MessageGateway);
   });
 
   it('should be defined', () => {

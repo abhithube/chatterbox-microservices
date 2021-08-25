@@ -1,9 +1,9 @@
-import { UserDto } from '../../users/dto/user.dto';
+import { AuthUser } from '@chttrbx/jwt';
 
 export class MessageDto {
   id: string;
-  syncId: number;
+  topicIndex: number;
   body: string;
-  user: UserDto;
+  user: AuthUser;
   createdAt: Date;
 }

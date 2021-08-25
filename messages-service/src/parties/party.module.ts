@@ -1,13 +1,21 @@
+import { JwtModule } from '@chttrbx/jwt';
 import { KafkaModule } from '@chttrbx/kafka';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaModule } from '../prisma/prisma.module';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { PartyController } from './party.controller';
+import { PartyRepository } from './party.repository';
+import { PartyService } from './party.service';
 
 @Module({
   imports: [
-    PrismaModule,
+    TypeOrmModule.forFeature([PartyRepository]),
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secretOrKey: configService.get('JWT_SECRET'),
+      }),
+      inject: [ConfigService],
+    }),
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         client: {
@@ -20,14 +28,12 @@ import { UsersService } from './users.service';
             password: configService.get('CONFLUENT_API_SECRET'),
           },
         },
-        consumer: {
-          groupId: 'messages-consumer-group',
-        },
       }),
       inject: [ConfigService],
     }),
   ],
-  controllers: [UsersController],
-  providers: [UsersService],
+  controllers: [PartyController],
+  providers: [PartyService],
+  exports: [PartyService],
 })
-export class UsersModule {}
+export class PartyModule {}

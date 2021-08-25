@@ -1,21 +1,23 @@
 import { JwtModule } from '@chttrbx/jwt';
 import { CacheModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import * as redisStore from 'cache-manager-ioredis';
-import { PrismaModule } from '../prisma/prisma.module';
-import { MessagesController } from './messages.controller';
-import { MessagesGateway } from './messages.gateway';
-import { MessagesService } from './messages.service';
+import { PartyRepository } from 'src/parties/party.repository';
+import { MessageController } from './message.controller';
+import { MessageGateway } from './message.gateway';
+import { MessageRepository } from './message.repository';
+import { MessageService } from './message.service';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([MessageRepository, PartyRepository]),
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secretOrKey: configService.get('JWT_SECRET'),
       }),
       inject: [ConfigService],
     }),
-    PrismaModule,
     CacheModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         store: redisStore,
@@ -27,7 +29,8 @@ import { MessagesService } from './messages.service';
       inject: [ConfigService],
     }),
   ],
-  controllers: [MessagesController],
-  providers: [MessagesGateway, MessagesService],
+  controllers: [MessageController],
+  providers: [MessageGateway, MessageService],
+  exports: [MessageService],
 })
-export class MessagesModule {}
+export class MessageModule {}

@@ -14,15 +14,15 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { PartyConnectionDto } from './dto/party-connection.dto';
 import { TopicConnectionDto } from './dto/topic-connection.dto';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';
-import { MessagesService } from './messages.service';
+import { MessageService } from './message.service';
 
 @WebSocketGateway()
-export class MessagesGateway implements OnGatewayConnection {
+export class MessageGateway implements OnGatewayConnection {
   @WebSocketServer()
   private server: Server;
 
   constructor(
-    private messagesService: MessagesService,
+    private messageService: MessageService,
     private jwtService: JwtService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
@@ -32,9 +32,9 @@ export class MessagesGateway implements OnGatewayConnection {
     if (!auth) client.disconnect(true);
 
     try {
-      const { id } = this.jwtService.verify(auth.split(' ')[1]);
+      const user = this.jwtService.verify(auth.split(' ')[1]);
 
-      (client as SocketWithUser).user = id;
+      (client as SocketWithUser).user = user;
     } catch (err) {
       client.disconnect(true);
     }
@@ -45,12 +45,12 @@ export class MessagesGateway implements OnGatewayConnection {
     @ConnectedSocket() client: SocketWithUser,
     @MessageBody() { party }: PartyConnectionDto,
   ): Promise<void> {
-    await this.messagesService.validatePartyConnection(party, client.user);
+    await this.messageService.validatePartyConnection(party, client.user.id);
 
     client.join(`party:${party}`);
     client.party = party;
 
-    await this.cacheManager.set(`client:${client.id}`, client.user, {
+    await this.cacheManager.set(`client:${client.id}`, client.user.id, {
       ttl: 60 * 60 * 24 * 1,
     });
 
@@ -66,6 +66,7 @@ export class MessagesGateway implements OnGatewayConnection {
   ): Promise<void> {
     if (!client.party) return;
 
+    client.party = undefined;
     client.leave(`party:${client.party}`);
     await this.cacheManager.del(`client:${client.id}`);
 
@@ -78,7 +79,7 @@ export class MessagesGateway implements OnGatewayConnection {
     @ConnectedSocket() client: SocketWithUser,
     @MessageBody() { topic }: TopicConnectionDto,
   ): Promise<void> {
-    await this.messagesService.validateTopicConnection(topic, client.user);
+    await this.messageService.validateTopicConnection(topic);
 
     client.join(`topic:${topic}`);
     client.topic = topic;
@@ -90,6 +91,7 @@ export class MessagesGateway implements OnGatewayConnection {
   ): Promise<void> {
     if (!client.topic) return;
 
+    client.topic = undefined;
     client.leave(`topic:${client.topic}`);
   }
 
@@ -100,8 +102,9 @@ export class MessagesGateway implements OnGatewayConnection {
   ): Promise<void> {
     if (!client.topic) return;
 
-    const message = await this.messagesService.createMessage(
+    const message = await this.messageService.createMessage(
       createMessageDto,
+      client.topic,
       client.user,
     );
 
