@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Redirect } from 'react-router-dom';
+import { Redirect, useHistory } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectAuth } from '../../features/login/authSlice';
 import { getParties, selectParties } from '../../features/parties/partiesSlice';
@@ -10,6 +10,8 @@ export const HomePage = () => {
     useAppSelector(selectParties);
   const dispatch = useAppDispatch();
 
+  const history = useHistory();
+
   useEffect(() => {
     if (user) dispatch(getParties());
   }, [user, dispatch]);
@@ -17,11 +19,12 @@ export const HomePage = () => {
   return (
     <>
       {!userLoading && !user && <Redirect to="/login" />}
-      {!partiesLoading && (
+      {!partiesLoading && parties.length !== 0 && (
         <Redirect
           to={`/parties/${parties[0].id}/topics/${parties[0].topics[0].id}`}
         />
       )}
+      {!partiesLoading && parties.length === 0 && history.go(0)}
     </>
   );
 };

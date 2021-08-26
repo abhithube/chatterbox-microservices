@@ -44,7 +44,16 @@ export const ConfirmPage = () => {
       {!loading && error && (
         <Text>There was an error confirming your email.</Text>
       )}
-      {!loading && !error && <Redirect to="/login?verified=true"></Redirect>}
+      {!loading && !error && (
+        <Redirect
+          to={{
+            pathname: '/login',
+            state: {
+              verified: true,
+            },
+          }}
+        ></Redirect>
+      )}
     </Center>
   );
 };

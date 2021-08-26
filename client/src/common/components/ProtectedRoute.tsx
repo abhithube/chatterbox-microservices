@@ -20,7 +20,7 @@ export const ProtectedRoute = ({
 
   if (isLoading) return <Spinner />;
 
-  return user && !inverted ? (
+  return user || inverted ? (
     <Route exact={exact} path={path} component={component} />
   ) : (
     <Redirect to="/login" />

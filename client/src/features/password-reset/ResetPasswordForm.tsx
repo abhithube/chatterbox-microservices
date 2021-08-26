@@ -42,7 +42,12 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
           password,
         });
 
-        history.push('/login?reset=true');
+        history.push({
+          pathname: '/login',
+          state: {
+            reset: true,
+          },
+        });
       } catch (err) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 400) {

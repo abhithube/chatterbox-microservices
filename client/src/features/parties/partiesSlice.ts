@@ -14,7 +14,6 @@ export interface Party {
 export interface Topic {
   id: string;
   name: string;
-  partyId: string;
 }
 
 interface CreatePartyPayload {
@@ -95,7 +94,7 @@ const partiesSlice = createSlice({
       })
       .addCase(createTopic.fulfilled, (state, action) => {
         const partyToUpdate = state.data.find(
-          party => party.id === action.payload.partyId
+          party => party.id === state.activeParty?.id
         );
 
         partyToUpdate!.topics.push(action.payload);

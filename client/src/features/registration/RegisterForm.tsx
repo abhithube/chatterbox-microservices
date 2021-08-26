@@ -45,7 +45,12 @@ export const RegisterForm = () => {
           password,
         });
 
-        history.push('/login?registered=true');
+        history.push({
+          pathname: '/login',
+          state: {
+            registered: true,
+          },
+        });
       } catch (err) {
         console.log(err.response);
 
@@ -55,10 +60,10 @@ export const RegisterForm = () => {
               status: 'error',
               text: err.response.data.message,
             });
+
+            setLoading(false);
           }
         } else history.push('/error');
-      } finally {
-        setLoading(false);
       }
     })();
   };

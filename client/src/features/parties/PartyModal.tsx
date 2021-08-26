@@ -61,11 +61,13 @@ export const PartyModal = ({ count }: PartyModalProps) => {
     try {
       setLoading(true);
 
-      await dispatch(
+      const party = await dispatch(
         createParty({
           name,
         })
       ).unwrap();
+
+      history.push(`/parties/${party.id}/topics/${party.topics[0].id}`);
 
       setName('');
       setAlert(null);
