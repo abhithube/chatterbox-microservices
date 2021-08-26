@@ -1,5 +1,6 @@
 import { KafkaService } from '@chttrbx/kafka';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PartyRepository } from './party.repository';
 import { PartyService } from './party.service';
 
 describe('PartyService', () => {
@@ -14,6 +15,10 @@ describe('PartyService', () => {
           useValue: {
             publish: jest.fn(),
           },
+        },
+        {
+          provide: PartyRepository,
+          useValue: {},
         },
       ],
     }).compile();

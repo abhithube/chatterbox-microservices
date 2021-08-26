@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { PartyRepository } from 'src/parties/party.repository';
+import { PartyRepository } from '../parties/party.repository';
 import { MessageDto } from './dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { MessageRepository } from './message.repository';

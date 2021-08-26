@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PartyRepository } from 'src/parties/party.repository';
+import { PartyRepository } from '../parties/party.repository';
 import { UserCreatedEvent } from './events';
 import { UserRepository } from './user.repository';
 
