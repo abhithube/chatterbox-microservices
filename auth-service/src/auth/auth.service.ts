@@ -290,20 +290,16 @@ export class AuthService {
   }
 
   async deleteUser(id: string): Promise<void> {
-    const user = await this.userRepository.getUser({
-      id,
-    });
-
     await this.userRepository.deleteUser({
       id,
     });
 
     this.kafka.publish<UserDeletedEvent>('users', {
-      key: user.id,
+      key: id,
       value: {
         type: 'user:deleted',
         data: {
-          id: user.id,
+          id,
         },
       },
     });

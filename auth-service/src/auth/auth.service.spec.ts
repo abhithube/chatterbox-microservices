@@ -97,7 +97,7 @@ describe('AuthService', () => {
       'users',
       expect.objectContaining({
         value: expect.objectContaining({
-          type: 'USER_CREATED',
+          type: 'user:created',
         }),
       }),
     );
@@ -165,15 +165,22 @@ describe('AuthService', () => {
   it('validates OAuth login for a new user', async () => {
     jest.spyOn(userRepository, 'getUser').mockResolvedValue(null);
 
-    const spy = jest
-      .spyOn(userRepository, 'createUser')
-      .mockResolvedValue(user);
+    jest.spyOn(userRepository, 'createUser').mockResolvedValue(user);
+
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
 
     await expect(
       service.validateOAuth(user.username, user.email, user.avatarUrl),
     ).resolves.toEqual(authUser);
 
-    expect(spy).toHaveBeenCalled();
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:created',
+        }),
+      }),
+    );
   });
 
   it('generates access and refresh tokens upon successful authentication', async () => {
@@ -195,9 +202,20 @@ describe('AuthService', () => {
   it("verifies a user's email address", async () => {
     jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
+
     await expect(
       service.confirmEmail(user.verificationToken),
     ).resolves.not.toThrow();
+
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:updated',
+        }),
+      }),
+    );
   });
 
   it('rejects an invalid email verification code', async () => {
@@ -211,17 +229,39 @@ describe('AuthService', () => {
   it('sends a user a password reset email', async () => {
     jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
+
     await expect(
       service.getPasswordResetLink(user.email),
     ).resolves.not.toThrow();
+
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:forgot_password',
+        }),
+      }),
+    );
   });
 
   it("resets a user's password", async () => {
     jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
+
     await expect(
       service.resetPassword(user.resetToken, 'newpass'),
     ).resolves.not.toThrow();
+
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:updated',
+        }),
+      }),
+    );
   });
 
   it('rejects an invalid password reset code', async () => {
@@ -267,7 +307,7 @@ describe('AuthService', () => {
       'users',
       expect.objectContaining({
         value: expect.objectContaining({
-          type: 'USER_DELETED',
+          type: 'user:deleted',
         }),
       }),
     );
