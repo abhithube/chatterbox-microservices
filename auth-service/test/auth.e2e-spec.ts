@@ -1,20 +1,21 @@
 import { AuthUser, JwtService } from '@chttrbx/jwt';
 import { KafkaService } from '@chttrbx/kafka';
-import { MailService } from '@chttrbx/mail';
 import { INestApplication } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from '@prisma/client';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { hashSync } from 'bcrypt';
 import * as cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
+import { UserDocument } from 'src/auth/db';
+import { LoginResponseDto } from 'src/auth/dto';
 import * as request from 'supertest';
+import { getConnection } from 'typeorm';
 import { AuthModule } from '../src/auth/auth.module';
-import { AuthResponseDto } from '../src/auth/dto/auth-response.dto';
 import { CreateUserDto } from '../src/auth/dto/create-user.dto';
 import { GithubStrategy } from '../src/auth/strategies/github.strategy';
 import { GoogleStrategy } from '../src/auth/strategies/google.strategy';
-import { PrismaService } from '../src/prisma/prisma.service';
+import { UserRepository } from '../src/auth/user.repository';
 
 const verified = 'verified';
 const unverified = 'unverified';
@@ -27,11 +28,11 @@ const createUserDto: CreateUserDto = {
 
 describe('Auth', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let userRepository: UserRepository;
   let jwt: JwtService;
 
-  let verifiedUser: User;
-  let unverifiedUser: User;
+  let verifiedUser: UserDocument;
+  let unverifiedUser: UserDocument;
   let accessToken: string;
 
   beforeAll(async () => {
@@ -41,15 +42,20 @@ describe('Auth', () => {
         ConfigModule.forRoot({
           isGlobal: true,
         }),
+        TypeOrmModule.forRootAsync({
+          useFactory: (configService: ConfigService) => ({
+            type: 'mongodb',
+            url: configService.get('DATABASE_URL'),
+            autoLoadEntities: true,
+            keepConnectionAlive: true,
+          }),
+          inject: [ConfigService],
+        }),
       ],
     })
       .overrideProvider(KafkaService)
       .useValue({
         publish: jest.fn(),
-      })
-      .overrideProvider(MailService)
-      .useValue({
-        send: jest.fn(),
       })
       .overrideProvider(GoogleStrategy)
       .useValue({})
@@ -58,7 +64,7 @@ describe('Auth', () => {
       .compile();
 
     app = moduleRef.createNestApplication();
-    prisma = moduleRef.get<PrismaService>(PrismaService);
+    userRepository = moduleRef.get<UserRepository>(UserRepository);
     jwt = moduleRef.get<JwtService>(JwtService);
 
     await app.init();
@@ -67,26 +73,22 @@ describe('Auth', () => {
   });
 
   beforeEach(async () => {
-    verifiedUser = await prisma.user.create({
-      data: {
-        username: verified,
-        email: verified,
-        password: hashSync(verified, 10),
-        verified: true,
-        verificationToken: randomUUID(),
-        resetToken: randomUUID(),
-      },
+    verifiedUser = await userRepository.createUser({
+      username: verified,
+      email: verified,
+      password: hashSync(verified, 10),
+      verified: true,
+      verificationToken: randomUUID(),
+      resetToken: randomUUID(),
     });
 
-    unverifiedUser = await prisma.user.create({
-      data: {
-        username: unverified,
-        email: unverified,
-        password: hashSync(unverified, 10),
-        verified: false,
-        verificationToken: randomUUID(),
-        resetToken: randomUUID(),
-      },
+    unverifiedUser = await userRepository.createUser({
+      username: unverified,
+      email: unverified,
+      password: hashSync(unverified, 10),
+      verified: false,
+      verificationToken: randomUUID(),
+      resetToken: randomUUID(),
     });
 
     accessToken = jwt.sign({
@@ -96,11 +98,10 @@ describe('Auth', () => {
     });
   });
 
-  afterEach(async () => {
-    await prisma.user.deleteMany();
-  });
+  afterEach(() => userRepository.deleteMany({}));
 
   afterAll(async () => {
+    await getConnection().close();
     await app.close();
   });
 
@@ -117,19 +118,6 @@ describe('Auth', () => {
     });
   });
 
-  it('POST /auth/register - returns 400 if username/email already taken', async () => {
-    const res = await request(app.getHttpServer()).post('/auth/register').send({
-      username: verifiedUser.username,
-      email: verifiedUser.email,
-      password: verified,
-    });
-
-    expect(res.statusCode).toBe(400);
-    expect(res.body).toEqual({
-      message: 'Username already taken',
-    });
-  });
-
   it('POST /auth/login - logs in a verified user', async () => {
     const res = await request(app.getHttpServer()).post('/auth/login').send({
       username: verifiedUser.username,
@@ -137,11 +125,11 @@ describe('Auth', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual<AuthResponseDto>({
+    expect(res.body).toEqual<LoginResponseDto>({
       user: {
         id: verifiedUser.id,
         username: verifiedUser.username,
-        avatarUrl: verifiedUser.avatarUrl,
+        avatarUrl: null,
       },
       accessToken: expect.any(String),
     });
@@ -149,23 +137,6 @@ describe('Auth', () => {
     expect(res.headers['set-cookie']).toContainEqual(
       expect.stringContaining('refresh'),
     );
-  });
-
-  it('POST /auth/login - rejects an unverified user', async () => {
-    const res = await request(app.getHttpServer()).post('/auth/login').send({
-      username: verifiedUser.username,
-      password: verified,
-    });
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toEqual<AuthResponseDto>({
-      user: {
-        id: verifiedUser.id,
-        username: verifiedUser.username,
-        avatarUrl: verifiedUser.avatarUrl,
-      },
-      accessToken: expect.any(String),
-    });
   });
 
   it('GET /auth/@me - fetches the current user', async () => {
@@ -189,34 +160,12 @@ describe('Auth', () => {
     expect(res.statusCode).toBe(200);
   });
 
-  it('POST /auth/confirm - rejects an invalid email verification token', async () => {
-    const res = await request(app.getHttpServer()).post('/auth/confirm').send({
-      token: randomUUID(),
-    });
-
-    expect(res.statusCode).toBe(403);
-    expect(res.body).toEqual({
-      message: 'Invalid verification code',
-    });
-  });
-
   it('POST /auth/forgot - sends a password reset email', async () => {
     const res = await request(app.getHttpServer()).post('/auth/forgot').send({
       email: verifiedUser.email,
     });
 
     expect(res.statusCode).toBe(200);
-  });
-
-  it('POST /auth/forgot - rejects a password reset request from an unverified user', async () => {
-    const res = await request(app.getHttpServer()).post('/auth/forgot').send({
-      email: unverifiedUser.email,
-    });
-
-    expect(res.statusCode).toBe(403);
-    expect(res.body).toEqual({
-      message: 'Email not verified',
-    });
   });
 
   it("POST /auth/reset - resets a user's password", async () => {
@@ -226,18 +175,6 @@ describe('Auth', () => {
     });
 
     expect(res.statusCode).toBe(200);
-  });
-
-  it('POST /auth/reset - rejects an invalid password reset token', async () => {
-    const res = await request(app.getHttpServer()).post('/auth/reset').send({
-      token: randomUUID(),
-      password: 'newpass',
-    });
-
-    expect(res.statusCode).toBe(403);
-    expect(res.body).toEqual({
-      message: 'Invalid reset code',
-    });
   });
 
   // it("POST /auth/refresh - refresh a user's access token", async () => {

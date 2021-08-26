@@ -1,19 +1,19 @@
 import { JwtModule } from '@chttrbx/jwt';
 import { KafkaModule } from '@chttrbx/kafka';
-import { MailModule } from '@chttrbx/mail';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
-import { PrismaModule } from '../prisma/prisma.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GithubStrategy } from './strategies/github.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { UserRepository } from './user.repository';
 
 @Module({
   imports: [
-    PrismaModule,
+    TypeOrmModule.forFeature([UserRepository]),
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
@@ -32,25 +32,6 @@ import { LocalStrategy } from './strategies/local.strategy';
             mechanism: 'plain',
             username: configService.get('CONFLUENT_API_KEY'),
             password: configService.get('CONFLUENT_API_SECRET'),
-          },
-        },
-      }),
-      inject: [ConfigService],
-    }),
-    MailModule.registerAsync({
-      useFactory: (configService: ConfigService) => ({
-        transport: {
-          host: configService.get('SMTP_HOST'),
-          secure: true,
-          auth: {
-            user: configService.get('SMTP_USER'),
-            pass: configService.get('SMTP_PASS'),
-          },
-        },
-        defaults: {
-          from: {
-            name: configService.get('EMAIL_NAME'),
-            address: configService.get('EMAIL_ADDRESS'),
           },
         },
       }),
