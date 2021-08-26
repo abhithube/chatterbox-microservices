@@ -1,19 +1,19 @@
-name: Test Parties Service
+name: Test Contact Service
 
 on:
   push:
     branches: [main]
     paths:
-      - 'parties-service/**'
+      - 'contact-service/**'
   pull_request:
     branches: [main]
     paths:
-      - 'parties-service/**'
+      - 'contact-service/**'
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: parties-service
+    working-directory: contact-service
 
 jobs:
   test:

@@ -1,20 +1,17 @@
 import { KafkaModule } from '@chttrbx/kafka';
+import { MailModule } from '@chttrbx/mail';
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PartyModule } from '../parties/party.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserController } from './user.controller';
-import { UserRepository } from './user.repository';
 import { UserService } from './user.service';
 
 @Module({
   imports: [
-    PartyModule,
-    TypeOrmModule.forFeature([UserRepository]),
+    ConfigModule,
     KafkaModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         client: {
-          clientId: 'parties-client',
+          clientId: 'contact-client',
           brokers: configService.get<string>('BROKER_URLS')?.split(','),
           ssl: true,
           sasl: {
@@ -24,7 +21,26 @@ import { UserService } from './user.service';
           },
         },
         consumer: {
-          groupId: 'parties-consumer-group',
+          groupId: 'contact-consumer-group',
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    MailModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get('SMTP_HOST'),
+          secure: true,
+          auth: {
+            user: configService.get('SMTP_USER'),
+            pass: configService.get('SMTP_PASS'),
+          },
+        },
+        defaults: {
+          from: {
+            name: configService.get('EMAIL_NAME'),
+            address: configService.get('EMAIL_ADDRESS'),
+          },
         },
       }),
       inject: [ConfigService],
@@ -32,6 +48,5 @@ import { UserService } from './user.service';
   ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService],
 })
 export class UserModule {}

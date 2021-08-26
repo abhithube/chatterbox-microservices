@@ -4,8 +4,9 @@
 cd ./auth-service
 npx lint-staged
 
+cd ../contact-service
+npx lint-staged
+
 cd ../messages-service
 npx lint-staged
 
-cd ../parties-service
-npx lint-staged

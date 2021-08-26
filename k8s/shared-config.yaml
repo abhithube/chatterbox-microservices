@@ -8,7 +8,3 @@ data:
   SERVER_URL: https://api.chatterbox.abhithube.com
   BROKER_URLS: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
   CONFLUENT_API_KEY: RHGX6XBYKDJZ5P5M
-  SMTP_HOST: smtp.sendgrid.net
-  SMTP_USER: apikey
-  EMAIL_NAME: ChatterBox
-  EMAIL_ADDRESS: chatterbox@abhithube.com

@@ -1,7 +1,7 @@
 # ChatterBox
 
 ![Auth Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/auth-test.yaml/badge.svg)
-![Parties Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/parties-test.yaml/badge.svg)
+![Contact Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/contact-test.yaml/badge.svg)
 ![Messages Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/messages-test.yaml/badge.svg)
 
 ## Link
@@ -23,9 +23,9 @@ ChatterBox is a web application designed for group messaging, in a similar vein 
 
 ## To Do
 
-1. Finish testing PartiesService and MessagesService
-2. Configure auto-scaling for Kubernetes deployments
-3. Migrate from Prisma ORM to raw MongoDB driver for Node.js to reduce Docker image sizes
+1. Configure auto-scaling for Kubernetes deployments
+2. Finish testing MessagesService
+3. Create a landing page
 4. Implement client-side caching to improve performance and minimize loading spinners
 
 ## Tech Stack
@@ -55,12 +55,12 @@ The backend of this application is broken into several components, following the
 ### Microservices
 
 - AuthService is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
-- PartiesService deals with the CRUD REST API for parties and topics. It also provides functionality for joining and leaving parties.
-- MessagesService handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a REST endpoint for retrieving a subset of messages within a topic using cursor-based pagination.
+- MessagesService handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a CRUD RESTful API for managing parties and topics.
+- ContactService deals with direct communications with the user. Currently, it sends email verification and password reset emails based on events received from Kafka.
 
 ### Asynchronous Communication
 
-These microservices are designed to be completely self-sufficient, meaning that they contain all of the data necessary to handle client requests without having to reach out to other services. This is where the "event-driven" aspect comes into play. Any write operation to a service's database is followed by a event published to a Kafka topic, containing the particular event type (e.g. 'USER_CREATED', 'PARTY_DELETED') and the resource data such as the newly created user or the ID of the deleted party. Other services subscribe to topics to receive these events, and extract whatever data is needed to maintain its own "version" of the resource in the database. This makes the microservices more decoupled, as each one can function properly regardless of whether another service is available or not. This design pattern is also more fault-tolerant than synchronous communication because unavailable services can simply process the data when they become available again, rather than losing it forever in the case of REST. Furthermore, new services can be introduced and they simply have to subscribe to the data they care about. Existing services don't have to accomodate for new services, wh
+These microservices are designed to be completely self-sufficient, meaning that they contain all of the data necessary to handle client requests without having to reach out to other services. This is where the "event-driven" aspect comes into play. Any write operation to a service's database is followed by a event published to a Kafka topic, containing the particular event type (e.g. 'user:created', 'party:deleted') and the resource data such as the newly created user or the ID of the deleted party. Other services subscribe to topics to receive these events, and extract whatever data is needed to maintain its own "version" of the resource in the database. This makes the microservices more decoupled, as each one can function properly regardless of whether another service is available or not. This design pattern is also more fault-tolerant than synchronous communication because unavailable services can simply process the data when they become available again, rather than losing it forever in the case of REST. Furthermore, new services can be introduced and they simply have to subscribe to the data they care about. Existing services don't have to accomodate for them.
 
 ### Shared Library
 
@@ -80,4 +80,4 @@ Each service has its own Dockerfile, configured with a multi-stage build process
 
 ## CI/CD
 
-Each service is tested and deployed independently. GitHub Actions is the CI/CD tool of choice. The CI process begins with a pull request to the main branch, where changes to a particular microservice directory will trigger its corresponding GitHub workflow. The workflow will compile the TypeScript and ES6+ code to vanilla JavaScript and then execute the Jest suite of unit and integration tests. The pull request can be merged if all workflows succeed, which will trigger the same workflow on the main branch in order to ensure that the final version of the code that will be pushed into production has been verified. Once these workflows pass, the CD workflows will take over. The deployment workflow will build a Docker image from the microservice, push it to DockerHub, and update the appropriate Kubernetes deployment on DigitalOcean. If any Kubernetes manifests in the _k8s_ directory have been modified, a separate workflow will apply them to the cluster.
+Each service is tested and deployed independently. GitHub Actions is the CI/CD tool of choice. The CI process begins with a pull request to the main branch, where changes to a particular microservice directory will trigger its corresponding GitHub workflow. The workflow will compile the TypeScript and ES6+ code to vanilla JavaScript and then execute the Jest suite of unit and integration tests. The pull request can be merged if all workflows succeed, which will trigger the same workflow on the main branch in order to ensure that the final version of the code that will be pushed into production has been verified. Once these workflows pass, the CD workflows will take over. The deployment workflow will build a Docker image from the microservice, push it to Docker Hub, and update the appropriate Kubernetes deployment on DigitalOcean. If any Kubernetes manifests in the _k8s_ directory have been modified, a separate workflow will apply them to the cluster.

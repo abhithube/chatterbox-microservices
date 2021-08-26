@@ -1,9 +1,9 @@
-name: Deploy Parties Service
+name: Deploy Contact Service
 
 on:
   workflow_run:
     workflows:
-      - Test Parties Service
+      - Test Contact Service
     branches: [main]
     types:
       - completed
@@ -25,9 +25,9 @@ jobs:
       - name: Build and push to Docker Hub
         uses: docker/build-push-action@v2
         with:
-          context: parties-service
+          context: contact-service
           push: true
-          tags: abhithube/chatterbox-parties:latest
+          tags: abhithube/chatterbox-contact:latest
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
@@ -35,4 +35,4 @@ jobs:
       - name: Get DigitalOcean Kubernetes cluster config
         run: doctl kubernetes cluster kubeconfig save abhithube-k8s
       - name: Restart Kubernetes deployment
-        run: kubectl rollout restart deployment parties-deploy
+        run: kubectl rollout restart deployment contact-deploy

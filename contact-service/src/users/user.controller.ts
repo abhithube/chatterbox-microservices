@@ -1,7 +1,6 @@
 import { KafkaService, SubscribeTo } from '@chttrbx/kafka';
 import { Controller, OnModuleInit } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { DeleteUserDto } from './dto/delete-user.dto';
+import { UserCreatedEvent } from './events';
 import { UserService } from './user.service';
 
 @Controller()
@@ -14,17 +13,17 @@ export class UserController implements OnModuleInit {
 
   @SubscribeTo({
     topic: 'users',
-    event: 'USER_CREATED',
+    event: 'user:created',
   })
-  async userCreatedHandler(createUserDto: CreateUserDto): Promise<void> {
-    this.userService.createUser(createUserDto);
+  async userCreatedHandler(userDto: UserCreatedEvent): Promise<void> {
+    this.userService.sendEmailVerificationLink(userDto);
   }
 
   @SubscribeTo({
     topic: 'users',
-    event: 'USER_DELETED',
+    event: 'user:forgot_password',
   })
-  async userDeletedHandler({ id }: DeleteUserDto): Promise<void> {
-    return this.userService.deleteUser(id);
+  async userForgotPasswordHandler(userDto: UserCreatedEvent): Promise<void> {
+    this.userService.sendPasswordResetLink(userDto);
   }
 }

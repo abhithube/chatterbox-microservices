@@ -1,8 +1,8 @@
 {
   "eslint.workingDirectories": [
     "./auth-service",
+    "./contact-service",
     "./messages-service",
-    "./parties-service",
     "./common"
   ]
 }
