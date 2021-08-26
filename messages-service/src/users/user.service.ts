@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PartyRepository } from 'src/parties/party.repository';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UserCreatedEvent } from './events';
 import { UserRepository } from './user.repository';
 
 @Injectable()
@@ -10,20 +10,20 @@ export class UserService {
     private partyRepository: PartyRepository,
   ) {}
 
-  async createUser(createUserDto: CreateUserDto): Promise<void> {
-    await this.userRepository.createUser(createUserDto);
+  async createUser(user: UserCreatedEvent): Promise<void> {
+    await this.userRepository.createUser(user);
 
     this.partyRepository.createParty(
       { name: 'My Party' },
       {
-        id: createUserDto.id,
-        username: createUserDto.username,
-        avatarUrl: createUserDto.avatarUrl,
+        id: user.id,
+        username: user.username,
+        avatarUrl: user.avatarUrl,
       },
     );
   }
 
-  async deleteUser(id: string): Promise<void> {
+  async deleteUser({ id }: UserCreatedEvent): Promise<void> {
     this.userRepository.deleteUser({
       id,
     });

@@ -1,6 +1,6 @@
 import { AuthUser, JwtAuthGuard, User } from '@chttrbx/jwt';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { MessageDto } from './dto/message.dto';
+import { MessageDto } from './dto';
 import { MessagesQuery } from './dto/messages.query';
 import { MessageService } from './message.service';
 

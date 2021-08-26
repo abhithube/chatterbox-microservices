@@ -1,7 +1,6 @@
 import { KafkaService, SubscribeTo } from '@chttrbx/kafka';
 import { Controller, OnModuleInit } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserDto } from './dto/user.dto';
+import { UserCreatedEvent } from './events';
 import { UserService } from './user.service';
 
 @Controller()
@@ -14,17 +13,17 @@ export class UserController implements OnModuleInit {
 
   @SubscribeTo({
     topic: 'users',
-    event: 'USER_CREATED',
+    event: 'user:created',
   })
-  async userCreatedHandler(createUserDto: CreateUserDto): Promise<void> {
-    this.userService.createUser(createUserDto);
+  async userCreatedHandler(user: UserCreatedEvent): Promise<void> {
+    this.userService.createUser(user);
   }
 
   @SubscribeTo({
     topic: 'users',
-    event: 'USER_DELETED',
+    event: 'user:deleted',
   })
-  async userDeletedHandler({ id }: Pick<UserDto, 'id'>): Promise<void> {
-    this.userService.deleteUser(id);
+  async userDeletedHandler(user: UserCreatedEvent): Promise<void> {
+    this.userService.deleteUser(user);
   }
 }

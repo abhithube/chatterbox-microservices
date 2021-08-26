@@ -11,13 +11,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { PartyDto, TopicDto } from './dto';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { JoinPartyDto } from './dto/join-party.dto';
 import { PartyAndTopicParams } from './dto/party-and-topic.params';
-import { PartyDto } from './dto/party.dto';
 import { PartyParams } from './dto/party.params';
-import { TopicDto } from './dto/topic.dto';
 import { MemberGuard } from './guards/member.guard';
 import { RequestWithUserAndParty } from './interfaces/request-with-user-and-party.interface';
 import { PartyService } from './party.service';

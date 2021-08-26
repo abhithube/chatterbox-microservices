@@ -4,12 +4,12 @@ WORKDIR /app
 
 # Install production dependencies
 FROM base AS deps
-COPY ["package.json", "package-lock.json", "prisma", "./"]
+COPY ["package.json", "package-lock.json", "./"]
 RUN npm ci --only=production
 
 # Build source code
 FROM base AS build
-COPY ["package.json", "package-lock.json", "prisma", "./"]
+COPY ["package.json", "package-lock.json", "./"]
 RUN npm ci
 COPY . .
 RUN npm run build

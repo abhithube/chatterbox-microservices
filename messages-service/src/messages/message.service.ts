@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 import { PartyRepository } from 'src/parties/party.repository';
+import { MessageDto } from './dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { MessageDto } from './dto/message.dto';
 import { MessageRepository } from './message.repository';
 
 @Injectable()
@@ -40,18 +40,18 @@ export class MessageService {
   }
 
   async createMessage(
-    createMessageDto: CreateMessageDto,
+    { body }: CreateMessageDto,
     topicId: string,
     user: AuthUser,
   ): Promise<MessageDto> {
     const message = await this.messageRepository.getLatestMessage(topicId);
 
-    return this.messageRepository.createMessage(
-      createMessageDto,
-      (message?.topicIndex || 0) + 1,
+    return this.messageRepository.createMessage({
+      topicIndex: (message?.topicIndex || 0) + 1,
+      body,
       topicId,
       user,
-    );
+    });
   }
 
   async getMessages(

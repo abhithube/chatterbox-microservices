@@ -5,11 +5,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PartyDto, TopicDto } from './dto';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
-import { MemberDto } from './dto/member.dto';
-import { PartyDto } from './dto/party.dto';
-import { TopicDto } from './dto/topic.dto';
+import {
+  PartyCreatedEvent,
+  PartyDeletedEvent,
+  PartyJoinedEvent,
+  PartyLeftEvent,
+  TopicCreatedEvent,
+  TopicDeletedEvent,
+} from './events';
 import { PartyRepository } from './party.repository';
 
 @Injectable()
@@ -35,10 +41,10 @@ export class PartyService {
 
     const party = await this.partyRepository.createParty({ name }, user);
 
-    await this.kafka.publish<PartyDto>('parties', {
+    await this.kafka.publish<PartyCreatedEvent>('parties', {
       key: party.id,
       value: {
-        type: 'PARTY_CREATED',
+        type: 'party:created',
         data: party,
       },
     });
@@ -89,13 +95,13 @@ export class PartyService {
 
     await this.partyRepository.addUserToParty({ id }, user);
 
-    await this.kafka.publish<MemberDto>('parties', {
+    await this.kafka.publish<PartyJoinedEvent>('parties', {
       key: id,
       value: {
-        type: 'MEMBER_CREATED',
+        type: 'party:joined',
         data: {
-          userId: user.id,
           partyId: id,
+          userId: user.id,
         },
       },
     });
@@ -110,13 +116,13 @@ export class PartyService {
 
     await this.partyRepository.removeUserFromParty({ id }, userId);
 
-    await this.kafka.publish<MemberDto>('parties', {
+    await this.kafka.publish<PartyLeftEvent>('parties', {
       key: id,
       value: {
-        type: 'MEMBER_DELETED',
+        type: 'party:left',
         data: {
-          userId,
           partyId: id,
+          userId,
         },
       },
     });
@@ -125,10 +131,10 @@ export class PartyService {
   async deleteParty(id: string): Promise<void> {
     await this.partyRepository.deleteParty({ id });
 
-    await this.kafka.publish<Pick<PartyDto, 'id'>>('parties', {
+    await this.kafka.publish<PartyDeletedEvent>('parties', {
       key: id,
       value: {
-        type: 'PARTY_DELETED',
+        type: 'party:deleted',
         data: {
           id,
         },
@@ -151,10 +157,10 @@ export class PartyService {
       createTopicDto,
     );
 
-    await this.kafka.publish<TopicDto & { partyId: string }>('parties', {
+    await this.kafka.publish<TopicCreatedEvent>('parties', {
       key: id,
       value: {
-        type: 'TOPIC_CREATED',
+        type: 'topic:created',
         data: {
           ...topic,
           partyId: id,
@@ -176,12 +182,13 @@ export class PartyService {
       });
     }
 
-    await this.kafka.publish<Pick<TopicDto, 'id'>>('parties', {
+    await this.kafka.publish<TopicDeletedEvent>('parties', {
       key: partyId,
       value: {
-        type: 'TOPIC_DELETED',
+        type: 'topic:deleted',
         data: {
           id,
+          partyId,
         },
       },
     });

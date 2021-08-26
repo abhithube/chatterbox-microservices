@@ -1,19 +1,17 @@
-import { AuthUser } from '@chttrbx/jwt';
 import { randomUUID } from 'crypto';
 import { EntityRepository, MongoRepository } from 'typeorm';
-import { CreateMessageDto } from './dto/create-message.dto';
-import { MessageDto } from './dto/message.dto';
+import { MessageDocument, MessageInsertOptions } from './db';
 import { Message } from './message.entity';
 
 @EntityRepository(Message)
 export class MessageRepository extends MongoRepository<Message> {
-  async createMessage(
-    { body }: CreateMessageDto,
-    topicIndex: number,
-    topicId: string,
-    user: AuthUser,
-  ): Promise<MessageDto> {
-    const message: MessageDto = {
+  async createMessage({
+    topicIndex,
+    body,
+    topicId,
+    user,
+  }: MessageInsertOptions): Promise<MessageDocument> {
+    const message: MessageDocument = {
       id: randomUUID(),
       topicIndex,
       body,
@@ -29,9 +27,10 @@ export class MessageRepository extends MongoRepository<Message> {
     return message;
   }
 
-  async getLatestMessage(topicId: string): Promise<MessageDto> {
-    const docs = await this.aggregate<MessageDto>([
+  async getLatestMessage(topicId: string): Promise<MessageDocument> {
+    const docs = await this.aggregate<MessageDocument>([
       { $match: { topicId } },
+      { $project: { _id: 0, topicId: 0 } },
       { $sort: { topicIndex: -1 } },
       { $limit: 1 },
     ]).toArray();
@@ -43,13 +42,13 @@ export class MessageRepository extends MongoRepository<Message> {
   async getMessagesByTopicId(
     topicId: string,
     topicIndex?: number,
-  ): Promise<MessageDto[]> {
+  ): Promise<MessageDocument[]> {
     const options = {
       topicId,
       topicIndex: topicIndex ? { $lt: topicIndex } : { $gt: 0 },
     };
 
-    return this.aggregate<MessageDto>([
+    return this.aggregate<MessageDocument>([
       { $match: options },
       { $project: { _id: 0, topicId: 0 } },
       { $sort: { topicIndex: -1 } },

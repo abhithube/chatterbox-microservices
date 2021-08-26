@@ -1,6 +1,6 @@
 import { Column, Entity, Index, ObjectID, ObjectIdColumn } from 'typeorm';
 
-class Topic {
+export class Topic {
   @Column()
   id: string;
 
@@ -8,7 +8,7 @@ class Topic {
   name: string;
 }
 
-class User {
+export class User {
   @Column()
   id: string;
 
@@ -16,7 +16,7 @@ class User {
   username: string;
 
   @Column({ nullable: true })
-  avatarUrl: string;
+  avatarUrl?: string;
 }
 
 @Entity({ name: 'parties' })

@@ -1,18 +1,10 @@
 import { AuthUser } from '@chttrbx/jwt';
 import { randomUUID } from 'crypto';
 import { EntityRepository, MongoRepository } from 'typeorm';
+import { PartyDocument, PartyFilterOptions, TopicDocument } from './db';
 import { CreatePartyDto } from './dto/create-party.dto';
 import { CreateTopicDto } from './dto/create-topic.dto';
-import { PartyDto } from './dto/party.dto';
-import { TopicDto } from './dto/topic.dto';
 import { Party } from './party.entity';
-
-export type PartyFilterOptions = Partial<
-  Pick<Party, '_id' | 'id' | 'name' | 'inviteToken'> & {
-    userId: string;
-    topicId: string;
-  }
->;
 
 const parseFilters = (options: PartyFilterOptions) => {
   if (options.topicId) {
@@ -32,8 +24,8 @@ export class PartyRepository extends MongoRepository<Party> {
   async createParty(
     { name }: CreatePartyDto,
     user: AuthUser,
-  ): Promise<PartyDto> {
-    const party: PartyDto = {
+  ): Promise<PartyDocument> {
+    const party: PartyDocument = {
       id: randomUUID(),
       name,
       inviteToken: randomUUID(),
@@ -51,15 +43,15 @@ export class PartyRepository extends MongoRepository<Party> {
     return party;
   }
 
-  async getParties(options: PartyFilterOptions): Promise<PartyDto[]> {
-    return this.aggregate<Party>([
+  async getParties(options: PartyFilterOptions): Promise<PartyDocument[]> {
+    return this.aggregate<PartyDocument>([
       { $match: parseFilters(options) },
       { $project: { _id: 0 } },
     ]).toArray();
   }
 
-  async getParty(options: PartyFilterOptions): Promise<PartyDto> {
-    const docs = await this.aggregate<Party>([
+  async getParty(options: PartyFilterOptions): Promise<PartyDocument> {
+    const docs = await this.aggregate<PartyDocument>([
       { $match: parseFilters(options) },
       { $project: { _id: 0 } },
       { $limit: 1 },
@@ -96,8 +88,8 @@ export class PartyRepository extends MongoRepository<Party> {
   async addTopicToParty(
     options: PartyFilterOptions,
     { name }: CreateTopicDto,
-  ): Promise<TopicDto> {
-    const topic: TopicDto = {
+  ): Promise<TopicDocument> {
+    const topic: TopicDocument = {
       id: randomUUID(),
       name,
     };

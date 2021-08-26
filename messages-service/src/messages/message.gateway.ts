@@ -10,9 +10,8 @@ import {
 } from '@nestjs/websockets';
 import { Cache } from 'cache-manager';
 import { Server, Socket } from 'socket.io';
+import { PartyConnectionDto, TopicConnectionDto } from './dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { PartyConnectionDto } from './dto/party-connection.dto';
-import { TopicConnectionDto } from './dto/topic-connection.dto';
 import { SocketWithUser } from './interfaces/socket-with-user.interface';
 import { MessageService } from './message.service';
 
