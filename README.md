@@ -1,4 +1,4 @@
-# ChatterBox
+# Chatterbox
 
 ![Auth Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/auth-test.yaml/badge.svg)
 ![Contact Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/contact-test.yaml/badge.svg)
@@ -10,7 +10,7 @@ The application is live on DigitalOcean and can be found at https://chatterbox.a
 
 ## Intro
 
-ChatterBox is a web application designed for group messaging, in a similar vein to Discord and Slack. Users create **_parties_** which other users can join, and then create **_topics_** within a party to send messages to each other.
+Chatterbox is a web application designed for group messaging, in a similar vein to Discord and Slack. Users create **_parties_** which other users can join, and then create **_topics_** within a party to send messages to each other.
 
 ## Features
 

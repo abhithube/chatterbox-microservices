@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: contact-config
-data:
-  SMTP_HOST: smtp.sendgrid.net
-  SMTP_USER: apikey
-  EMAIL_NAME: ChatterBox
-  EMAIL_ADDRESS: chatterbox@abhithube.com

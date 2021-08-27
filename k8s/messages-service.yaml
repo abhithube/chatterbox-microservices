@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deploy
+  name: messages-deploy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: messages
   template:
     metadata:
       labels:
-        app: auth
+        app: messages
     spec:
       containers:
-        - name: auth
-          image: abhithube/chatterbox-auth
+        - name: messages
+          image: abhithube/chatterbox-messages
           resources:
             requests:
               memory: '128Mi'
@@ -35,16 +35,26 @@ spec:
                 configMapKeyRef:
                   name: shared-config
                   key: CLIENT_URL
-            - name: SERVER_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: shared-config
-                  key: SERVER_URL
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: auth-secrets
+                  name: messages-secrets
                   key: DATABASE_URL
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: messages-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: messages-config
+                  key: REDIS_PORT
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: messages-secrets
+                  key: REDIS_PASSWORD
             - name: BROKER_URLS
               valueFrom:
                 configMapKeyRef:
@@ -60,28 +70,30 @@ spec:
                 secretKeyRef:
                   name: shared-secrets
                   key: CONFLUENT_API_SECRET
-            - name: GOOGLE_CLIENT_ID
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-config
-                  key: GOOGLE_CLIENT_ID
-            - name: GOOGLE_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secrets
-                  key: GOOGLE_CLIENT_SECRET
-            - name: GITHUB_CLIENT_ID
-              valueFrom:
-                configMapKeyRef:
-                  name: auth-config
-                  key: GITHUB_CLIENT_ID
-            - name: GITHUB_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: auth-secrets
-                  key: GITHUB_CLIENT_SECRET
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: shared-secrets
                   key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messages-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: messages
+  ports:
+    - name: messages
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: messages-config
+data:
+  REDIS_HOST: usw1-true-boxer-31254.upstash.io
+  REDIS_PORT: '31254'
