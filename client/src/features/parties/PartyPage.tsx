@@ -2,7 +2,8 @@ import { Box, Flex } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { MessagePanel } from '../messages/MessagePanel';
+import { MessageFeed } from '../messages/MessageFeed';
+import { UserSidebar } from '../messages/UserSidebar';
 import { PartiesSidebar } from './PartiesSidebar';
 import { selectParties, setActiveParty, setActiveTopic } from './partiesSlice';
 import { TopicsSidebar } from './TopicsSidebar';
@@ -40,7 +41,12 @@ export const PartyPage = () => {
       <Box w={64}>
         <TopicsSidebar />
       </Box>
-      <MessagePanel />
+      <Box flexGrow={1}>
+        <MessageFeed />
+      </Box>
+      <Box minW={64}>
+        <UserSidebar />
+      </Box>
     </Flex>
   );
 };

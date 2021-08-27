@@ -1,7 +1,11 @@
 import { Center, Spinner, Text } from '@chakra-ui/react';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { Redirect, useHistory, useLocation } from 'react-router-dom';
+import { httpClient } from '../../common/httpClient';
+
+interface EmailConfirmationPayload {
+  token: string;
+}
 
 export const ConfirmPage = () => {
   const [loading, setLoading] = useState(true);
@@ -21,15 +25,14 @@ export const ConfirmPage = () => {
       try {
         setLoading(true);
 
-        const res = await axios.post(
+        await httpClient.post<EmailConfirmationPayload>(
           `${process.env.REACT_APP_SERVER_URL}/auth/confirm`,
           {
             token,
           }
         );
 
-        if (res.status !== 200) setError(true);
-        else setError(false);
+        setError(false);
       } catch (err) {
         setError(true);
       } finally {

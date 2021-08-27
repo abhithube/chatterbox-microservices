@@ -6,10 +6,15 @@ import {
   Input,
   VStack,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../../common/components/Alert';
+import { httpClient } from '../../common/httpClient';
+
+interface ResetPasswordPayload {
+  token: string;
+  password: string;
+}
 
 type ResetPasswordFormProps = {
   token: string;
@@ -37,10 +42,14 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/reset`, {
-          token,
-          password,
-        });
+
+        await httpClient.post<ResetPasswordPayload>(
+          `${process.env.REACT_APP_SERVER_URL}/auth/reset`,
+          {
+            token,
+            password,
+          }
+        );
 
         history.push({
           pathname: '/login',
@@ -49,14 +58,12 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
           },
         });
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 400) {
-            setAlert({
-              status: 'error',
-              text: 'Invalid verification code',
-            });
-            setLoading(false);
-          }
+        if (err.message) {
+          setAlert({
+            status: 'error',
+            text: err.message,
+          });
+          setLoading(false);
         } else history.push('/error');
       }
     })();

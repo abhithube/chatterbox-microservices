@@ -10,11 +10,15 @@ import {
   InputLeftElement,
   VStack,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { useState } from 'react';
 import { FaEnvelope } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../../common/components/Alert';
+import { httpClient } from '../../common/httpClient';
+
+interface ForgotPasswordPayload {
+  email: string;
+}
 
 export const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('');
@@ -30,20 +34,22 @@ export const ForgotPasswordForm = () => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/forgot`, {
-          email,
-        });
+
+        await httpClient.post<ForgotPasswordPayload>(
+          `${process.env.REACT_APP_SERVER_URL}/auth/forgot`,
+          {
+            email,
+          }
+        );
 
         setEmail('');
         setAlert({ status: 'success', text: 'Password reset link sent' });
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 400) {
-            setAlert({
-              status: 'error',
-              text: 'User not found with this email address',
-            });
-          }
+        if (err.message) {
+          setAlert({
+            status: 'error',
+            text: err.message,
+          });
         } else history.push('/error');
       } finally {
         setLoading(false);

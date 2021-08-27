@@ -9,11 +9,17 @@ import {
   InputLeftElement,
   VStack,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
 import { Alert, AlertMessage } from '../../common/components/Alert';
+import { httpClient } from '../../common/httpClient';
+
+interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+}
 
 export const RegisterForm = () => {
   const [username, setUsername] = useState('');
@@ -39,7 +45,8 @@ export const RegisterForm = () => {
     (async () => {
       try {
         setLoading(true);
-        await axios.post(`${process.env.REACT_APP_SERVER_URL}/auth/register`, {
+
+        await httpClient.post<RegisterPayload>('/auth/register', {
           username,
           email,
           password,
@@ -52,17 +59,13 @@ export const RegisterForm = () => {
           },
         });
       } catch (err) {
-        console.log(err.response);
+        if (err.message) {
+          setAlert({
+            status: 'error',
+            text: err.message,
+          });
 
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 400) {
-            setAlert({
-              status: 'error',
-              text: err.response.data.message,
-            });
-
-            setLoading(false);
-          }
+          setLoading(false);
         } else history.push('/error');
       }
     })();

@@ -68,7 +68,7 @@ export const LoginForm = ({ state }: LoginFormProps) => {
         await dispatch(signIn({ username, password })).unwrap();
         history.push('/');
       } catch (err) {
-        if (err.message === 'Invalid credentials') {
+        if (err.message) {
           setAlert({
             status: 'error',
             text: err.message,

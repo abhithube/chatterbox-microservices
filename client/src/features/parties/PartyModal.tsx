@@ -113,7 +113,7 @@ export const PartyModal = ({ count }: PartyModalProps) => {
             <ModalBody>
               {alert && <Alert status={alert.status}>{alert.text}</Alert>}
               <Flex direction="column" mt={2}>
-                <FormControl id="name">
+                <FormControl id="name" isRequired>
                   <FormLabel>Party Name</FormLabel>
                   <InputGroup>
                     <InputLeftElement
