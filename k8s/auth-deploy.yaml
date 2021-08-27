@@ -85,3 +85,25 @@ spec:
                 secretKeyRef:
                   name: shared-secrets
                   key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: auth
+  ports:
+    - name: auth
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+data:
+  GOOGLE_CLIENT_ID: 445749772447-b7jo4spg4up3hpd946i0jsmjvksf8glg.apps.googleusercontent.com
+  GITHUB_CLIENT_ID: 7cec12176d6f90068478
