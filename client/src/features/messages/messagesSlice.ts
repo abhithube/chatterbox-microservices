@@ -6,19 +6,18 @@ import { selectParties } from '../parties/partiesSlice';
 
 export interface Message {
   id: string;
-  syncId: number;
+  topicIndex: number;
   body: string;
   user: User;
   createdAt: Date;
 }
 
 interface GetMessagesPayload {
-  syncId?: number;
+  topicIndex?: number;
 }
 
 interface CreateMessagePayload {
   body: string;
-  topicId: string;
 }
 
 interface MessagesState {
@@ -46,7 +45,7 @@ export const getMessages = createAsyncThunk<
 
   const query =
     `?topicId=${activeTopic!.id}` +
-    (payload.syncId ? `&syncId=${payload.syncId}` : '');
+    (payload.topicIndex ? `&syncId=${payload.topicIndex}` : '');
 
   return httpClient.get<Message[]>(`/messages${query}`);
 });

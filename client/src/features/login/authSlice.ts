@@ -5,7 +5,7 @@ import { httpClient } from '../../common/httpClient';
 export interface User {
   id: string;
   username: string;
-  avatarUrl: string | null;
+  avatarUrl?: string;
 }
 
 interface LoginPayload {

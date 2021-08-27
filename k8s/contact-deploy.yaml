@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contact-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: contact
+  template:
+    metadata:
+      labels:
+        app: contact
+    spec:
+      containers:
+        - name: contact
+          image: abhithube/chatterbox-contact
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '256Mi'
+              cpu: '200m'
+          env:
+            - name: PORT
+              value: '80'
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: NODE_ENV
+            - name: CLIENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: CLIENT_URL
+            - name: BROKER_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: BROKER_URLS
+            - name: CONFLUENT_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: CONFLUENT_API_KEY
+            - name: CONFLUENT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shared-secrets
+                  key: CONFLUENT_API_SECRET
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: contact-config
+                  key: SMTP_HOST
+            - name: SMTP_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: contact-config
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: contact-secrets
+                  key: SMTP_PASS
+            - name: EMAIL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: contact-config
+                  key: EMAIL_NAME
+            - name: EMAIL_ADDRESS
+              valueFrom:
+                configMapKeyRef:
+                  name: contact-config
+                  key: EMAIL_ADDRESS
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shared-secrets
+                  key: JWT_SECRET

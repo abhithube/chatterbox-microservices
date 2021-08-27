@@ -12,9 +12,15 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { LoginForm } from './LoginForm';
 import { SocialLogin } from './SocialLogin';
 
+export type LoginPageState = {
+  registered?: boolean;
+  verified?: boolean;
+  reset?: boolean;
+  logout?: boolean;
+};
+
 export const LoginPage = () => {
-  const location = useLocation();
-  const query = new URLSearchParams(location.search);
+  const location = useLocation<LoginPageState>();
 
   return (
     <Center h="100%">
@@ -23,7 +29,7 @@ export const LoginPage = () => {
           Sign In
         </Heading>
         <Box mt={4}>
-          <LoginForm status={query.keys().next().value} />
+          <LoginForm state={location.state} />
         </Box>
         <Text as="span" mt={6}>
           {"Don't have an account? "}

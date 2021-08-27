@@ -1,33 +1,30 @@
 import { AuthUser, JwtService } from '@chttrbx/jwt';
 import { KafkaService } from '@chttrbx/kafka';
-import { MailService } from '@chttrbx/mail';
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from '@prisma/client';
 import { hashSync } from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from './auth.service';
+import { UserDocument } from './db';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserRepository } from './user.repository';
 
 const pass = 'testpass';
 
-const user: User = {
+const user: UserDocument = {
   id: '1',
   username: 'testuser',
   email: 'testemail',
   password: hashSync(pass, 10),
   avatarUrl: null,
   verified: true,
-  verificationToken: null,
-  resetToken: null,
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  verificationToken: 'verify',
+  resetToken: 'reset',
 };
 
 const authUser: AuthUser = {
   id: user.id,
   username: user.username,
-  avatarUrl: user.avatarUrl,
+  avatarUrl: null,
 };
 
 const createUserDto: CreateUserDto = {
@@ -38,10 +35,9 @@ const createUserDto: CreateUserDto = {
 
 describe('AuthService', () => {
   let service: AuthService;
-  let prisma: PrismaService;
+  let userRepository: UserRepository;
   let jwt: JwtService;
   let kafka: KafkaService;
-  let transport: MailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -49,14 +45,12 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         {
-          provide: PrismaService,
+          provide: UserRepository,
           useValue: {
-            user: {
-              create: jest.fn(),
-              findUnique: jest.fn(),
-              update: jest.fn(),
-              delete: jest.fn(),
-            },
+            createUser: jest.fn(),
+            getUser: jest.fn(),
+            updateUser: jest.fn(),
+            deleteUser: jest.fn(),
           },
         },
         {
@@ -72,20 +66,13 @@ describe('AuthService', () => {
             publish: jest.fn(),
           },
         },
-        {
-          provide: MailService,
-          useValue: {
-            send: jest.fn(),
-          },
-        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prisma = module.get<PrismaService>(PrismaService);
+    userRepository = module.get<UserRepository>(UserRepository);
     jwt = module.get<JwtService>(JwtService);
     kafka = module.get<KafkaService>(KafkaService);
-    transport = module.get<MailService>(MailService);
   });
 
   it('should be defined', () => {
@@ -94,13 +81,12 @@ describe('AuthService', () => {
 
   it('registers a new user', async () => {
     jest
-      .spyOn(prisma.user, 'findUnique')
+      .spyOn(userRepository, 'getUser')
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
 
-    jest.spyOn(prisma.user, 'create').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'createUser').mockResolvedValue(user);
 
-    const transportSpy = jest.spyOn(transport, 'send');
     const kafkaSpy = jest.spyOn(kafka, 'publish');
 
     await expect(service.registerUser(createUserDto)).resolves.toEqual(
@@ -111,20 +97,14 @@ describe('AuthService', () => {
       'users',
       expect.objectContaining({
         value: expect.objectContaining({
-          type: 'USER_CREATED',
+          type: 'user:created',
         }),
-      }),
-    );
-
-    expect(transportSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        subject: 'Email Verification',
       }),
     );
   });
 
   it('prevents duplicate usernames', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
     await expect(service.registerUser(createUserDto)).rejects.toThrow(
       'Username already taken',
@@ -133,7 +113,7 @@ describe('AuthService', () => {
 
   it('prevents duplicate emails', async () => {
     jest
-      .spyOn(prisma.user, 'findUnique')
+      .spyOn(userRepository, 'getUser')
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(user);
 
@@ -143,7 +123,7 @@ describe('AuthService', () => {
   });
 
   it('validates correct username/password combination', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
     await expect(service.validateLocal(user.username, pass)).resolves.toEqual(
       authUser,
@@ -151,7 +131,7 @@ describe('AuthService', () => {
   });
 
   it('rejects incorrect username/password combination', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
     await expect(
       service.validateLocal(user.username, 'wrongpass'),
@@ -159,11 +139,11 @@ describe('AuthService', () => {
   });
 
   it('rejects unverified users', async () => {
-    const unverifiedUser: User = {
+    const unverifiedUser: UserDocument = {
       ...user,
       verified: false,
     };
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(unverifiedUser);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(unverifiedUser);
 
     await expect(
       service.validateLocal(unverifiedUser.username, pass),
@@ -171,9 +151,9 @@ describe('AuthService', () => {
   });
 
   it('validates OAuth login for an existing user', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
-    const spy = jest.spyOn(prisma.user, 'create');
+    const spy = jest.spyOn(userRepository, 'createUser');
 
     await expect(
       service.validateOAuth(user.username, user.email, user.avatarUrl),
@@ -183,15 +163,24 @@ describe('AuthService', () => {
   });
 
   it('validates OAuth login for a new user', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(null);
 
-    const spy = jest.spyOn(prisma.user, 'create').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'createUser').mockResolvedValue(user);
+
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
 
     await expect(
       service.validateOAuth(user.username, user.email, user.avatarUrl),
     ).resolves.toEqual(authUser);
 
-    expect(spy).toHaveBeenCalled();
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:created',
+        }),
+      }),
+    );
   });
 
   it('generates access and refresh tokens upon successful authentication', async () => {
@@ -211,15 +200,26 @@ describe('AuthService', () => {
   });
 
   it("verifies a user's email address", async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
+
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
 
     await expect(
       service.confirmEmail(user.verificationToken),
     ).resolves.not.toThrow();
+
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:updated',
+        }),
+      }),
+    );
   });
 
   it('rejects an invalid email verification code', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(null);
 
     await expect(service.confirmEmail('invalid')).rejects.toThrow(
       'Invalid verification code',
@@ -227,31 +227,45 @@ describe('AuthService', () => {
   });
 
   it('sends a user a password reset email', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
-    const transportSpy = jest.spyOn(transport, 'send');
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
 
     await expect(
       service.getPasswordResetLink(user.email),
     ).resolves.not.toThrow();
 
-    expect(transportSpy).toHaveBeenCalledWith(
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
       expect.objectContaining({
-        subject: 'Password Reset',
+        value: expect.objectContaining({
+          type: 'user:forgot_password',
+        }),
       }),
     );
   });
 
   it("resets a user's password", async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
+
+    const kafkaSpy = jest.spyOn(kafka, 'publish');
 
     await expect(
       service.resetPassword(user.resetToken, 'newpass'),
     ).resolves.not.toThrow();
+
+    expect(kafkaSpy).toHaveBeenCalledWith(
+      'users',
+      expect.objectContaining({
+        value: expect.objectContaining({
+          type: 'user:updated',
+        }),
+      }),
+    );
   });
 
   it('rejects an invalid password reset code', async () => {
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(null);
 
     await expect(service.resetPassword('invalid', 'newpass')).rejects.toThrow(
       'Invalid reset code',
@@ -263,7 +277,7 @@ describe('AuthService', () => {
 
     jest.spyOn(jwt, 'verify').mockReturnValue(authUser);
 
-    jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'getUser').mockResolvedValue(user);
 
     jest.spyOn(jwt, 'sign').mockReturnValueOnce(accessToken);
 
@@ -283,7 +297,7 @@ describe('AuthService', () => {
   });
 
   it('deletes an existing user', async () => {
-    jest.spyOn(prisma.user, 'delete').mockResolvedValue(user);
+    jest.spyOn(userRepository, 'deleteUser').mockResolvedValue(true);
 
     const kafkaSpy = jest.spyOn(kafka, 'publish');
 
@@ -293,7 +307,7 @@ describe('AuthService', () => {
       'users',
       expect.objectContaining({
         value: expect.objectContaining({
-          type: 'USER_DELETED',
+          type: 'user:deleted',
         }),
       }),
     );

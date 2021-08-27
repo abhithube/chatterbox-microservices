@@ -17,12 +17,13 @@ import { Link as RouterLink, useHistory } from 'react-router-dom';
 import { useAppDispatch } from '../../app/hooks';
 import { Alert, AlertMessage } from '../../common/components/Alert';
 import { signIn } from './authSlice';
+import { LoginPageState } from './LoginPage';
 
 type LoginFormProps = {
-  status: string | null;
+  state?: LoginPageState;
 };
 
-export const LoginForm = ({ status }: LoginFormProps) => {
+export const LoginForm = ({ state }: LoginFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -34,27 +35,28 @@ export const LoginForm = ({ status }: LoginFormProps) => {
   const history = useHistory();
 
   useEffect(() => {
-    switch (status) {
-      case 'registered':
-        setAlert({
-          status: 'success',
-          text: 'Check your inbox for a verification link',
-        });
-        break;
-      case 'verified':
-        setAlert({ status: 'success', text: 'Your email has been verified' });
-        break;
-      case 'reset':
-        setAlert({ status: 'success', text: 'Your password has been reset' });
-        break;
-      case 'logout':
-        setAlert({ status: 'success', text: 'You have been logged out' });
-        break;
-      default:
-        setAlert(null);
-        break;
+    if (state?.registered) {
+      setAlert({
+        status: 'success',
+        text: 'Check your inbox for a verification link',
+      });
+    } else if (state?.verified) {
+      setAlert({
+        status: 'success',
+        text: 'Your email has been verified',
+      });
+    } else if (state?.logout) {
+      setAlert({
+        status: 'success',
+        text: 'You have been logged out',
+      });
+    } else if (state?.reset) {
+      setAlert({
+        status: 'success',
+        text: 'Your password has been reset',
+      });
     }
-  }, [status]);
+  }, [state]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,7 +68,7 @@ export const LoginForm = ({ status }: LoginFormProps) => {
         await dispatch(signIn({ username, password })).unwrap();
         history.push('/');
       } catch (err) {
-        if (err.message === 'Invalid credentials') {
+        if (err.message) {
           setAlert({
             status: 'error',
             text: err.message,

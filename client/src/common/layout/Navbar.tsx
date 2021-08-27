@@ -18,7 +18,12 @@ export const Navbar = () => {
   const handleClick = async () => {
     dispatch(signOut());
 
-    history.push('/login?logout=true');
+    history.push({
+      pathname: '/login',
+      state: {
+        logout: true,
+      },
+    });
   };
 
   return (

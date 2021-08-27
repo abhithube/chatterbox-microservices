@@ -1,12 +1,9 @@
 import { Transform } from 'class-transformer';
-import { IsHexadecimal, IsNumber, IsOptional, Length } from 'class-validator';
+import { IsNumber, IsOptional, IsUUID } from 'class-validator';
 
 export class MessagesQuery {
-  @IsHexadecimal({
-    message: 'topicId must be a valid hex string',
-  })
-  @Length(24, 24, {
-    message: 'topicId must be a valid BSON ObjectId',
+  @IsUUID(4, {
+    message: 'topicId must be a valid UUID',
   })
   topicId: string;
 

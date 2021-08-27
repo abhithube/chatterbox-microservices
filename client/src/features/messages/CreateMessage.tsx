@@ -34,7 +34,6 @@ export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
     dispatch(
       sendMessage({
         body: message,
-        topicId: activeTopic!.id,
       })
     );
 

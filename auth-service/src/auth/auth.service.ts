@@ -1,29 +1,24 @@
 import { AuthUser, JwtService } from '@chttrbx/jwt';
 import { KafkaService } from '@chttrbx/kafka';
-import { MailService } from '@chttrbx/mail';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { compareSync, hashSync } from 'bcrypt';
 import { randomUUID } from 'crypto';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { AuthResponseDto, RefreshResponseDto } from './dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { TokenResponseDto } from './dto/token-response.dto';
-import { UserDto } from './dto/user.dto';
+import { UserCreatedEvent, UserDeletedEvent, UserUpdatedEvent } from './events';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    private userRepository: UserRepository,
     private jwt: JwtService,
     private kafka: KafkaService,
-    private transport: MailService,
-    private config: ConfigService,
   ) {}
 
   async registerUser({
@@ -31,10 +26,8 @@ export class AuthService {
     email,
     password,
   }: CreateUserDto): Promise<AuthUser> {
-    let existingUser = await this.prisma.user.findUnique({
-      where: {
-        username,
-      },
+    let existingUser = await this.userRepository.getUser({
+      username,
     });
 
     if (existingUser) {
@@ -43,10 +36,8 @@ export class AuthService {
       });
     }
 
-    existingUser = await this.prisma.user.findUnique({
-      where: {
-        email,
-      },
+    existingUser = await this.userRepository.getUser({
+      email,
     });
 
     if (existingUser) {
@@ -55,50 +46,41 @@ export class AuthService {
       });
     }
 
-    const user = await this.prisma.user.create({
-      data: {
+    const { id, verified, verificationToken, resetToken } =
+      await this.userRepository.createUser({
         username,
         email,
         password: hashSync(password, 10),
+        verified: false,
         verificationToken: randomUUID(),
         resetToken: randomUUID(),
-      },
-    });
+      });
 
-    await this.kafka.publish<UserDto>('users', {
-      key: user.id,
+    await this.kafka.publish<UserCreatedEvent>('users', {
+      key: id,
       value: {
-        type: 'USER_CREATED',
+        type: 'user:created',
         data: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
+          id,
+          username,
+          email,
+          verified,
+          verificationToken,
+          resetToken,
         },
       },
     });
 
-    await this.transport.send({
-      to: user.email,
-      subject: 'Email Verification',
-      html: `
-        <p>Hello ${user.username},</p>
-        <p>Confirm your email address <a href="${process.env.CLIENT_URL}/confirm?token=${user.verificationToken}">here</a>.</p>
-      `,
-    });
-
     return {
-      id: user.id,
-      username: user.username,
-      avatarUrl: user.avatarUrl,
+      id,
+      username,
+      avatarUrl: null,
     };
   }
 
   async validateLocal(username: string, password: string): Promise<AuthUser> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        username,
-      },
+    const user = await this.userRepository.getUser({
+      username,
     });
 
     if (!user || !user.password || !compareSync(password, user.password)) {
@@ -115,7 +97,7 @@ export class AuthService {
     return {
       id: user.id,
       username: user.username,
-      avatarUrl: user.avatarUrl,
+      avatarUrl: null,
     };
   }
 
@@ -124,30 +106,31 @@ export class AuthService {
     email: string,
     avatarUrl: string,
   ): Promise<AuthUser> {
-    let user = await this.prisma.user.findUnique({
-      where: {
-        email,
-      },
+    let user = await this.userRepository.getUser({
+      email,
     });
     if (!user) {
-      user = await this.prisma.user.create({
-        data: {
-          username,
-          email,
-          avatarUrl,
-          verified: true,
-        },
+      user = await this.userRepository.createUser({
+        username,
+        email,
+        avatarUrl,
+        verified: true,
+        verificationToken: randomUUID(),
+        resetToken: randomUUID(),
       });
 
-      await this.kafka.publish<UserDto>('users', {
+      await this.kafka.publish<UserCreatedEvent>('users', {
         key: user.id,
         value: {
-          type: 'USER_CREATED',
+          type: 'user:created',
           data: {
             id: user.id,
             username: user.username,
             email: user.email,
             avatarUrl: user.avatarUrl,
+            verified: user.verified,
+            verificationToken: user.verificationToken,
+            resetToken: user.resetToken,
           },
         },
       });
@@ -155,14 +138,12 @@ export class AuthService {
 
     return {
       id: user.id,
-      username: user.username,
-      avatarUrl: user.avatarUrl,
+      username,
+      avatarUrl,
     };
   }
 
-  async authenticateUser(
-    authUser: AuthUser,
-  ): Promise<AuthResponseDto & { refreshToken: string }> {
+  async authenticateUser(authUser: AuthUser): Promise<AuthResponseDto> {
     return {
       user: authUser,
       accessToken: this.jwt.sign(authUser),
@@ -171,10 +152,8 @@ export class AuthService {
   }
 
   async confirmEmail(verificationToken: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        verificationToken,
-      },
+    const user = await this.userRepository.getUser({
+      verificationToken,
     });
     if (!user) {
       throw new ForbiddenException({
@@ -182,22 +161,36 @@ export class AuthService {
       });
     }
 
-    await this.prisma.user.update({
-      where: {
+    this.userRepository.updateUser(
+      {
         id: user.id,
       },
-      data: {
+      {
         verified: true,
         verificationToken: randomUUID(),
+      },
+    );
+
+    this.kafka.publish<UserUpdatedEvent>('users', {
+      key: user.id,
+      value: {
+        type: 'user:updated',
+        data: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          verified: user.verified,
+          verificationToken: user.verificationToken,
+          resetToken: user.resetToken,
+        },
       },
     });
   }
 
   async getPasswordResetLink(email: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        email,
-      },
+    const user = await this.userRepository.getUser({
+      email,
     });
     if (!user) {
       throw new NotFoundException({
@@ -211,23 +204,26 @@ export class AuthService {
       });
     }
 
-    await this.transport.send({
-      to: email,
-      subject: 'Password Reset',
-      html: `
-      <p>Hello ${user.username},</p>
-      <p>Reset your password <a href="${this.config.get(
-        'CLIENT_URL',
-      )}/reset?token=${user.resetToken}">here.</p>
-      `,
+    this.kafka.publish<UserUpdatedEvent>('users', {
+      key: user.id,
+      value: {
+        type: 'user:forgot_password',
+        data: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          verified: user.verified,
+          verificationToken: user.verificationToken,
+          resetToken: user.resetToken,
+        },
+      },
     });
   }
 
   async resetPassword(resetToken: string, password: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        resetToken,
-      },
+    const user = await this.userRepository.getUser({
+      resetToken,
     });
     if (!user) {
       throw new ForbiddenException({
@@ -235,25 +231,41 @@ export class AuthService {
       });
     }
 
-    await this.prisma.user.update({
-      where: {
+    resetToken = randomUUID();
+
+    this.userRepository.updateUser(
+      {
         id: user.id,
       },
-      data: {
+      {
         password: hashSync(password, 10),
-        resetToken: randomUUID(),
+        resetToken,
+      },
+    );
+
+    this.kafka.publish<UserUpdatedEvent>('users', {
+      key: user.id,
+      value: {
+        type: 'user:updated',
+        data: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          verified: user.verified,
+          verificationToken: user.verificationToken,
+          resetToken,
+        },
       },
     });
   }
 
-  async refreshAccessToken(refreshToken: string): Promise<TokenResponseDto> {
+  async refreshAccessToken(refreshToken: string): Promise<RefreshResponseDto> {
     try {
       const { id } = this.jwt.verify(refreshToken);
 
-      const user = await this.prisma.user.findUnique({
-        where: {
-          id,
-        },
+      const user = await this.userRepository.getUser({
+        id,
       });
       if (!user) {
         throw new ForbiddenException({
@@ -278,16 +290,14 @@ export class AuthService {
   }
 
   async deleteUser(id: string): Promise<void> {
-    await this.prisma.user.delete({
-      where: {
-        id,
-      },
+    await this.userRepository.deleteUser({
+      id,
     });
 
-    await this.kafka.publish<Pick<UserDto, 'id'>>('users', {
+    this.kafka.publish<UserDeletedEvent>('users', {
       key: id,
       value: {
-        type: 'USER_DELETED',
+        type: 'user:deleted',
         data: {
           id,
         },

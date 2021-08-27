@@ -13,12 +13,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { AuthService } from './auth.service';
-import { AuthResponseDto } from './dto/auth-response.dto';
+import { LoginResponseDto, RefreshResponseDto } from './dto';
 import { ConfirmEmailDto } from './dto/confirm-email.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { TokenResponseDto } from './dto/token-response.dto';
 import { GithubAuthGuard } from './guards/github-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -43,7 +42,7 @@ export class AuthController {
   async loginHandler(
     @User() authUser: AuthUser,
     @Res({ passthrough: true }) res: Response,
-  ): Promise<AuthResponseDto> {
+  ): Promise<LoginResponseDto> {
     const { user, accessToken, refreshToken } =
       await this.authService.authenticateUser(authUser);
 
@@ -138,7 +137,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refreshTokenHandler(
     @Cookies('refresh') refresh: string,
-  ): Promise<TokenResponseDto> {
+  ): Promise<RefreshResponseDto> {
     return this.authService.refreshAccessToken(refresh);
   }
 

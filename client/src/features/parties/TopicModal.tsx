@@ -18,19 +18,20 @@ import {
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { useRef, useState } from 'react';
 import { FaComments, FaPlus } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useAppDispatch } from '../../app/hooks';
 import { Alert, AlertMessage } from '../../common/components/Alert';
-import { createTopic } from './partiesSlice';
+import { createTopic, selectParties } from './partiesSlice';
 
 type TopicModalProps = {
   count: number;
 };
 
 export const TopicModal = ({ count }: TopicModalProps) => {
+  const { activeParty } = useSelector(selectParties);
   const dispatch = useAppDispatch();
 
   const [name, setName] = useState('');
@@ -60,21 +61,19 @@ export const TopicModal = ({ count }: TopicModalProps) => {
     try {
       setLoading(true);
 
-      dispatch(createTopic({ name }));
+      const topic = await dispatch(createTopic({ name })).unwrap();
+
+      history.push(`/parties/${activeParty!.id}/topics/${topic.id}`);
 
       setName('');
       setAlert(null);
       onClose();
     } catch (err) {
-      console.log(err.response);
-
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 400) {
-          setAlert({
-            status: 'error',
-            text: err.response.data.message,
-          });
-        }
+      if (err.message) {
+        setAlert({
+          status: 'error',
+          text: err.message,
+        });
       } else history.push('/error');
     } finally {
       setLoading(false);

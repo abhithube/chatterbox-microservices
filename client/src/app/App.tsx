@@ -31,7 +31,7 @@ export const App = () => (
               inverted
               component={RegisterPage}
             />
-            <Route path="/login" component={LoginPage} />
+            <ProtectedRoute path="/login" inverted component={LoginPage} />
             <ProtectedRoute path="/confirm" inverted component={ConfirmPage} />
             <ProtectedRoute
               path="/forgot"

@@ -61,11 +61,13 @@ export const PartyModal = ({ count }: PartyModalProps) => {
     try {
       setLoading(true);
 
-      await dispatch(
+      const party = await dispatch(
         createParty({
           name,
         })
       ).unwrap();
+
+      history.push(`/parties/${party.id}/topics/${party.topics[0].id}`);
 
       setName('');
       setAlert(null);
@@ -111,7 +113,7 @@ export const PartyModal = ({ count }: PartyModalProps) => {
             <ModalBody>
               {alert && <Alert status={alert.status}>{alert.text}</Alert>}
               <Flex direction="column" mt={2}>
-                <FormControl id="name">
+                <FormControl id="name" isRequired>
                   <FormLabel>Party Name</FormLabel>
                   <InputGroup>
                     <InputLeftElement
