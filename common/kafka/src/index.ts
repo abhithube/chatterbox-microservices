@@ -1,4 +1,5 @@
-export * from './decorators';
+import 'reflect-metadata';
+
 export * from './interfaces';
-export * from './kafka.module';
+export * from './kafka.config';
 export * from './kafka.service';

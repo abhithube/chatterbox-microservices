@@ -1,3 +1,3 @@
 # @chttrbx/kafka
 
-Kafka module for NestJS
+Kafka module for the Chatterbox web application

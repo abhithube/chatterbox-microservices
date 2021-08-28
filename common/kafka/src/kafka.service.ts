@@ -1,87 +1,77 @@
-import {
-  Inject,
-  Injectable,
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
 import { Consumer, Kafka, Producer } from 'kafkajs';
-import {
-  subscriberHandlerMap,
-  subscriberInstanceMap,
-} from './decorators/kafka.decorator';
-import { KafkaEvent, KafkaMessage, KafkaOptions } from './interfaces';
+import { Container, Service } from 'typedi';
+import { KafkaMessage, PublishOptions, SubscribeOptions } from './interfaces';
+import { KAFKA_OPTIONS } from './kafka.config';
 
-@Injectable()
-export class KafkaService implements OnModuleInit, OnModuleDestroy {
-  private kafka: Kafka;
+@Service()
+export class KafkaService {
   private producer: Producer;
-  private consumer: Consumer;
 
-  constructor(
-    @Inject('KAFKA_OPTIONS') { client, producer, consumer }: KafkaOptions,
-  ) {
-    this.kafka = new Kafka({
+  private consumer: Consumer | null = null;
+
+  private handlerMap = new Map<string, (...args: any[]) => any>();
+
+  constructor() {
+    if (!Container.has(KAFKA_OPTIONS)) {
+      throw new Error('KafkaService not configured');
+    }
+
+    const { client, producer, consumer } = Container.get(KAFKA_OPTIONS);
+
+    const kafka = new Kafka({
       ...client,
     });
 
-    this.producer = this.kafka.producer({
+    this.producer = kafka.producer({
       ...producer,
     });
 
     if (consumer) {
-      this.consumer = this.kafka.consumer({
+      this.consumer = kafka.consumer({
         ...consumer,
       });
     }
+
+    this.init();
   }
 
-  async onModuleInit(): Promise<void> {
+  private async init() {
     await this.producer.connect();
 
     if (this.consumer) {
       await this.consumer.connect();
 
-      for (const [subscriberKey] of subscriberHandlerMap) {
-        await this.consumer.subscribe({
-          topic: subscriberKey.split(':')[0],
-          fromBeginning: true,
-        });
-      }
-
       await this.consumer.run({
         eachMessage: async ({ topic, message }) => {
-          const event = JSON.parse(message.value.toString()) as KafkaEvent<any>;
+          if (!message.value) return;
 
-          const instance = subscriberInstanceMap.get(topic);
-          const handler = subscriberHandlerMap.get(`${topic}:${event.type}`);
+          const msg = JSON.parse(message.value.toString()) as KafkaMessage<any>;
 
-          if (handler) handler.call(instance, event.data);
+          const handler = this.handlerMap.get(`${topic}:${msg.event}`);
+
+          if (handler) handler(msg.data);
         },
       });
     }
   }
 
-  async onModuleDestroy(): Promise<void> {
-    await this.producer.disconnect();
-    if (this.consumer) await this.consumer.disconnect();
-  }
-
-  bindConsumer<T = any>(topic: string, instance: T): void {
-    subscriberInstanceMap.set(topic, instance);
-  }
-
-  async publish<T = any>(
-    topic: string,
-    message: KafkaMessage<T>,
-  ): Promise<void> {
+  async publish<T = any>({
+    topic,
+    key,
+    message,
+  }: PublishOptions<T>): Promise<void> {
     this.producer.send({
       topic,
       messages: [
         {
-          key: message.key,
-          value: JSON.stringify(message.value),
+          key,
+          value: JSON.stringify(message),
         },
       ],
     });
+  }
+
+  subscribe<T = any>({ topic, event, handler }: SubscribeOptions<T>): void {
+    this.handlerMap.set(`${topic}:${event}`, handler);
   }
 }
