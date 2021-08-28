@@ -1,13 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import { Container, Service } from 'typedi';
 import { AuthUser, JwtOptions, JwtPayload } from './interfaces';
+import { JWT_OPTIONS } from './jwt.config';
 
-@Injectable()
+@Service()
 export class JwtService {
   private options: JwtOptions;
 
-  constructor(@Inject('JWT_OPTIONS') options: JwtOptions) {
-    this.options = options;
+  constructor() {
+    if (!Container.has(JWT_OPTIONS)) {
+      throw new Error('JwtService not configured');
+    }
+
+    this.options = Container.get(JWT_OPTIONS);
   }
 
   sign(authUser: AuthUser, expiresIn?: string | number): string {

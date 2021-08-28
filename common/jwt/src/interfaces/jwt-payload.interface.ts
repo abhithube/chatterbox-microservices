@@ -1,7 +1,6 @@
-export interface JwtPayload {
-  id: string;
-  username: string;
-  avatarUrl?: string;
+import { AuthUser } from './auth-user.interface';
+
+export interface JwtPayload extends AuthUser {
   iat: number;
   exp: number;
 }
