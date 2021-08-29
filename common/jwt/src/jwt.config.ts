@@ -1,8 +1,5 @@
-import { Container, Token } from 'typedi';
 import { JwtOptions } from './interfaces';
+import { JwtService } from './jwt.service';
 
-export const JWT_OPTIONS = new Token<JwtOptions>('jwt-options');
-
-export const configureJwt = (options: JwtOptions): void => {
-  Container.set(JWT_OPTIONS, options);
-};
+export const configureJwt = (options: JwtOptions): JwtService =>
+  new JwtService(options);

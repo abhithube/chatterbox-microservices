@@ -1,18 +1,11 @@
 import jwt from 'jsonwebtoken';
-import { Container, Service } from 'typedi';
 import { AuthUser, JwtOptions, JwtPayload } from './interfaces';
-import { JWT_OPTIONS } from './jwt.config';
 
-@Service()
 export class JwtService {
   private options: JwtOptions;
 
-  constructor() {
-    if (!Container.has(JWT_OPTIONS)) {
-      throw new Error('JwtService not configured');
-    }
-
-    this.options = Container.get(JWT_OPTIONS);
+  constructor(options: JwtOptions) {
+    this.options = options;
   }
 
   sign(authUser: AuthUser, expiresIn?: string | number): string {
@@ -24,7 +17,7 @@ export class JwtService {
   verify(token: string): AuthUser {
     const { id, username, avatarUrl } = jwt.verify(
       token,
-      this.options.secretOrKey,
+      this.options.secretOrKey
     ) as JwtPayload;
 
     return {

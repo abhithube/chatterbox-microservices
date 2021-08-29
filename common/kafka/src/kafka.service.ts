@@ -1,9 +1,11 @@
 import { Consumer, Kafka, Producer } from 'kafkajs';
-import { Container, Service } from 'typedi';
-import { KafkaMessage, PublishOptions, SubscribeOptions } from './interfaces';
-import { KAFKA_OPTIONS } from './kafka.config';
+import {
+  KafkaMessage,
+  KafkaOptions,
+  PublishOptions,
+  SubscribeOptions,
+} from './interfaces';
 
-@Service()
 export class KafkaService {
   private producer: Producer;
 
@@ -11,13 +13,7 @@ export class KafkaService {
 
   private handlerMap = new Map<string, (...args: any[]) => any>();
 
-  constructor() {
-    if (!Container.has(KAFKA_OPTIONS)) {
-      throw new Error('KafkaService not configured');
-    }
-
-    const { client, producer, consumer } = Container.get(KAFKA_OPTIONS);
-
+  constructor({ client, producer, consumer }: KafkaOptions) {
     const kafka = new Kafka({
       ...client,
     });

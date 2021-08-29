@@ -1,8 +1,5 @@
-import { Container, Token } from 'typedi';
 import { KafkaOptions } from './interfaces';
+import { KafkaService } from './kafka.service';
 
-export const KAFKA_OPTIONS = new Token<KafkaOptions>('kafka-options');
-
-export const configureKafka = (options: KafkaOptions): void => {
-  Container.set(KAFKA_OPTIONS, options);
-};
+export const configureKafka = (options: KafkaOptions): KafkaService =>
+  new KafkaService(options);
