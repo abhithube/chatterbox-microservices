@@ -26,6 +26,8 @@
         "js": "never",
         "ts": "never"
       }
-    ]
+    ],
+    "class-methods-use-this": "off",
+    "@typescript-eslint/no-non-null-assertion": "off"
   }
 }
