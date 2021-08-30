@@ -1,13 +1,31 @@
 import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
-import { ExpressMiddlewareInterface } from 'routing-controllers';
+import {
+  ExpressMiddlewareInterface,
+  ForbiddenError,
+} from 'routing-controllers';
+import { Inject, Service } from 'typedi';
+import { AuthUser } from '../interfaces';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 
+@Service()
 export class JwtAuthMiddleware implements ExpressMiddlewareInterface {
-  // eslint-disable-next-line class-methods-use-this
+  @Inject()
+  private jwtStrategy!: JwtStrategy;
+
   use(req: Request, res: Response, next: NextFunction): void {
-    passport.authenticate(JwtStrategy, {
-      session: false,
-    })(req, res, next);
+    passport.authenticate(
+      this.jwtStrategy,
+      {
+        session: false,
+      },
+      (err, user: AuthUser) => {
+        if (err || !user) throw new ForbiddenError('User not authorized');
+
+        req.user = user;
+
+        return next();
+      }
+    )(req, res, next);
   }
 }

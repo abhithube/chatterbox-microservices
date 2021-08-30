@@ -1,11 +1,18 @@
 import jwt from 'jsonwebtoken';
+import { Container, Service } from 'typedi';
+import { JWT_OPTIONS } from './constants';
 import { AuthUser, JwtOptions, JwtPayload } from './interfaces';
 
+@Service()
 export class JwtService {
   private options: JwtOptions;
 
-  constructor(options: JwtOptions) {
-    this.options = options;
+  constructor() {
+    if (!Container.has(JWT_OPTIONS)) {
+      throw new Error('JWT options not configured');
+    }
+
+    this.options = Container.get<JwtOptions>(JWT_OPTIONS);
   }
 
   sign(authUser: AuthUser, expiresIn?: string | number): string {
