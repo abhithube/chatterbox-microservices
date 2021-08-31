@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/jwt",
-  "version": "2.0.3",
+  "version": "2.0.6",
   "description": "JWT authorization module for the Chatterbox web application",
   "main": "dist/index",
   "types": "dist/index.d.ts",

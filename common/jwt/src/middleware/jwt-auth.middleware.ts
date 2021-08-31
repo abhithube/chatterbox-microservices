@@ -4,14 +4,13 @@ import {
   ExpressMiddlewareInterface,
   ForbiddenError,
 } from 'routing-controllers';
-import { Inject, Service } from 'typedi';
+import { Service } from 'typedi';
 import { AuthUser } from '../interfaces';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 
 @Service()
 export class JwtAuthMiddleware implements ExpressMiddlewareInterface {
-  @Inject()
-  private jwtStrategy!: JwtStrategy;
+  constructor(private jwtStrategy: JwtStrategy) {}
 
   use(req: Request, res: Response, next: NextFunction): void {
     passport.authenticate(
@@ -20,7 +19,11 @@ export class JwtAuthMiddleware implements ExpressMiddlewareInterface {
         session: false,
       },
       (err, user: AuthUser) => {
-        if (err || !user) throw new ForbiddenError('User not authorized');
+        console.log(err, user);
+
+        if (err || !user) {
+          throw new ForbiddenError('User not authorized');
+        }
 
         req.user = user;
 
