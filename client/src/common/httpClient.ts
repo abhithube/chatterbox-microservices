@@ -35,7 +35,7 @@ axios.interceptors.response.use(
 
         return axios(err.config);
       } catch (err) {
-        console.log(err.response);
+        if (axios.isAxiosError(err)) console.log(err.response);
       }
     }
 
@@ -49,10 +49,9 @@ async function get<T = any>(path: string) {
 
     return res.data;
   } catch (err) {
-    console.log(err.response);
-
     if (axios.isAxiosError(err)) {
-      return Promise.reject(err.response?.data.message);
+      console.log(err.response);
+      return Promise.reject(err.response?.data);
     } else {
       return Promise.reject('Internal server error');
     }
@@ -65,10 +64,9 @@ async function post<T = any, U = any>(path: string, data?: T) {
 
     return res.data;
   } catch (err) {
-    console.log(err.response);
-
     if (axios.isAxiosError(err)) {
-      return Promise.reject(err.response?.data.message);
+      console.log(err.response);
+      return Promise.reject(err.response?.data);
     } else {
       return Promise.reject('Internal server error');
     }

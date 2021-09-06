@@ -67,7 +67,9 @@ export const LoginForm = ({ state }: LoginFormProps) => {
 
         await dispatch(signIn({ username, password })).unwrap();
         history.push('/');
-      } catch (err) {
+      } catch (error) {
+        const err = error as Error;
+
         if (err.message) {
           setAlert({
             status: 'error',

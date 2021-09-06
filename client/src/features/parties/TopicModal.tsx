@@ -68,7 +68,9 @@ export const TopicModal = ({ count }: TopicModalProps) => {
       setName('');
       setAlert(null);
       onClose();
-    } catch (err) {
+    } catch (error) {
+      const err = error as Error;
+
       if (err.message) {
         setAlert({
           status: 'error',

@@ -46,7 +46,7 @@ export const RegisterForm = () => {
       try {
         setLoading(true);
 
-        await httpClient.post<RegisterPayload>('/auth/register', {
+        await httpClient.post<RegisterPayload>('/accounts/register', {
           username,
           email,
           password,
@@ -58,7 +58,9 @@ export const RegisterForm = () => {
             registered: true,
           },
         });
-      } catch (err) {
+      } catch (error) {
+        const err = error as Error;
+
         if (err.message) {
           setAlert({
             status: 'error',
