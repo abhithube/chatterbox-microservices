@@ -1,59 +1,6 @@
 import { Consumer, Kafka } from 'kafkajs';
 import { KafkaOptions, MessageHandler, PublishOptions } from '../lib';
 
-// export class KafkaServiceImpl implements KafkaService {
-//   private producer: Producer;
-
-//   private consumer: Consumer | null = null;
-
-//   constructor(options: KafkaOptions) {
-//     const { client, producer, consumer } = options;
-//     const kafka = new Kafka(client);
-
-//     this.producer = kafka.producer(producer);
-//     this.producer.connect();
-
-//     if (consumer) {
-//       this.consumer = kafka.consumer(consumer);
-//     }
-//   }
-
-//   async subscribe<T = any>(topic: string, handler: MessageHandler<T>) {
-//     if (!this.consumer) {
-//       throw new Error('Kafka consumer not configured');
-//     }
-
-//     await this.consumer.connect();
-
-//     await this.consumer.subscribe({
-//       topic,
-//       fromBeginning: true,
-//     });
-
-//     await this.consumer.run({
-//       eachMessage: async ({ topic: t, message }) => {
-//         if (t !== topic || !message.value) {
-//           return;
-//         }
-
-//         handler(JSON.parse(message.value.toString()));
-//       },
-//     });
-//   }
-
-//   async publish<T = any>({ topic, key, message }: PublishOptions<T>) {
-//     this.producer.send({
-//       topic,
-//       messages: [
-//         {
-//           key,
-//           value: JSON.stringify(message),
-//         },
-//       ],
-//     });
-//   }
-// }
-
 export interface KafkaService {
   subscribe<T = any>(topic: string, handler: MessageHandler<T>): Promise<void>;
   publish<T = any>({ topic, key, message }: PublishOptions<T>): Promise<void>;

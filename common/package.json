@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/common",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Shared library for the Chatterbox web application",
   "main": "dist/index",
   "types": "dist/index.d.ts",
