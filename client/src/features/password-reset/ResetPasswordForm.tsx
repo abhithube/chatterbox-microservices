@@ -44,7 +44,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
         setLoading(true);
 
         await httpClient.post<ResetPasswordPayload>(
-          `${process.env.REACT_APP_SERVER_URL}/auth/reset`,
+          `${process.env.REACT_APP_SERVER_URL}/accounts/reset`,
           {
             token,
             password,
@@ -57,7 +57,9 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
             reset: true,
           },
         });
-      } catch (err) {
+      } catch (error) {
+        const err = error as Error;
+
         if (err.message) {
           setAlert({
             status: 'error',

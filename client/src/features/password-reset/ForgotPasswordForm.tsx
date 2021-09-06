@@ -36,7 +36,7 @@ export const ForgotPasswordForm = () => {
         setLoading(true);
 
         await httpClient.post<ForgotPasswordPayload>(
-          `${process.env.REACT_APP_SERVER_URL}/auth/forgot`,
+          `${process.env.REACT_APP_SERVER_URL}/accounts/forgot`,
           {
             email,
           }
@@ -44,7 +44,9 @@ export const ForgotPasswordForm = () => {
 
         setEmail('');
         setAlert({ status: 'success', text: 'Password reset link sent' });
-      } catch (err) {
+      } catch (error) {
+        const err = error as Error;
+
         if (err.message) {
           setAlert({
             status: 'error',

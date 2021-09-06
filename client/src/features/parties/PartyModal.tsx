@@ -72,7 +72,9 @@ export const PartyModal = ({ count }: PartyModalProps) => {
       setName('');
       setAlert(null);
       onClose();
-    } catch (err) {
+    } catch (error) {
+      const err = error as Error;
+
       if (err.message) {
         setAlert({
           status: 'error',
