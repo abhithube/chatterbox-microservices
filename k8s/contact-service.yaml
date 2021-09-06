@@ -50,21 +50,11 @@ spec:
                 secretKeyRef:
                   name: shared-secrets
                   key: CONFLUENT_API_SECRET
-            - name: SMTP_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: contact-config
-                  key: SMTP_HOST
-            - name: SMTP_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: contact-config
-                  key: SMTP_USER
-            - name: SMTP_PASS
+            - name: SENDGRID_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: contact-secrets
-                  key: SMTP_PASS
+                  key: SENDGRID_API_KEY
             - name: EMAIL_NAME
               valueFrom:
                 configMapKeyRef:
