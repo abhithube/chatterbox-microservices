@@ -15,10 +15,17 @@ spec:
       http:
         paths:
           - pathType: Prefix
+            path: /accounts
+            backend:
+              service:
+                name: accounts-svc
+                port:
+                  number: 80
+          - pathType: Prefix
             path: /auth
             backend:
               service:
-                name: auth-svc
+                name: accounts-svc
                 port:
                   number: 80
           - pathType: Prefix

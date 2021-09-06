@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: accounts-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: accounts
+  template:
+    metadata:
+      labels:
+        app: accounts
+    spec:
+      containers:
+        - name: accounts
+          image: abhithube/chatterbox-accounts
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '256Mi'
+              cpu: '200m'
+          env:
+            - name: PORT
+              value: '80'
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: NODE_ENV
+            - name: CLIENT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: CLIENT_URL
+            - name: SERVER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: SERVER_URL
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: accounts-secrets
+                  key: DATABASE_URL
+            - name: BROKER_URLS
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: BROKER_URLS
+            - name: CONFLUENT_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: shared-config
+                  key: CONFLUENT_API_KEY
+            - name: CONFLUENT_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shared-secrets
+                  key: CONFLUENT_API_SECRET
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: accounts-config
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: accounts-secrets
+                  key: GOOGLE_CLIENT_SECRET
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: accounts-config
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: accounts-secrets
+                  key: GITHUB_CLIENT_SECRET
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: shared-secrets
+                  key: JWT_SECRET
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: accounts-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: accounts
+  ports:
+    - name: accounts
+      protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: accounts-config
+data:
+  GOOGLE_CLIENT_ID: 445749772447-b7jo4spg4up3hpd946i0jsmjvksf8glg.apps.googleusercontent.com
+  GITHUB_CLIENT_ID: 7cec12176d6f90068478
