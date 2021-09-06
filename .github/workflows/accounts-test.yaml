@@ -1,19 +1,19 @@
-name: Test Auth Service
+name: Test Accounts Service
 
 on:
   push:
     branches: [main]
     paths:
-      - 'auth-service/**'
+      - 'accounts-service/**'
   pull_request:
     branches: [main]
     paths:
-      - 'auth-service/**'
+      - 'accounts-service/**'
   workflow_dispatch:
 
 defaults:
   run:
-    working-directory: auth-service
+    working-directory: accounts-service
 
 jobs:
   test:
@@ -35,5 +35,5 @@ jobs:
       - name: Run integration tests
         run: npm run test:e2e
         env:
-          DATABASE_URL: ${{ secrets.AUTH_DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.ACCOUNTS_DATABASE_URL }}
           JWT_SECRET: secret

@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deploy
+  name: accounts-deploy
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: accounts
   template:
     metadata:
       labels:
-        app: auth
+        app: accounts
     spec:
       containers:
-        - name: auth
-          image: abhithube/chatterbox-auth
+        - name: accounts
+          image: abhithube/chatterbox-accounts
           resources:
             requests:
               memory: '128Mi'
@@ -43,7 +43,7 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: auth-secrets
+                  name: accounts-secrets
                   key: DATABASE_URL
             - name: BROKER_URLS
               valueFrom:
@@ -63,22 +63,22 @@ spec:
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: auth-config
+                  name: accounts-config
                   key: GOOGLE_CLIENT_ID
             - name: GOOGLE_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: auth-secrets
+                  name: accounts-secrets
                   key: GOOGLE_CLIENT_SECRET
             - name: GITHUB_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
-                  name: auth-config
+                  name: accounts-config
                   key: GITHUB_CLIENT_ID
             - name: GITHUB_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: auth-secrets
+                  name: accounts-secrets
                   key: GITHUB_CLIENT_SECRET
             - name: JWT_SECRET
               valueFrom:
@@ -89,13 +89,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth-svc
+  name: accounts-svc
 spec:
   type: ClusterIP
   selector:
-    app: auth
+    app: accounts
   ports:
-    - name: auth
+    - name: accounts
       protocol: TCP
       port: 80
       targetPort: 80
@@ -103,7 +103,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: auth-config
+  name: accounts-config
 data:
   GOOGLE_CLIENT_ID: 445749772447-b7jo4spg4up3hpd946i0jsmjvksf8glg.apps.googleusercontent.com
   GITHUB_CLIENT_ID: 7cec12176d6f90068478

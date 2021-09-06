@@ -1,7 +1,7 @@
 {
-  "name": "auth-service",
+  "name": "accounts-service",
   "version": "1.0.0",
-  "description": "Authentication microservice for the Chatterbox web application",
+  "description": "Accounts microservice for the Chatterbox web application",
   "main": "dist/server",
   "scripts": {
     "prebuild": "rimraf dist",

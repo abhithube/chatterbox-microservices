@@ -1,6 +1,6 @@
 # Chatterbox
 
-![Auth Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/auth-test.yaml/badge.svg)
+![Accounts Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/accounts-test.yaml/badge.svg)
 ![Contact Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/contact-test.yaml/badge.svg)
 ![Messages Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/messages-test.yaml/badge.svg)
 
@@ -54,7 +54,7 @@ The backend of this application is broken into several components, following the
 
 ### Microservices
 
-- AuthService is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
+- AccountsService is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
 - MessagesService handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a CRUD RESTful API for managing parties and topics.
 - ContactService deals with direct communications with the user. Currently, it sends email verification and password reset emails based on events received from Kafka.
 
