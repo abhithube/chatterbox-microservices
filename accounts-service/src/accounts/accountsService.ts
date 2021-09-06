@@ -6,8 +6,10 @@ import {
   KafkaService,
   NotFoundException,
 } from '@chttrbx/common';
-import { PasswordHasher, RandomGenerator, UsersRepository } from '../../shared';
-import { RegisterDto, UserDto } from '../lib';
+import { PasswordHasher, RandomGenerator } from '../common';
+import { RegisterDto } from './interfaces';
+import { UsersRepository } from './repositories';
+import { UserDto } from './types';
 
 export interface AccountsService {
   registerUser({ username, email, password }: RegisterDto): Promise<AuthUser>;

@@ -1,3 +1,3 @@
-export * from './lib';
+export * from './interfaces';
 export * from './usersConsumer';
 export * from './usersService';

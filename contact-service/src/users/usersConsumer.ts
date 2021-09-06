@@ -1,5 +1,5 @@
 import { KafkaMessage, MessageHandler } from '@chttrbx/common';
-import { UserDto } from './lib';
+import { UserDto } from './interfaces';
 import { UsersService } from './usersService';
 
 export interface UsersConsumer {

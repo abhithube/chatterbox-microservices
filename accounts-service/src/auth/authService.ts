@@ -6,9 +6,9 @@ import {
   JwtService,
   KafkaService,
 } from '@chttrbx/common';
-import { UserDto } from '../../accounts';
-import { PasswordHasher, RandomGenerator, UsersRepository } from '../../shared';
-import { RefreshResponseDto, TokenResponseDto } from '../lib';
+import { UserDto, UsersRepository } from '../accounts';
+import { PasswordHasher, RandomGenerator } from '../common';
+import { RefreshResponseDto, TokenResponseDto } from './types';
 
 export interface AuthService {
   validateLocal(username: string, password: string): Promise<AuthUser>;

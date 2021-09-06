@@ -1,7 +1,7 @@
 import { createKafkaService, KafkaService } from '@chttrbx/common';
 import { asFunction, createContainer } from 'awilix';
 import { App, createApp } from './app';
-import { createSendgridTransport, MailTransport } from './shared';
+import { createSendgridTransport, MailTransport } from './common';
 import {
   createUsersConsumer,
   createUsersService,

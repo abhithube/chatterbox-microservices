@@ -4,7 +4,8 @@
   "description": "Accounts microservice for the Chatterbox web application",
   "main": "dist/server",
   "scripts": {
-    "prebuild": "rimraf dist",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
     "build": "tsc --project tsconfig.prod.json",
     "start": "node -r dotenv/config dist/server",
     "dev": "nodemon -r dotenv/config src/server.ts",
@@ -15,7 +16,7 @@
     "test:e2e": "jest --setupFiles dotenv/config --config ./jest-e2e.config.ts"
   },
   "dependencies": {
-    "@chttrbx/common": "^2.0.0",
+    "@chttrbx/common": "^2.0.1",
     "awilix": "^5.0.1",
     "axios": "^0.21.3",
     "bcrypt": "^5.0.1",
@@ -49,7 +50,6 @@
     "supertest": "^6.1.6",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
-    "tsconfig-paths": "^3.11.0",
     "typescript": "^4.4.2"
   },
   "lint-staged": {

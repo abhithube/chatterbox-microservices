@@ -1,5 +1,5 @@
-import { MailTransport } from '../shared';
-import { UserDto } from './lib';
+import { MailTransport } from '../common';
+import { UserDto } from './interfaces';
 
 export interface UsersService {
   sendEmailVerificationLink(userDto: UserDto): Promise<void>;

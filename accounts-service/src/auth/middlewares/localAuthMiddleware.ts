@@ -1,6 +1,6 @@
 import { RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
-import { AuthService } from '../../services';
+import { AuthService } from '../authService';
 
 interface LocalAuthMiddlewareDeps {
   authService: AuthService;

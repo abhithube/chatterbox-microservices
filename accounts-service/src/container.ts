@@ -10,19 +10,19 @@ import {
   AccountsService,
   createAccountsRouter,
   createAccountsService,
+  createUsersRepository,
+  UsersRepository,
 } from './accounts';
 import { App, createApp } from './app';
 import { AuthService, createAuthRouter, createAuthService } from './auth';
 import {
   creatAxiosClient,
   createBcryptHasher,
-  createUsersRepository,
   createUuidGenerator,
   HttpClient,
   PasswordHasher,
   RandomGenerator,
-  UsersRepository,
-} from './shared';
+} from './common';
 
 interface Container {
   app: App;

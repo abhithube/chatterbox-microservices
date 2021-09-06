@@ -1,4 +1,15 @@
-import { UserDocument } from '../models';
+import { UserDocument } from './models';
+
+export type UserDto = Pick<
+  UserDocument,
+  | 'id'
+  | 'username'
+  | 'email'
+  | 'avatarUrl'
+  | 'verified'
+  | 'verificationToken'
+  | 'resetToken'
+>;
 
 export type UserFilterOptions = Partial<
   Pick<

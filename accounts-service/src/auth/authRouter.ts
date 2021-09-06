@@ -6,9 +6,9 @@ import {
   ValidationProperties,
 } from '@chttrbx/common';
 import { Router } from 'express';
-import { HttpClient } from '../../shared';
-import { LoginSchema } from '../lib';
-import { AuthService } from '../services';
+import { HttpClient } from '../common';
+import { AuthService } from './authService';
+import { LoginSchema } from './interfaces';
 import {
   githubAuthMiddleware,
   googleAuthMiddleware,

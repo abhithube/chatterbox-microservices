@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import { RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
-import { HttpClient } from '../../../shared';
-import { AuthService } from '../../services';
+import { HttpClient } from '../../common';
+import { AuthService } from '../authService';
 
 interface TokenResponse {
   access_token: string;

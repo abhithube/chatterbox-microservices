@@ -3,15 +3,14 @@ import {
   KafkaService,
   MOCK_AUTH_USER,
 } from '@chttrbx/common';
+import { createPasswordHasherMock, createRandomGeneratorMock } from '../common';
+import { AccountsService, createAccountsService } from './accountsService';
+import { RegisterDto } from './interfaces';
 import {
-  createPasswordHasherMock,
-  createRandomGeneratorMock,
   createUsersRepositoryMock,
   MOCK_VERIFIED_USER,
   UsersRepository,
-} from '../../shared';
-import { RegisterDto } from '../lib';
-import { AccountsService, createAccountsService } from './accountsService';
+} from './repositories';
 
 const registerDto: RegisterDto = {
   username: MOCK_VERIFIED_USER.username,

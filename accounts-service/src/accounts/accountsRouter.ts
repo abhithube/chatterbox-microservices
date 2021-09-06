@@ -6,13 +6,13 @@ import {
   ValidationProperties,
 } from '@chttrbx/common';
 import { Router } from 'express';
+import { AccountsService } from './accountsService';
 import {
   ConfirmEmailDto,
   ForgotPasswordDto,
   RegisterSchema,
   ResetPasswordDto,
-} from '../lib';
-import { AccountsService } from '../services';
+} from './interfaces';
 
 interface AccountsRouterDeps {
   accountsService: AccountsService;

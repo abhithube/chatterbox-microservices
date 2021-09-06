@@ -6,19 +6,20 @@ import {
   KafkaService,
 } from '@chttrbx/common';
 import bcrypt from 'bcrypt';
-import { createAuthService } from '.';
-import { RegisterDto } from '../../accounts';
 import {
-  createPasswordHasherMock,
-  createRandomGeneratorMock,
   createUsersRepositoryMock,
   MOCK_UNVERIFIED_USER,
   MOCK_VERIFIED_USER,
-  PasswordHasher,
+  RegisterDto,
   UserDocument,
   UsersRepository,
-} from '../../shared';
-import { AuthService } from './authService';
+} from '../accounts';
+import {
+  createPasswordHasherMock,
+  createRandomGeneratorMock,
+  PasswordHasher,
+} from '../common';
+import { AuthService, createAuthService } from './authService';
 
 const pass = 'testpass';
 

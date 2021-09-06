@@ -4,7 +4,7 @@ import {
   UserFilterOptions,
   UserInsertOptions,
   UserUpdateOptions,
-} from './types';
+} from '../types';
 
 export interface UsersRepository {
   insertOne(insertOptions: UserInsertOptions): Promise<UserDocument>;
@@ -48,10 +48,6 @@ export function createUsersRepository(): UsersRepository {
     return user;
   }
 
-  async function findMany(): Promise<UserDocument[]> {
-    return User.find();
-  }
-
   async function updateOne(
     filterOptions: UserFilterOptions,
     updateOptions: UserUpdateOptions
@@ -74,7 +70,7 @@ export function createUsersRepository(): UsersRepository {
   }
 
   async function deleteMany(): Promise<void> {
-    return User.deleteMany();
+    User.deleteMany();
   }
 
   return {
