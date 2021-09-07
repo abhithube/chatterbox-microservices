@@ -1,6 +1,6 @@
 {
   "name": "@chttrbx/common",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Shared library for the Chatterbox web application",
   "main": "dist/index",
   "types": "dist/index.d.ts",
@@ -17,7 +17,8 @@
     "express": "^5.0.0-alpha.8",
     "joi": "^17.4.2",
     "jsonwebtoken": "^8.5.1",
-    "kafkajs": "^1.15.0"
+    "kafkajs": "^1.15.0",
+    "mongodb": "^4.1.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
