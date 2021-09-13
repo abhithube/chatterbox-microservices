@@ -1,12 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { Schema } from 'joi';
-import { ValidationProperties } from '../interfaces';
 
 export const validationMiddleware =
-  (property: ValidationProperties, schema: Schema) =>
+  (schema: Schema) =>
   async (req: Request, _res: Response, next: NextFunction) => {
     try {
-      await schema.validateAsync(req[property]);
+      await schema.validateAsync(req.body);
       next();
     } catch (err) {
       next(err);

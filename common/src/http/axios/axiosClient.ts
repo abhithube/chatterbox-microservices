@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { HttpClient } from '../HttpClient';
-import { Headers } from '../interfaces';
+import { HttpOptions } from '../interfaces';
 
 export function createAxiosClient(): HttpClient {
-  async function get<T = any>(url: string, headers?: Headers): Promise<T> {
-    const res = await axios.get<T>(url, { headers });
+  async function get<T = any>(url: string, options?: HttpOptions): Promise<T> {
+    const res = await axios.get<T>(url, options);
 
     return res.data;
   }
@@ -12,9 +12,9 @@ export function createAxiosClient(): HttpClient {
   async function post<T = any, U = any>(
     url: string,
     data?: T,
-    headers?: Headers
+    options?: HttpOptions
   ): Promise<U> {
-    const res = await axios.post<U>(url, data, { headers });
+    const res = await axios.post<U>(url, data, options);
 
     return res.data;
   }

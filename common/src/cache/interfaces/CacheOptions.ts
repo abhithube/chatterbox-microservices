@@ -1,4 +1,4 @@
-export interface RedisOptions {
+export interface CacheOptions {
   url?: string;
   defaultExpiryTime?: number;
 }

@@ -1,12 +1,11 @@
 import Redis from 'ioredis';
 import { CacheManager } from '../CacheManager';
-import { SetOptions } from '../interfaces';
-import { RedisOptions } from './interfaces';
+import { CacheOptions, SetOptions } from '../interfaces';
 
 export function createRedisManager({
   url,
   defaultExpiryTime,
-}: RedisOptions): CacheManager {
+}: CacheOptions): CacheManager {
   const client = new Redis(url);
 
   async function get(key: string): Promise<string | null> {
