@@ -1,7 +1,7 @@
 import { Spinner } from '@chakra-ui/react';
 import { Redirect, Route } from 'react-router-dom';
 import { useAppSelector } from '../../app/hooks';
-import { selectAuth } from '../../features/login/authSlice';
+import { selectAuth } from '../../features/auth';
 
 type ProtectedRouteProps = {
   exact?: boolean;

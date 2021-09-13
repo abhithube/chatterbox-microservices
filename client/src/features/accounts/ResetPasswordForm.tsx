@@ -8,8 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Alert, AlertMessage } from '../../common/components/Alert';
-import { httpClient } from '../../common/httpClient';
+import { Alert, AlertMessage, httpClient } from '../../common';
 
 interface ResetPasswordPayload {
   token: string;

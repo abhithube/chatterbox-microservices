@@ -1,10 +1,6 @@
 import { Middleware, PayloadAction } from '@reduxjs/toolkit';
 import { io, Socket } from 'socket.io-client';
-import {
-  addMessage,
-  Message,
-  updateUsersOnline,
-} from '../features/messages/messagesSlice';
+import { addMessage, Message, updateUsersOnline } from '../features/messages';
 
 export const socketMiddleware: Middleware = ({ dispatch }) => {
   let socket: Socket;
@@ -18,32 +14,32 @@ export const socketMiddleware: Middleware = ({ dispatch }) => {
           },
         });
 
-        socket.on('connected_users', (users: string[]) => {
+        socket.on('users:read', (users: string[]) => {
           dispatch(updateUsersOnline(users));
         });
 
-        socket.on('receive_message', (message: Message) => {
+        socket.on('message:read', (message: Message) => {
           dispatch(addMessage(message));
         });
         break;
       case 'parties/setActiveParty':
-        socket.emit('leave_party');
+        socket.emit('party:disconnect');
 
-        socket.emit('join_party', {
+        socket.emit('party:connect', {
           party: action.payload.id,
         });
 
         break;
       case 'parties/setActiveTopic':
-        socket.emit('leave_topic');
+        socket.emit('topic:disconnect');
 
-        socket.emit('join_topic', {
+        socket.emit('topic:connect', {
           topic: action.payload.id,
         });
 
         break;
       case 'messages/sendMessage':
-        socket.emit('send_message', action.payload);
+        socket.emit('message:create', action.payload);
         break;
       case 'auth/getAuth/rejected':
       case 'auth/signOut/fulfilled':

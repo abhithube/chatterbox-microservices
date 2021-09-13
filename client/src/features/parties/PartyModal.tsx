@@ -1,47 +1,24 @@
 import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
   Icon,
   IconButton,
-  Input,
-  InputGroup,
-  InputLeftElement,
   Modal,
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
   Tooltip,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import React, { useRef, useState } from 'react';
-import { FaPlus, FaUserFriends } from 'react-icons/fa';
-import { useHistory } from 'react-router-dom';
-import { useAppDispatch } from '../../app/hooks';
-import { Alert, AlertMessage } from '../../common/components/Alert';
-import { createParty } from './partiesSlice';
+import { FaPlus } from 'react-icons/fa';
+import { CreateParty } from './CreateParty';
 
 type PartyModalProps = {
   count: number;
 };
 
 export const PartyModal = ({ count }: PartyModalProps) => {
-  const dispatch = useAppDispatch();
-
-  const [name, setName] = useState('');
-
-  const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState<AlertMessage | null>(null);
-
-  const inputRef = useRef(null);
-
-  const history = useHistory();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -53,37 +30,6 @@ export const PartyModal = ({ count }: PartyModalProps) => {
         description: 'You cannot be a member of more than 10 parties',
       });
     } else onOpen();
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      setLoading(true);
-
-      const party = await dispatch(
-        createParty({
-          name,
-        })
-      ).unwrap();
-
-      history.push(`/parties/${party.id}/topics/${party.topics[0].id}`);
-
-      setName('');
-      setAlert(null);
-      onClose();
-    } catch (error) {
-      const err = error as Error;
-
-      if (err.message) {
-        setAlert({
-          status: 'error',
-          text: err.message,
-        });
-      } else history.push('/error');
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -100,49 +46,14 @@ export const PartyModal = ({ count }: PartyModalProps) => {
           mt="2"
         />
       </Tooltip>
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        isCentered
-        returnFocusOnClose={false}
-        initialFocusRef={inputRef}
-      >
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Create a New Party</ModalHeader>
           <ModalCloseButton />
-          <Box as="form" onSubmit={handleSubmit}>
-            <ModalBody>
-              {alert && <Alert status={alert.status}>{alert.text}</Alert>}
-              <Flex direction="column" mt={2}>
-                <FormControl id="name" isRequired>
-                  <FormLabel>Party Name</FormLabel>
-                  <InputGroup>
-                    <InputLeftElement
-                      children={<Icon as={FaUserFriends} color="gray.300" />}
-                      pointerEvents="none"
-                    />
-                    <Input
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      placeholder="Enter a name..."
-                      ref={inputRef}
-                    />
-                  </InputGroup>
-                </FormControl>
-              </Flex>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                type="submit"
-                colorScheme="teal"
-                isLoading={loading}
-                loadingText="Loading..."
-              >
-                Submit
-              </Button>
-            </ModalFooter>
-          </Box>
+          <ModalBody>
+            <CreateParty onClose={onClose} />
+          </ModalBody>
         </ModalContent>
       </Modal>
     </>

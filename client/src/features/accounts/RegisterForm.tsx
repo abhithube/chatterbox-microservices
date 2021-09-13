@@ -12,8 +12,7 @@ import {
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
 import { useHistory } from 'react-router-dom';
-import { Alert, AlertMessage } from '../../common/components/Alert';
-import { httpClient } from '../../common/httpClient';
+import { Alert, AlertMessage, httpClient } from '../../common';
 
 interface RegisterPayload {
   username: string;

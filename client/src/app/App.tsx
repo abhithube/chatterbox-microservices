@@ -1,17 +1,21 @@
 import { Box, ChakraProvider } from '@chakra-ui/react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import { ProtectedRoute } from '../common/components/ProtectedRoute';
-import { HomePage } from '../common/layout/HomePage';
-import { Navbar } from '../common/layout/Navbar';
-import { NotFoundErrorPage } from '../common/layout/NotFoundErrorPage';
-import { ServerErrorPage } from '../common/layout/ServerErrorPage';
-import { InvitePage } from '../features/invite/InvitePage';
-import { LoginPage } from '../features/login/LoginPage';
-import { PartyPage } from '../features/parties/PartyPage';
-import { ForgotPasswordPage } from '../features/password-reset/ForgotPasswordPage';
-import { ResetPasswordPage } from '../features/password-reset/ResetPasswordPage';
-import { ConfirmPage } from '../features/registration/ConfirmPage';
-import { RegisterPage } from '../features/registration/RegisterPage';
+import {
+  HomePage,
+  Navbar,
+  NotFoundErrorPage,
+  ProtectedRoute,
+  ServerErrorPage,
+} from '../common';
+import {
+  ConfirmPage,
+  ForgotPasswordPage,
+  RegisterPage,
+  ResetPasswordPage,
+} from '../features/accounts';
+import { LoginPage } from '../features/auth';
+import { InvitePage } from '../features/invite';
+import { PartyPage } from '../features/parties';
 
 export const App = () => (
   <Box h="100vh">

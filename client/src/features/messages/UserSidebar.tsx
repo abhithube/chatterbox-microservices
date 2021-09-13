@@ -6,33 +6,13 @@ import {
   List,
   ListItem,
 } from '@chakra-ui/react';
-import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../app/hooks';
-// import { socketClient } from '../../common/socketClient';
-import { selectParties } from '../parties/partiesSlice';
+import { useAppSelector } from '../../app/hooks';
+import { selectParties } from '../parties';
 import { selectMessages } from './messagesSlice';
 
 export const UserSidebar = () => {
   const { activeParty } = useAppSelector(selectParties);
   const { usersOnline } = useAppSelector(selectMessages);
-
-  const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    if (!activeParty) return;
-
-    // socketClient.on('connected_users', (users: string[]) => {
-    //   dispatch(updateUsersOnline(users));
-    // });
-
-    // socketClient.emit('join_party', {
-    //   party: activeParty.id,
-    // });
-
-    // return () => {
-    //   socketClient.emit('leave_party');
-    // };
-  }, [activeParty, dispatch]);
 
   return (
     <Box h="full" bgColor="gray.200">
@@ -40,24 +20,24 @@ export const UserSidebar = () => {
         Users
       </Heading>
       <List mt={4} pl={4}>
-        {activeParty?.users.map(user => (
+        {activeParty?.members.map(member => (
           <ListItem
-            key={user.id}
+            key={member.id}
             display="flex"
             alignItems="center"
             mb={2}
             w="75%"
           >
-            <Avatar src={user.avatarUrl || undefined}>
+            <Avatar src={member.avatarUrl || undefined}>
               <AvatarBadge
                 boxSize={5}
                 bgColor={
-                  usersOnline.includes(user.id) ? 'green.400' : 'red.400'
+                  usersOnline.includes(member.id) ? 'green.400' : 'red.400'
                 }
               />
             </Avatar>
             <Box as="span" ml={2}>
-              {user.username}
+              {member.username}
             </Box>
           </ListItem>
         ))}

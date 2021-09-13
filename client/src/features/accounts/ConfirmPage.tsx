@@ -1,7 +1,7 @@
 import { Center, Spinner, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { Redirect, useHistory, useLocation } from 'react-router-dom';
-import { httpClient } from '../../common/httpClient';
+import { httpClient } from '../../common';
 
 interface EmailConfirmationPayload {
   token: string;

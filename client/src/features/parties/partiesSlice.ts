@@ -1,13 +1,13 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { httpClient } from '../../common/httpClient';
-import { User } from '../login/authSlice';
+import { httpClient } from '../../common';
+import { User } from '../auth';
 
 export interface Party {
   id: string;
   name: string;
   inviteToken: string;
-  users: User[];
+  members: User[];
   topics: Topic[];
 }
 
@@ -107,4 +107,4 @@ export const { setActiveParty, setActiveTopic } = partiesSlice.actions;
 
 export const selectParties = (state: RootState) => state.parties;
 
-export default partiesSlice.reducer;
+export const partiesReducer = partiesSlice.reducer;

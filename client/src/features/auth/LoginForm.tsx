@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 import { FaLock, FaUser } from 'react-icons/fa';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
 import { useAppDispatch } from '../../app/hooks';
-import { Alert, AlertMessage } from '../../common/components/Alert';
+import { Alert, AlertMessage } from '../../common';
 import { signIn } from './authSlice';
 import { LoginPageState } from './LoginPage';
 

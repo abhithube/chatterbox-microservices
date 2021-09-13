@@ -1,9 +1,8 @@
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Flex, useToast } from '@chakra-ui/react';
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { MessageFeed } from '../messages/MessageFeed';
-import { UserSidebar } from '../messages/UserSidebar';
+import { MessageFeed, UserSidebar } from '../messages';
 import { PartiesSidebar } from './PartiesSidebar';
 import { selectParties, setActiveParty, setActiveTopic } from './partiesSlice';
 import { TopicsSidebar } from './TopicsSidebar';
@@ -13,11 +12,28 @@ type PartyPageParams = {
   topicId: string;
 };
 
+type PartyPageState = {
+  joined?: boolean;
+};
+
 export const PartyPage = () => {
   const { partyId, topicId } = useParams<PartyPageParams>();
 
   const { isLoading, data, activeParty } = useAppSelector(selectParties);
   const dispatch = useAppDispatch();
+
+  const location = useLocation<PartyPageState>();
+  const toast = useToast();
+
+  useEffect(() => {
+    if (location.state?.joined) {
+      toast({
+        status: 'success',
+        isClosable: true,
+        description: 'Joined party successfully',
+      });
+    }
+  }, [location, toast]);
 
   useEffect(() => {
     if (isLoading || data.length === 0) return;

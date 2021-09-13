@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { User } from '../features/login/authSlice';
+import { User } from '../features/auth';
 
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_URL;
 

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { FaReplyAll } from 'react-icons/fa';
 import { Link as RouterLink, useHistory } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { getAuth, selectAuth, signOut } from '../../features/login/authSlice';
+import { getAuth, selectAuth, signOut } from '../../features/auth';
 
 export const Navbar = () => {
   const { user, isLoading } = useAppSelector(selectAuth);

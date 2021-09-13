@@ -8,7 +8,7 @@ import {
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useAppSelector } from '../../app/hooks';
-import { InviteModal } from '../invite/InviteModal';
+import { InviteModal } from '../invite';
 import { selectParties } from './partiesSlice';
 import { TopicModal } from './TopicModal';
 

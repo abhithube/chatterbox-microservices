@@ -1,8 +1,16 @@
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
+} from '@chakra-ui/react';
 import { useEffect } from 'react';
-import { Redirect, useHistory } from 'react-router-dom';
+import { Redirect } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { selectAuth } from '../../features/login/authSlice';
-import { getParties, selectParties } from '../../features/parties/partiesSlice';
+import { selectAuth } from '../../features/auth';
+import { CreateParty, getParties, selectParties } from '../../features/parties';
 
 export const HomePage = () => {
   const { user, isLoading: userLoading } = useAppSelector(selectAuth);
@@ -10,11 +18,17 @@ export const HomePage = () => {
     useAppSelector(selectParties);
   const dispatch = useAppDispatch();
 
-  const history = useHistory();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     if (user) dispatch(getParties());
   }, [user, dispatch]);
+
+  useEffect(() => {
+    if (!partiesLoading && parties.length === 0) {
+      onOpen();
+    }
+  }, [partiesLoading, parties, onOpen]);
 
   return (
     <>
@@ -24,7 +38,23 @@ export const HomePage = () => {
           to={`/parties/${parties[0].id}/topics/${parties[0].topics[0].id}`}
         />
       )}
-      {!partiesLoading && parties.length === 0 && history.go(0)}
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        isCentered
+        closeOnOverlayClick={false}
+        closeOnEsc={false}
+      >
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create a New Party</ModalHeader>
+          {/* <ModalCloseButton /> */}
+          <ModalBody>
+            <CreateParty onClose={onClose} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+      {/* {!partiesLoading && parties.length === 0 && onOpen()} */}
     </>
   );
 };
