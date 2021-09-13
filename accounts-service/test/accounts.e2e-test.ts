@@ -12,14 +12,10 @@ import { RegisterDto, User } from '../src/accounts';
 import { PasswordHasher } from '../src/common';
 import { configureContainer } from '../src/container';
 
-const newAccount = 'newAccount';
-const verifiedAccount = 'verifiedAccount';
-const unverifiedAccount = 'unverifiedAccount';
-
 const registerDto: RegisterDto = {
-  username: newAccount,
-  email: `${newAccount}@test.com`,
-  password: newAccount,
+  username: 'new',
+  email: `new@test.com`,
+  password: 'new',
 };
 
 describe('Accounts', () => {
@@ -61,22 +57,22 @@ describe('Accounts', () => {
 
   beforeEach(async () => {
     verifiedUser = await usersRepository.insertOne({
-      id: verifiedAccount,
-      username: verifiedAccount,
-      email: verifiedAccount,
+      id: randomGenerator.generate(),
+      username: 'verified',
+      email: 'verified@test.com',
       avatarUrl: null,
-      password: passwordHasher.hashSync(verifiedAccount),
+      password: passwordHasher.hashSync('verified'),
       verified: true,
-      verificationToken: randomGenerator.generate(),
+      verificationToken: null,
       resetToken: randomGenerator.generate(),
     });
 
     unverifiedUser = await usersRepository.insertOne({
-      id: unverifiedAccount,
-      username: unverifiedAccount,
-      email: unverifiedAccount,
+      id: randomGenerator.generate(),
+      username: 'unverified',
+      email: 'unverified@test.com',
       avatarUrl: null,
-      password: passwordHasher.hashSync(unverifiedAccount),
+      password: passwordHasher.hashSync('unverified'),
       verified: false,
       verificationToken: randomGenerator.generate(),
       resetToken: randomGenerator.generate(),
@@ -121,7 +117,7 @@ describe('Accounts', () => {
   it("POST /accounts/reset - resets a user's password", async () => {
     const res = await request(app).post('/accounts/reset').send({
       token: verifiedUser.resetToken,
-      password: 'newpass',
+      password: 'password',
     });
 
     expect(res.statusCode).toBe(200);

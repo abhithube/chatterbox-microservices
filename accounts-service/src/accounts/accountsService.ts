@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  BaseRepository,
   BrokerClient,
   ForbiddenException,
   InternalServerException,
@@ -10,6 +9,7 @@ import {
 import { PasswordHasher } from '../common';
 import { RegisterDto } from './interfaces';
 import { User } from './models';
+import { UsersRepository } from './repositories';
 
 export interface AccountsService {
   createAccount({ username, email, password }: RegisterDto): Promise<User>;
@@ -21,7 +21,7 @@ export interface AccountsService {
 }
 
 interface AccountsServiceDeps {
-  usersRepository: BaseRepository<User>;
+  usersRepository: UsersRepository;
   brokerClient: BrokerClient;
   passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;

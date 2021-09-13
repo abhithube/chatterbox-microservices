@@ -4,7 +4,6 @@ import {
   RequestWithUser,
   TokenIssuer,
   validationMiddleware,
-  ValidationProperties,
 } from '@chttrbx/common';
 import { Router } from 'express';
 import { AuthService } from './authService';
@@ -32,7 +31,7 @@ export function createAuthRouter({
 
   router.post(
     '/login',
-    validationMiddleware(ValidationProperties.BODY, LoginSchema),
+    validationMiddleware(LoginSchema),
     localAuthMiddleware({ authService }),
     async (req, res) => {
       const { user } = req as RequestWithUser;

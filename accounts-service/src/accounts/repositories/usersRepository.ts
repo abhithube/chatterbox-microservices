@@ -1,13 +1,15 @@
 import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
 import { User } from '../models';
 
+export interface UsersRepository extends BaseRepository<User> {}
+
 interface UsersRepositoryDeps {
   dbConnection: DbConnection<MongoClient>;
 }
 
 export function createUsersRepository({
   dbConnection,
-}: UsersRepositoryDeps): BaseRepository<User> {
+}: UsersRepositoryDeps): UsersRepository {
   const collection = dbConnection.getClient().db().collection<User>('users');
 
   collection.createIndex('id', {

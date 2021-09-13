@@ -13,7 +13,7 @@ import { LoginResponseDto, RefreshResponseDto } from '../src/auth';
 import { PasswordHasher } from '../src/common';
 import { configureContainer } from '../src/container';
 
-const value = 'auth';
+const password = 'password';
 
 describe('Auth', () => {
   let app: Application;
@@ -53,11 +53,11 @@ describe('Auth', () => {
 
   beforeEach(async () => {
     user = await usersRepository.insertOne({
-      id: value,
-      username: value,
-      email: value,
+      id: randomGenerator.generate(),
+      username: 'username',
+      email: 'email',
       avatarUrl: null,
-      password: passwordHasher.hashSync(value),
+      password: passwordHasher.hashSync(password),
       verified: true,
       verificationToken: randomGenerator.generate(),
       resetToken: randomGenerator.generate(),
@@ -75,7 +75,7 @@ describe('Auth', () => {
   it('POST /auth/login - logs in a value user', async () => {
     const res = await request(app).post('/auth/login').send({
       username: user.username,
-      password: value,
+      password,
     });
 
     expect(res.statusCode).toBe(200);

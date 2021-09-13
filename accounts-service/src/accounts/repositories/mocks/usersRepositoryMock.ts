@@ -2,10 +2,10 @@ import { BaseRepository } from '@chttrbx/common';
 import { User } from '../../models';
 
 export const MOCK_VERIFIED_USER: User = {
-  id: '1',
-  username: 'testuser',
-  email: 'testemail',
-  password: 'hashed',
+  id: 'id',
+  username: 'username',
+  email: 'email',
+  password: 'password',
   avatarUrl: null,
   verified: true,
   verificationToken: null,

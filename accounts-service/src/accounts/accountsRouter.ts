@@ -3,15 +3,17 @@ import {
   RequestWithUser,
   TokenIssuer,
   validationMiddleware,
-  ValidationProperties,
 } from '@chttrbx/common';
 import { Router } from 'express';
 import { AccountsService } from './accountsService';
 import {
   ConfirmEmailDto,
+  ConfirmEmailSchema,
   ForgotPasswordDto,
+  ForgotPasswordSchema,
   RegisterSchema,
   ResetPasswordDto,
+  ResetPasswordSchema,
 } from './interfaces';
 
 interface AccountsRouterDeps {
@@ -25,15 +27,11 @@ export function createAccountsRouter({
 }: AccountsRouterDeps): Router {
   const router = Router();
 
-  router.post(
-    '/',
-    validationMiddleware(ValidationProperties.BODY, RegisterSchema),
-    async (req, res) => {
-      const user = await accountsService.createAccount(req.body);
+  router.post('/', validationMiddleware(RegisterSchema), async (req, res) => {
+    const user = await accountsService.createAccount(req.body);
 
-      res.status(201).json(user);
-    }
-  );
+    res.status(201).json(user);
+  });
 
   router.get('/@me', jwtAuthMiddleware({ tokenIssuer }), async (req, res) => {
     const { user } = req as RequestWithUser;
@@ -43,29 +41,41 @@ export function createAccountsRouter({
     res.json(account);
   });
 
-  router.post('/confirm', async (req, res) => {
-    const { token } = req.body as ConfirmEmailDto;
+  router.post(
+    '/confirm',
+    validationMiddleware(ConfirmEmailSchema),
+    async (req, res) => {
+      const { token } = req.body as ConfirmEmailDto;
 
-    await accountsService.confirmEmail(token);
+      await accountsService.confirmEmail(token);
 
-    res.json();
-  });
+      res.json();
+    }
+  );
 
-  router.post('/forgot', async (req, res) => {
-    const { email } = req.body as ForgotPasswordDto;
+  router.post(
+    '/forgot',
+    validationMiddleware(ForgotPasswordSchema),
+    async (req, res) => {
+      const { email } = req.body as ForgotPasswordDto;
 
-    await accountsService.getPasswordResetLink(email);
+      await accountsService.getPasswordResetLink(email);
 
-    res.json();
-  });
+      res.json();
+    }
+  );
 
-  router.post('/reset', async (req, res) => {
-    const { token, password } = req.body as ResetPasswordDto;
+  router.post(
+    '/reset',
+    validationMiddleware(ResetPasswordSchema),
+    async (req, res) => {
+      const { token, password } = req.body as ResetPasswordDto;
 
-    await accountsService.resetPassword(token, password);
+      await accountsService.resetPassword(token, password);
 
-    res.json();
-  });
+      res.json();
+    }
+  );
 
   router.delete(
     '/@me',
