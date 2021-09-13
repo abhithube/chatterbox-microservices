@@ -30,7 +30,9 @@ export const githubAuthMiddleware =
     const profile = await httpClient.get<GitHubProfile>(
       'https://api.github.com/user',
       {
-        authorization: `Bearer ${accessToken}`,
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
       }
     );
 

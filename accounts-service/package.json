@@ -16,7 +16,7 @@
     "test:e2e": "jest --setupFiles dotenv/config --config ./jest-e2e.config.ts"
   },
   "dependencies": {
-    "@chttrbx/common": "^2.2.2",
+    "@chttrbx/common": "^2.2.3",
     "awilix": "^5.0.1",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",

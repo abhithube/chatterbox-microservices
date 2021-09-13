@@ -36,7 +36,9 @@ export const googleAuthMiddleware =
     const profile = await httpClient.get<GoogleProfile>(
       'https://www.googleapis.com/userinfo/v2/me',
       {
-        authorization: `Bearer ${accessToken}`,
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
       }
     );
 
