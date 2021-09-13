@@ -1,5 +1,5 @@
 export interface HttpOptions {
-  headers: {
-    authorization: string;
+  headers?: {
+    authorization?: string;
   };
 }
