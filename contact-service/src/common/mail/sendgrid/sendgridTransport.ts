@@ -1,6 +1,6 @@
 import sendgrid from '@sendgrid/mail';
-import { MailOptions, SendMailOptions } from './interfaces';
-import { MailTransport } from './MailTransport';
+import { MailOptions, SendMailOptions } from '../interfaces';
+import { MailTransport } from '../MailTransport';
 
 export function createSendgridTransport({
   name,

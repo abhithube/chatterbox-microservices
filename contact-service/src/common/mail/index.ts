@@ -1,2 +1,3 @@
+export * from './interfaces';
 export * from './MailTransport';
-export * from './sendgridTransport';
+export * from './sendgrid';
