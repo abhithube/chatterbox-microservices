@@ -1,79 +1,87 @@
-import { createKafkaServiceMock, JwtService } from '@chttrbx/common';
-import { asFunction } from 'awilix';
-import { Application } from 'express';
-import mongoose from 'mongoose';
-import request from 'supertest';
-import { LoginResponseDto, RefreshResponseDto } from '../src/auth';
-import { container } from '../src/container';
 import {
-  PasswordHasher,
+  BaseRepository,
+  createBrokerClientMock,
+  createMongoConnection,
   RandomGenerator,
-  UserDocument,
-  UsersRepository,
-} from '../src/shared';
+  TokenIssuer,
+} from '@chttrbx/common';
+import { asFunction, asValue } from 'awilix';
+import { Application } from 'express';
+import request from 'supertest';
+import { User } from '../src/accounts';
+import { LoginResponseDto, RefreshResponseDto } from '../src/auth';
+import { PasswordHasher } from '../src/common';
+import { configureContainer } from '../src/container';
 
-const verified = 'verified';
+const value = 'auth';
 
 describe('Auth', () => {
   let app: Application;
 
-  let usersRepository: UsersRepository;
-  let jwtService: JwtService;
+  let usersRepository: BaseRepository<User>;
+  let tokenIssuer: TokenIssuer;
   let passwordHasher: PasswordHasher;
   let randomGenerator: RandomGenerator;
 
-  let verifiedUser: UserDocument;
+  let user: User;
   let accessToken: string;
 
   beforeAll(async () => {
-    container.register({
-      kafkaService: asFunction(createKafkaServiceMock).singleton(),
+    const container = await configureContainer();
+
+    const oldUrl = process.env.DATABASE_URL!;
+    const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/auth-test`;
+
+    const mongoConnection = await createMongoConnection({
+      url,
     });
 
-    app = await container.resolve('app').init();
+    container.register({
+      dbConnection: asValue(mongoConnection),
+      brokerClient: asFunction(createBrokerClientMock).singleton(),
+    });
+
+    app = container.resolve('app');
 
     usersRepository = container.resolve('usersRepository');
-    jwtService = container.resolve('jwtService');
+    tokenIssuer = container.resolve('tokenIssuer');
     passwordHasher = container.resolve('passwordHasher');
     randomGenerator = container.resolve('randomGenerator');
+
+    await usersRepository.deleteMany({});
   });
 
   beforeEach(async () => {
-    verifiedUser = await usersRepository.insertOne({
-      username: verified,
-      email: verified,
+    user = await usersRepository.insertOne({
+      id: value,
+      username: value,
+      email: value,
       avatarUrl: null,
-      password: passwordHasher.hashSync(verified),
+      password: passwordHasher.hashSync(value),
       verified: true,
       verificationToken: randomGenerator.generate(),
       resetToken: randomGenerator.generate(),
     });
 
-    accessToken = jwtService.sign({
-      id: verifiedUser.id,
-      username: verifiedUser.username,
-      avatarUrl: verifiedUser.avatarUrl,
+    accessToken = tokenIssuer.generate({
+      id: user.id,
     });
   });
 
   afterEach(async () => {
-    await usersRepository.deleteMany();
+    await usersRepository.deleteMany({});
   });
 
-  afterAll(async () => {
-    await mongoose.disconnect();
-  });
-
-  it('POST /auth/login - logs in a verified user', async () => {
+  it('POST /auth/login - logs in a value user', async () => {
     const res = await request(app).post('/auth/login').send({
-      username: verifiedUser.username,
-      password: verified,
+      username: user.username,
+      password: value,
     });
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual<LoginResponseDto>({
       user: expect.objectContaining({
-        id: verifiedUser.id,
+        id: user.id,
       }),
       accessToken: expect.any(String),
     });
@@ -91,16 +99,14 @@ describe('Auth', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual(
       expect.objectContaining({
-        id: verifiedUser.id,
+        id: user.id,
       })
     );
   });
 
   it("POST /auth/refresh - refresh a user's access token", async () => {
-    const refreshToken = jwtService.sign({
-      id: verifiedUser.id,
-      username: verifiedUser.username,
-      avatarUrl: verifiedUser.avatarUrl,
+    const refreshToken = tokenIssuer.generate({
+      id: user.id,
     });
 
     const res = await request(app)

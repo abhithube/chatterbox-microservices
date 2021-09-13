@@ -1,98 +1,105 @@
-import { AuthUser, createKafkaServiceMock, JwtService } from '@chttrbx/common';
-import { asFunction } from 'awilix';
-import { Application } from 'express';
-import mongoose from 'mongoose';
-import request from 'supertest';
-import { RegisterDto } from '../src/accounts';
-import { container } from '../src/container';
 import {
-  PasswordHasher,
+  BaseRepository,
+  createBrokerClientMock,
+  createMongoConnection,
   RandomGenerator,
-  UserDocument,
-  UsersRepository,
-} from '../src/shared';
+  TokenIssuer,
+} from '@chttrbx/common';
+import { asFunction, asValue } from 'awilix';
+import { Application } from 'express';
+import request from 'supertest';
+import { RegisterDto, User } from '../src/accounts';
+import { PasswordHasher } from '../src/common';
+import { configureContainer } from '../src/container';
 
-const verified = 'verified';
-const unverified = 'unverified';
+const newAccount = 'newAccount';
+const verifiedAccount = 'verifiedAccount';
+const unverifiedAccount = 'unverifiedAccount';
 
-const createUserDto: RegisterDto = {
-  username: 'newuser',
-  email: 'newuser@test.com',
-  password: 'pass',
+const registerDto: RegisterDto = {
+  username: newAccount,
+  email: `${newAccount}@test.com`,
+  password: newAccount,
 };
 
 describe('Accounts', () => {
   let app: Application;
 
-  let usersRepository: UsersRepository;
-  let jwtService: JwtService;
+  let usersRepository: BaseRepository<User>;
+  let tokenIssuer: TokenIssuer;
   let passwordHasher: PasswordHasher;
   let randomGenerator: RandomGenerator;
 
-  let verifiedUser: UserDocument;
-  let unverifiedUser: UserDocument;
+  let verifiedUser: User;
+  let unverifiedUser: User;
   let accessToken: string;
 
   beforeAll(async () => {
-    container.register({
-      kafkaService: asFunction(createKafkaServiceMock).singleton(),
+    const container = await configureContainer();
+
+    const oldUrl = process.env.DATABASE_URL!;
+    const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/accounts-test`;
+
+    const mongoConnection = await createMongoConnection({
+      url,
     });
 
-    app = await container.resolve('app').init();
+    container.register({
+      dbConnection: asValue(mongoConnection),
+      brokerClient: asFunction(createBrokerClientMock).singleton(),
+    });
+
+    app = container.resolve('app');
 
     usersRepository = container.resolve('usersRepository');
-    jwtService = container.resolve('jwtService');
+    tokenIssuer = container.resolve('tokenIssuer');
     passwordHasher = container.resolve('passwordHasher');
     randomGenerator = container.resolve('randomGenerator');
+
+    await usersRepository.deleteMany({});
   });
 
   beforeEach(async () => {
     verifiedUser = await usersRepository.insertOne({
-      username: verified,
-      email: verified,
+      id: verifiedAccount,
+      username: verifiedAccount,
+      email: verifiedAccount,
       avatarUrl: null,
-      password: passwordHasher.hashSync(verified),
+      password: passwordHasher.hashSync(verifiedAccount),
       verified: true,
       verificationToken: randomGenerator.generate(),
       resetToken: randomGenerator.generate(),
     });
 
     unverifiedUser = await usersRepository.insertOne({
-      username: unverified,
-      email: unverified,
+      id: unverifiedAccount,
+      username: unverifiedAccount,
+      email: unverifiedAccount,
       avatarUrl: null,
-      password: passwordHasher.hashSync(verified),
+      password: passwordHasher.hashSync(unverifiedAccount),
       verified: false,
       verificationToken: randomGenerator.generate(),
       resetToken: randomGenerator.generate(),
     });
 
-    accessToken = jwtService.sign({
+    accessToken = tokenIssuer.generate({
       id: verifiedUser.id,
-      username: verifiedUser.username,
-      avatarUrl: verifiedUser.avatarUrl,
     });
   });
 
   afterEach(async () => {
-    await usersRepository.deleteMany();
+    await usersRepository.deleteMany({});
   });
 
-  afterAll(async () => {
-    await mongoose.disconnect();
-  });
-
-  it('POST /accounts/register - registers a new user', async () => {
-    const res = await request(app)
-      .post('/accounts/register')
-      .send(createUserDto);
+  it('POST /accounts - registers a new user', async () => {
+    const res = await request(app).post('/accounts').send(registerDto);
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toEqual<AuthUser>({
-      id: expect.any(String),
-      username: createUserDto.username,
-      avatarUrl: null,
-    });
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        username: registerDto.username,
+      })
+    );
   });
 
   it("POST /accounts/confirm - verifies a new user's email address", async () => {

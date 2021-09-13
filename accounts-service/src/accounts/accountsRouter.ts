@@ -1,7 +1,7 @@
 import {
   jwtAuthMiddleware,
-  JwtService,
   RequestWithUser,
+  TokenIssuer,
   validationMiddleware,
   ValidationProperties,
 } from '@chttrbx/common';
@@ -16,24 +16,32 @@ import {
 
 interface AccountsRouterDeps {
   accountsService: AccountsService;
-  jwtService: JwtService;
+  tokenIssuer: TokenIssuer;
 }
 
 export function createAccountsRouter({
   accountsService,
-  jwtService,
+  tokenIssuer,
 }: AccountsRouterDeps): Router {
   const router = Router();
 
   router.post(
-    '/register',
+    '/',
     validationMiddleware(ValidationProperties.BODY, RegisterSchema),
     async (req, res) => {
-      const user = await accountsService.registerUser(req.body);
+      const user = await accountsService.createAccount(req.body);
 
       res.status(201).json(user);
     }
   );
+
+  router.get('/@me', jwtAuthMiddleware({ tokenIssuer }), async (req, res) => {
+    const { user } = req as RequestWithUser;
+
+    const account = await accountsService.getAccount(user.id);
+
+    res.json(account);
+  });
 
   router.post('/confirm', async (req, res) => {
     const { token } = req.body as ConfirmEmailDto;
@@ -59,13 +67,17 @@ export function createAccountsRouter({
     res.json();
   });
 
-  router.delete('/@me', jwtAuthMiddleware({ jwtService }), async (req, res) => {
-    const { user } = req as RequestWithUser;
+  router.delete(
+    '/@me',
+    jwtAuthMiddleware({ tokenIssuer }),
+    async (req, res) => {
+      const { user } = req as RequestWithUser;
 
-    await accountsService.deleteUser(user.id);
+      await accountsService.deleteAccount(user.id);
 
-    res.clearCookie('refresh').json();
-  });
+      res.clearCookie('refresh').json();
+    }
+  );
 
   return router;
 }

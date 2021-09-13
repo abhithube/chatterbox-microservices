@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
-import { RequestWithUser } from '@chttrbx/common';
+import { HttpClient, RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
-import { HttpClient } from '../../common';
 import { AuthService } from '../authService';
 
 interface TokenResponse {
@@ -19,11 +18,9 @@ interface GoogleAuthMiddlewareDeps {
   httpClient: HttpClient;
 }
 
-export function googleAuthMiddleware({
-  authService,
-  httpClient,
-}: GoogleAuthMiddlewareDeps): RequestHandler {
-  return async (req, res, next) => {
+export const googleAuthMiddleware =
+  ({ authService, httpClient }: GoogleAuthMiddlewareDeps): RequestHandler =>
+  async (req, _res, next) => {
     const url =
       'https://oauth2.googleapis.com/token' +
       `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
@@ -52,4 +49,3 @@ export function googleAuthMiddleware({
     (req as RequestWithUser).user = user;
     next();
   };
-}

@@ -1,37 +1,12 @@
-import { UserDocument } from './models';
-
-export type UserDto = Pick<
-  UserDocument,
-  | 'id'
-  | 'username'
-  | 'email'
-  | 'avatarUrl'
-  | 'verified'
-  | 'verificationToken'
-  | 'resetToken'
->;
+import { User } from './models';
 
 export type UserFilterOptions = Partial<
-  Pick<
-    UserDocument,
-    'id' | 'username' | 'email' | 'verificationToken' | 'resetToken'
-  >
->;
-
-export type UserInsertOptions = Pick<
-  UserDocument,
-  | 'username'
-  | 'email'
-  | 'password'
-  | 'avatarUrl'
-  | 'verified'
-  | 'verificationToken'
-  | 'resetToken'
+  Pick<User, 'id' | 'username' | 'email' | 'verificationToken' | 'resetToken'>
 >;
 
 export type UserUpdateOptions = Partial<
   Pick<
-    UserDocument,
+    User,
     | 'username'
     | 'avatarUrl'
     | 'password'

@@ -1,15 +1,17 @@
 import {
-  createKafkaServiceMock,
-  KafkaService,
-  MOCK_AUTH_USER,
+  BaseRepository,
+  BrokerClient,
+  createBrokerClientMock,
+  createRandomGeneratorMock,
 } from '@chttrbx/common';
-import { createPasswordHasherMock, createRandomGeneratorMock } from '../common';
+import { createPasswordHasherMock } from '../common';
 import { AccountsService, createAccountsService } from './accountsService';
 import { RegisterDto } from './interfaces';
+import { User } from './models';
 import {
   createUsersRepositoryMock,
+  MOCK_UNVERIFIED_USER,
   MOCK_VERIFIED_USER,
-  UsersRepository,
 } from './repositories';
 
 const registerDto: RegisterDto = {
@@ -20,16 +22,16 @@ const registerDto: RegisterDto = {
 
 describe('AccountsService', () => {
   let service: AccountsService;
-  let usersRepository: UsersRepository;
-  let kafkaService: KafkaService;
+  let usersRepository: BaseRepository<User>;
+  let brokerClient: BrokerClient;
 
   beforeAll(async () => {
     usersRepository = createUsersRepositoryMock();
-    kafkaService = createKafkaServiceMock();
+    brokerClient = createBrokerClientMock();
 
     service = createAccountsService({
       usersRepository,
-      kafkaService,
+      brokerClient,
       passwordHasher: createPasswordHasherMock(),
       randomGenerator: createRandomGeneratorMock(),
     });
@@ -45,10 +47,10 @@ describe('AccountsService', () => {
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
 
-    const kafkaSpy = jest.spyOn(kafkaService, 'publish');
+    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
-    await expect(service.registerUser(registerDto)).resolves.toEqual(
-      MOCK_AUTH_USER
+    await expect(service.createAccount(registerDto)).resolves.toEqual(
+      MOCK_UNVERIFIED_USER
     );
 
     expect(kafkaSpy).toHaveBeenCalledWith(
@@ -61,7 +63,7 @@ describe('AccountsService', () => {
   });
 
   it('prevents duplicate usernames', async () => {
-    await expect(service.registerUser(registerDto)).rejects.toThrow(
+    await expect(service.createAccount(registerDto)).rejects.toThrow(
       'Username already taken'
     );
   });
@@ -69,13 +71,13 @@ describe('AccountsService', () => {
   it('prevents duplicate emails', async () => {
     jest.spyOn(usersRepository, 'findOne').mockResolvedValueOnce(null);
 
-    await expect(service.registerUser(registerDto)).rejects.toThrow(
+    await expect(service.createAccount(registerDto)).rejects.toThrow(
       'Email already taken'
     );
   });
 
   it("verifies a user's email address", async () => {
-    const kafkaSpy = jest.spyOn(kafkaService, 'publish');
+    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.confirmEmail('')).resolves.not.toThrow();
 
@@ -100,7 +102,7 @@ describe('AccountsService', () => {
   });
 
   it('sends a user a password reset email', async () => {
-    const kafkaSpy = jest.spyOn(kafkaService, 'publish');
+    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.getPasswordResetLink('')).resolves.not.toThrow();
 
@@ -114,7 +116,7 @@ describe('AccountsService', () => {
   });
 
   it("resets a user's password", async () => {
-    const kafkaSpy = jest.spyOn(kafkaService, 'publish');
+    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.resetPassword('', '')).resolves.not.toThrow();
 
@@ -128,7 +130,7 @@ describe('AccountsService', () => {
   });
 
   it('rejects an invalid password reset code', async () => {
-    jest.spyOn(usersRepository, 'findOne').mockResolvedValueOnce(null);
+    jest.spyOn(usersRepository, 'updateOne').mockResolvedValueOnce(null);
 
     await expect(service.resetPassword('', '')).rejects.toThrow(
       'Invalid reset code'
@@ -136,9 +138,9 @@ describe('AccountsService', () => {
   });
 
   it('deletes an existing user', async () => {
-    const kafkaSpy = jest.spyOn(kafkaService, 'publish');
+    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
-    await expect(service.deleteUser('')).resolves.not.toThrow();
+    await expect(service.deleteAccount('')).resolves.not.toThrow();
 
     expect(kafkaSpy).toHaveBeenCalledWith(
       expect.objectContaining({

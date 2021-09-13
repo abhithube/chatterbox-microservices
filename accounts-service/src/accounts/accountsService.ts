@@ -1,45 +1,47 @@
 import {
-  AuthUser,
   BadRequestException,
+  BaseRepository,
+  BrokerClient,
   ForbiddenException,
   InternalServerException,
-  KafkaService,
   NotFoundException,
+  RandomGenerator,
 } from '@chttrbx/common';
-import { PasswordHasher, RandomGenerator } from '../common';
+import { PasswordHasher } from '../common';
 import { RegisterDto } from './interfaces';
-import { UsersRepository } from './repositories';
-import { UserDto } from './types';
+import { User } from './models';
 
 export interface AccountsService {
-  registerUser({ username, email, password }: RegisterDto): Promise<AuthUser>;
+  createAccount({ username, email, password }: RegisterDto): Promise<User>;
+  getAccount(id: string): Promise<User>;
   confirmEmail(verificationToken: string): Promise<void>;
   getPasswordResetLink(email: string): Promise<void>;
   resetPassword(resetToken: string, password: string): Promise<void>;
-  deleteUser(id: string): Promise<void>;
+  deleteAccount(id: string): Promise<void>;
 }
 
 interface AccountsServiceDeps {
-  usersRepository: UsersRepository;
-  kafkaService: KafkaService;
+  usersRepository: BaseRepository<User>;
+  brokerClient: BrokerClient;
   passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;
 }
 
 export function createAccountsService({
   usersRepository,
-  kafkaService,
+  brokerClient,
   passwordHasher,
   randomGenerator,
 }: AccountsServiceDeps): AccountsService {
-  async function registerUser({
+  async function createAccount({
     username,
     email,
     password,
-  }: RegisterDto): Promise<AuthUser> {
+  }: RegisterDto): Promise<User> {
     let existingUser = await usersRepository.findOne({
       username,
     });
+
     if (existingUser) {
       throw new BadRequestException('Username already taken');
     }
@@ -52,6 +54,7 @@ export function createAccountsService({
     }
 
     const user = await usersRepository.insertOne({
+      id: randomGenerator.generate(),
       username,
       email,
       avatarUrl: null,
@@ -61,28 +64,27 @@ export function createAccountsService({
       resetToken: randomGenerator.generate(),
     });
 
-    await kafkaService.publish<UserDto>({
+    await brokerClient.publish<User>({
       topic: 'users',
       key: user.id,
       message: {
         event: 'user:created',
-        data: {
-          id: user.id,
-          username,
-          email,
-          avatarUrl: null,
-          verified: user.verified,
-          verificationToken: user.verificationToken,
-          resetToken: user.resetToken,
-        },
+        data: user,
       },
     });
 
-    return {
-      id: user.id,
-      username,
-      avatarUrl: null,
-    };
+    return user;
+  }
+
+  async function getAccount(id: string): Promise<User> {
+    const user = await usersRepository.findOne({
+      id,
+    });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    return user;
   }
 
   async function confirmEmail(verificationToken: string): Promise<void> {
@@ -92,27 +94,19 @@ export function createAccountsService({
       },
       {
         verified: true,
-        verificationToken: randomGenerator.generate(),
+        verificationToken: null,
       }
     );
     if (!user) {
       throw new ForbiddenException('Invalid verification code');
     }
 
-    kafkaService.publish<UserDto>({
+    brokerClient.publish<User>({
       topic: 'users',
       key: user.id,
       message: {
         event: 'user:updated',
-        data: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          verified: user.verified,
-          verificationToken: user.verificationToken,
-          resetToken: user.resetToken,
-        },
+        data: user,
       },
     });
   }
@@ -129,20 +123,12 @@ export function createAccountsService({
       throw new ForbiddenException('Email not verified');
     }
 
-    kafkaService.publish<UserDto>({
+    brokerClient.publish<User>({
       topic: 'users',
       key: user.id,
       message: {
         event: 'user:forgot_password',
-        data: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          verified: user.verified,
-          verificationToken: user.verificationToken,
-          resetToken: user.resetToken,
-        },
+        data: user,
       },
     });
   }
@@ -151,44 +137,30 @@ export function createAccountsService({
     resetToken: string,
     password: string
   ): Promise<void> {
-    const user = await usersRepository.findOne({
-      resetToken,
-    });
+    const user = await usersRepository.updateOne(
+      {
+        resetToken,
+      },
+      {
+        password: passwordHasher.hashSync(password),
+        resetToken: randomGenerator.generate(),
+      }
+    );
     if (!user) {
       throw new ForbiddenException('Invalid reset code');
     }
 
-    const newToken = randomGenerator.generate();
-
-    usersRepository.updateOne(
-      {
-        id: user.id,
-      },
-      {
-        password: passwordHasher.hashSync(password),
-        resetToken: newToken,
-      }
-    );
-
-    kafkaService.publish<UserDto>({
+    brokerClient.publish<User>({
       topic: 'users',
       key: user.id,
       message: {
         event: 'user:updated',
-        data: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          verified: user.verified,
-          verificationToken: user.verificationToken,
-          resetToken: newToken,
-        },
+        data: user,
       },
     });
   }
 
-  async function deleteUser(id: string): Promise<void> {
+  async function deleteAccount(id: string): Promise<void> {
     const user = await usersRepository.deleteOne({
       id,
     });
@@ -196,29 +168,22 @@ export function createAccountsService({
       throw new InternalServerException();
     }
 
-    kafkaService.publish<UserDto>({
+    brokerClient.publish<User>({
       topic: 'users',
       key: id,
       message: {
         event: 'user:deleted',
-        data: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          verified: user.verified,
-          verificationToken: user.verificationToken,
-          resetToken: user.resetToken,
-        },
+        data: user,
       },
     });
   }
 
   return {
-    registerUser,
+    createAccount,
+    getAccount,
     confirmEmail,
     getPasswordResetLink,
     resetPassword,
-    deleteUser,
+    deleteAccount,
   };
 }

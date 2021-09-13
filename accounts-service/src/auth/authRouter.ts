@@ -1,15 +1,17 @@
 import {
+  HttpClient,
   jwtAuthMiddleware,
-  JwtService,
   RequestWithUser,
+  TokenIssuer,
   validationMiddleware,
   ValidationProperties,
 } from '@chttrbx/common';
 import { Router } from 'express';
-import { HttpClient } from '../common';
 import { AuthService } from './authService';
 import { LoginSchema } from './interfaces';
+import { RequestWithCookies } from './interfaces/RequestWithCookies';
 import {
+  cookieMiddleware,
   githubAuthMiddleware,
   googleAuthMiddleware,
   localAuthMiddleware,
@@ -17,13 +19,13 @@ import {
 
 interface AuthRouterDeps {
   authService: AuthService;
-  jwtService: JwtService;
+  tokenIssuer: TokenIssuer;
   httpClient: HttpClient;
 }
 
 export function createAuthRouter({
   authService,
-  jwtService,
+  tokenIssuer,
   httpClient,
 }: AuthRouterDeps): Router {
   const router = Router();
@@ -105,22 +107,24 @@ export function createAuthRouter({
     }
   );
 
-  router.get('/@me', jwtAuthMiddleware({ jwtService }), (req, res) => {
+  router.get('/@me', jwtAuthMiddleware({ tokenIssuer }), (req, res) => {
     const { user } = req as RequestWithUser;
     res.json(user);
   });
 
-  router.post('/refresh', async (req, res) => {
-    const { refresh } = req.cookies;
+  router.post('/refresh', cookieMiddleware, async (req, res) => {
+    const { cookies } = req as RequestWithCookies;
 
-    const { accessToken } = await authService.refreshAccessToken(refresh);
+    const { accessToken } = await authService.refreshAccessToken(
+      cookies.refresh
+    );
 
     res.json({
       accessToken,
     });
   });
 
-  router.post('/logout', jwtAuthMiddleware({ jwtService }), (_req, res) => {
+  router.post('/logout', jwtAuthMiddleware({ tokenIssuer }), (_req, res) => {
     res.clearCookie('refresh').json();
   });
 

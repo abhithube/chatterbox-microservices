@@ -1,4 +1,4 @@
-import { AuthUser } from '@chttrbx/common';
+import { CurrentUser } from '@chttrbx/common';
 
 export type TokenResponseDto = {
   accessToken: string;
@@ -6,7 +6,7 @@ export type TokenResponseDto = {
 };
 
 export type LoginResponseDto = Pick<TokenResponseDto, 'accessToken'> & {
-  user: AuthUser;
+  user: CurrentUser;
 };
 
 export type AuthResponseDto = Pick<TokenResponseDto, 'refreshToken'> &

@@ -1,9 +1,11 @@
 import {
-  AuthUser,
-  createJwtServiceMock,
-  createKafkaServiceMock,
-  JwtService,
-  KafkaService,
+  BaseRepository,
+  BrokerClient,
+  createBrokerClientMock,
+  createRandomGeneratorMock,
+  createTokenIssuerMock,
+  CurrentUser,
+  TokenIssuer,
 } from '@chttrbx/common';
 import bcrypt from 'bcrypt';
 import {
@@ -11,14 +13,9 @@ import {
   MOCK_UNVERIFIED_USER,
   MOCK_VERIFIED_USER,
   RegisterDto,
-  UserDocument,
-  UsersRepository,
+  User,
 } from '../accounts';
-import {
-  createPasswordHasherMock,
-  createRandomGeneratorMock,
-  PasswordHasher,
-} from '../common';
+import { createPasswordHasherMock, PasswordHasher } from '../common';
 import { AuthService, createAuthService } from './authService';
 
 const pass = 'testpass';
@@ -29,7 +26,7 @@ const registerDto: RegisterDto = {
   password: bcrypt.hashSync(pass, 10),
 };
 
-const user: UserDocument = {
+const user: User = {
   id: '1',
   username: registerDto.username,
   email: registerDto.email,
@@ -40,29 +37,27 @@ const user: UserDocument = {
   resetToken: 'reset',
 };
 
-const authUser: AuthUser = {
+const currentUser: CurrentUser = {
   id: user.id,
-  username: user.username,
-  avatarUrl: null,
 };
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersRepository: UsersRepository;
+  let usersRepository: BaseRepository<User>;
   let passwordHasher: PasswordHasher;
-  let jwtService: JwtService;
-  let kafkaService: KafkaService;
+  let tokenIssuer: TokenIssuer;
+  let brokerClient: BrokerClient;
 
   beforeAll(async () => {
     usersRepository = createUsersRepositoryMock();
     passwordHasher = createPasswordHasherMock();
-    jwtService = createJwtServiceMock();
-    kafkaService = createKafkaServiceMock();
+    tokenIssuer = createTokenIssuerMock();
+    brokerClient = createBrokerClientMock();
 
     service = createAuthService({
       usersRepository,
-      jwtService,
-      kafkaService,
+      tokenIssuer,
+      brokerClient,
       passwordHasher,
       randomGenerator: createRandomGeneratorMock(),
     });
@@ -111,7 +106,7 @@ describe('AuthService', () => {
   it('validates OAuth login for a new user', async () => {
     jest.spyOn(usersRepository, 'findOne').mockResolvedValueOnce(null);
 
-    const kafkaSpy = jest.spyOn(kafkaService, 'publish');
+    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.validateOAuth('', '', '')).resolves.toEqual(
       expect.objectContaining({
@@ -133,11 +128,11 @@ describe('AuthService', () => {
     const refreshToken = 'refresh';
 
     jest
-      .spyOn(jwtService, 'sign')
+      .spyOn(tokenIssuer, 'generate')
       .mockReturnValueOnce(accessToken)
       .mockReturnValueOnce(refreshToken);
 
-    await expect(service.authenticateUser(authUser)).resolves.toEqual({
+    await expect(service.authenticateUser(currentUser)).resolves.toEqual({
       accessToken,
       refreshToken,
     });
@@ -146,7 +141,7 @@ describe('AuthService', () => {
   it("refreshes a user's access token", async () => {
     const accessToken = 'access';
 
-    jest.spyOn(jwtService, 'sign').mockReturnValueOnce(accessToken);
+    jest.spyOn(tokenIssuer, 'generate').mockReturnValueOnce(accessToken);
 
     await expect(service.refreshAccessToken('refresh')).resolves.toEqual({
       accessToken,
@@ -154,7 +149,7 @@ describe('AuthService', () => {
   });
 
   it('rejects an expired refresh token', async () => {
-    jest.spyOn(jwtService, 'verify').mockImplementation(() => {
+    jest.spyOn(tokenIssuer, 'validate').mockImplementation(() => {
       throw new Error();
     });
 

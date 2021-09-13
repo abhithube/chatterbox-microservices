@@ -1,45 +1,46 @@
 import {
-  AuthUser,
   BadRequestException,
+  BaseRepository,
+  BrokerClient,
+  CurrentUser,
   ForbiddenException,
-  JwtPayload,
-  JwtService,
-  KafkaService,
+  RandomGenerator,
+  TokenIssuer,
 } from '@chttrbx/common';
-import { UserDto, UsersRepository } from '../accounts';
-import { PasswordHasher, RandomGenerator } from '../common';
+import { User } from '../accounts';
+import { PasswordHasher } from '../common';
 import { RefreshResponseDto, TokenResponseDto } from './types';
 
 export interface AuthService {
-  validateLocal(username: string, password: string): Promise<AuthUser>;
+  validateLocal(username: string, password: string): Promise<CurrentUser>;
   validateOAuth(
     username: string,
     email: string,
     avatarUrl: string
-  ): Promise<AuthUser>;
-  authenticateUser(authUser: AuthUser): Promise<TokenResponseDto>;
+  ): Promise<CurrentUser>;
+  authenticateUser(user: CurrentUser): Promise<TokenResponseDto>;
   refreshAccessToken(refreshToken: string): Promise<RefreshResponseDto>;
 }
 
 interface AuthServiceDeps {
-  usersRepository: UsersRepository;
-  jwtService: JwtService;
-  kafkaService: KafkaService;
+  usersRepository: BaseRepository<User>;
+  tokenIssuer: TokenIssuer;
+  brokerClient: BrokerClient;
   passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;
 }
 
 export function createAuthService({
   usersRepository,
-  jwtService,
-  kafkaService,
+  tokenIssuer,
+  brokerClient,
   passwordHasher,
   randomGenerator,
 }: AuthServiceDeps): AuthService {
   async function validateLocal(
     username: string,
     password: string
-  ): Promise<AuthUser> {
+  ): Promise<CurrentUser> {
     const user = await usersRepository.findOne({
       username,
     });
@@ -58,8 +59,6 @@ export function createAuthService({
 
     return {
       id: user.id,
-      username: user.username,
-      avatarUrl: null,
     };
   }
 
@@ -67,12 +66,13 @@ export function createAuthService({
     username: string,
     email: string,
     avatarUrl: string
-  ): Promise<AuthUser> {
+  ): Promise<CurrentUser> {
     let user = await usersRepository.findOne({
       email,
     });
     if (!user) {
       user = await usersRepository.insertOne({
+        id: randomGenerator.generate(),
         username,
         email,
         avatarUrl,
@@ -82,45 +82,39 @@ export function createAuthService({
         resetToken: randomGenerator.generate(),
       });
 
-      await kafkaService.publish<UserDto>({
+      await brokerClient.publish<User>({
         topic: 'users',
         key: user.id,
         message: {
           event: 'user:created',
-          data: {
-            id: user.id,
-            username,
-            email,
-            avatarUrl,
-            verified: user.verified,
-            verificationToken: user.verificationToken,
-            resetToken: user.resetToken,
-          },
+          data: user,
         },
       });
     }
 
     return {
       id: user.id,
-      username: user.username,
-      avatarUrl: user.avatarUrl,
     };
   }
 
   async function authenticateUser(
-    authUser: AuthUser
+    user: CurrentUser
   ): Promise<TokenResponseDto> {
     return {
-      accessToken: jwtService.sign(authUser, '15m'),
-      refreshToken: jwtService.sign(authUser, '1d'),
+      accessToken: tokenIssuer.generate(user, '15m'),
+      refreshToken: tokenIssuer.generate(user, '1d'),
     };
   }
 
   async function refreshAccessToken(
-    refreshToken: string
+    refreshToken?: string
   ): Promise<RefreshResponseDto> {
+    if (!refreshToken) {
+      throw new ForbiddenException('User not authorized');
+    }
+
     try {
-      const { id } = jwtService.verify(refreshToken) as JwtPayload;
+      const { id } = tokenIssuer.validate(refreshToken);
 
       const user = await usersRepository.findOne({
         id,
@@ -129,13 +123,11 @@ export function createAuthService({
         throw new ForbiddenException('User not authorized');
       }
 
-      const accessToken = jwtService.sign(
+      const accessToken = tokenIssuer.generate(
         {
           id: user.id,
-          username: user.username,
-          avatarUrl: user.avatarUrl,
         },
-        '1d'
+        '15m'
       );
 
       return {

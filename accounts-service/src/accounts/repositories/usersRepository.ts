@@ -1,76 +1,65 @@
-import crypto from 'crypto';
-import { User, UserDocument } from '../models';
-import {
-  UserFilterOptions,
-  UserInsertOptions,
-  UserUpdateOptions,
-} from '../types';
+import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
+import { User } from '../models';
 
-export interface UsersRepository {
-  insertOne(insertOptions: UserInsertOptions): Promise<UserDocument>;
-  findOne(filterOptions: UserFilterOptions): Promise<UserDocument | null>;
-  updateOne(
-    filterOptions: UserFilterOptions,
-    updateOptions: UserUpdateOptions
-  ): Promise<UserDocument | null>;
-  deleteOne(filterOptions: UserFilterOptions): Promise<UserDocument | null>;
-  deleteMany(): Promise<void>;
+interface UsersRepositoryDeps {
+  dbConnection: DbConnection<MongoClient>;
 }
 
-export function createUsersRepository(): UsersRepository {
-  async function insertOne(
-    insertOptions: UserInsertOptions
-  ): Promise<UserDocument> {
-    const user: UserDocument = {
-      ...insertOptions,
-      id: crypto.randomUUID(),
-    };
+export function createUsersRepository({
+  dbConnection,
+}: UsersRepositoryDeps): BaseRepository<User> {
+  const collection = dbConnection.getClient().db().collection<User>('users');
 
-    User.create<UserDocument>([
-      {
-        ...user,
-      },
-    ]);
+  collection.createIndex('id', {
+    unique: true,
+  });
+
+  async function insertOne(user: User): Promise<User> {
+    await collection.insertOne(user);
 
     return user;
   }
 
-  async function findOne(
-    options: UserFilterOptions
-  ): Promise<UserDocument | null> {
-    const docs = await User.aggregate<UserDocument>([
-      { $match: options },
-      { $project: { _id: 0, __v: 0 } },
-      { $limit: 1 },
-    ]);
-
-    const user = docs[0];
-    return user;
+  async function findOne(options: Partial<User>): Promise<User | null> {
+    return collection.findOne(options, {
+      projection: {
+        _id: 0,
+      },
+    });
   }
 
   async function updateOne(
-    filterOptions: UserFilterOptions,
-    updateOptions: UserUpdateOptions
-  ): Promise<UserDocument | null> {
-    return User.findOneAndUpdate(
+    filterOptions: Partial<User>,
+    updateOptions: Partial<User>
+  ): Promise<User | null> {
+    const result = await collection.findOneAndUpdate(
       filterOptions,
       {
         $set: updateOptions,
       },
       {
-        new: true,
+        projection: {
+          _id: 0,
+        },
+        returnDocument: 'after',
       }
-    ).exec();
+    );
+
+    return result.value;
   }
 
-  async function deleteOne(
-    filterOptions: UserFilterOptions
-  ): Promise<UserDocument | null> {
-    return User.findOneAndDelete(filterOptions);
+  async function deleteOne(options: Partial<User>): Promise<User | null> {
+    const result = await collection.findOneAndDelete(options, {
+      projection: {
+        _id: 0,
+      },
+    });
+
+    return result.value;
   }
 
-  async function deleteMany(): Promise<void> {
-    User.deleteMany();
+  async function deleteMany(options: Partial<User>): Promise<void> {
+    await collection.deleteMany(options);
   }
 
   return {
