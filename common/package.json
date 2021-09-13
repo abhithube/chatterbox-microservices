@@ -14,7 +14,9 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "axios": "^0.21.4",
     "express": "^5.0.0-alpha.8",
+    "ioredis": "^4.27.9",
     "joi": "^17.4.2",
     "jsonwebtoken": "^8.5.1",
     "kafkajs": "^1.15.0",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
+    "@types/ioredis": "^4.27.2",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/node": "^16.7.10",
     "@typescript-eslint/eslint-plugin": "^4.30.0",

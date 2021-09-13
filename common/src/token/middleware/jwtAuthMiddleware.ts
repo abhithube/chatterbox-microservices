@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { ForbiddenException, RequestWithUser } from '../../shared';
+import { RequestWithUser, UnauthorizedException } from '../../api';
 import { TokenIssuer } from '../TokenIssuer';
 
 interface JwtAuthMiddlewareDeps {
@@ -12,7 +12,7 @@ export function jwtAuthMiddleware({
   return (req, _res, next) => {
     const header = req.headers.authorization;
     if (!header) {
-      throw new ForbiddenException('User not authorized');
+      throw new UnauthorizedException('User not authorized');
     }
 
     try {
@@ -22,7 +22,7 @@ export function jwtAuthMiddleware({
       (req as RequestWithUser).user = user;
       next();
     } catch (err) {
-      throw new ForbiddenException('User not authorized');
+      throw new UnauthorizedException('User not authorized');
     }
   };
 }

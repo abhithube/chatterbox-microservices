@@ -1,14 +1,14 @@
 import { Consumer, Kafka } from 'kafkajs';
+import { BrokerClient } from '../BrokerClient';
 import { PublishOptions } from '../interfaces';
-import { MessageBroker } from '../MessageBroker';
 import { MessageHandler } from '../types';
 import { KafkaOptions } from './interfaces';
 
-export async function createKafkaBroker({
+export async function createKafkaClient({
   kafkaConfig,
   producerConfig,
   consumerConfig,
-}: KafkaOptions): Promise<MessageBroker> {
+}: KafkaOptions): Promise<BrokerClient> {
   const kafka = new Kafka(kafkaConfig);
 
   const producer = kafka.producer(producerConfig);

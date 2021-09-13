@@ -1,4 +1,4 @@
-import { CurrentUser } from '../../shared';
+import { CurrentUser } from '../../api';
 import { TokenIssuer } from '../TokenIssuer';
 
 export const MOCK_TOKEN = 'token';

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { CurrentUser } from '../../shared';
+import { CurrentUser } from '../../api';
 import { TokenPayload } from '../interfaces';
 import { TokenIssuer } from '../TokenIssuer';
 import { JwtOptions } from './interfaces';

@@ -1,1 +1,1 @@
-export * from './kafkaServiceMock';
+export * from './brokerClientMock';
