@@ -2,6 +2,8 @@ import {
   BaseRepository,
   createBrokerClientMock,
   createMongoConnection,
+  DbConnection,
+  MongoClient,
   RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
@@ -18,6 +20,7 @@ const password = 'password';
 describe('Auth', () => {
   let app: Application;
 
+  let mongoConnection: DbConnection<MongoClient>;
   let usersRepository: BaseRepository<User>;
   let tokenIssuer: TokenIssuer;
   let passwordHasher: PasswordHasher;
@@ -29,17 +32,18 @@ describe('Auth', () => {
   beforeAll(async () => {
     const container = await configureContainer();
 
+    mongoConnection = container.resolve('dbConnection');
+    mongoConnection.getClient().close();
+
     const configManager = container.resolve('configManager');
 
-    const oldUrl = configManager.get('DATABASE_URL');
-    if (!oldUrl) {
+    const databaseUrl = configManager.get('DATABASE_URL');
+    if (!databaseUrl) {
       process.exit(1);
     }
 
-    const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/auth-test`;
-
-    const mongoConnection = await createMongoConnection({
-      url,
+    mongoConnection = await createMongoConnection({
+      url: databaseUrl,
     });
 
     container.register({
@@ -76,6 +80,10 @@ describe('Auth', () => {
 
   afterEach(async () => {
     await usersRepository.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoConnection.getClient().close();
   });
 
   it('POST /auth/login - logs in a value user', async () => {

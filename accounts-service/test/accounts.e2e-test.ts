@@ -2,6 +2,8 @@ import {
   BaseRepository,
   createBrokerClientMock,
   createMongoConnection,
+  DbConnection,
+  MongoClient,
   RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
@@ -21,6 +23,7 @@ const registerDto: RegisterDto = {
 describe('Accounts', () => {
   let app: Application;
 
+  let mongoConnection: DbConnection<MongoClient>;
   let usersRepository: BaseRepository<User>;
   let tokenIssuer: TokenIssuer;
   let passwordHasher: PasswordHasher;
@@ -33,17 +36,18 @@ describe('Accounts', () => {
   beforeAll(async () => {
     const container = await configureContainer();
 
+    mongoConnection = container.resolve('dbConnection');
+    mongoConnection.getClient().close();
+
     const configManager = container.resolve('configManager');
 
-    const oldUrl = configManager.get('DATABASE_URL');
-    if (!oldUrl) {
+    const databaseUrl = configManager.get('DATABASE_URL');
+    if (!databaseUrl) {
       process.exit(1);
     }
 
-    const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/accounts-test`;
-
-    const mongoConnection = await createMongoConnection({
-      url,
+    mongoConnection = await createMongoConnection({
+      url: databaseUrl,
     });
 
     container.register({
@@ -91,6 +95,10 @@ describe('Accounts', () => {
 
   afterEach(async () => {
     await usersRepository.deleteMany({});
+  });
+
+  afterAll(async () => {
+    await mongoConnection.getClient().close();
   });
 
   it('POST /accounts - registers a new user', async () => {
