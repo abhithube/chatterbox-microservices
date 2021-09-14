@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from '../features/login/authSlice';
-import messagesReducer from '../features/messages/messagesSlice';
-import partiesReducer from '../features/parties/partiesSlice';
+import { authReducer } from '../features/auth';
+import { messagesReducer } from '../features/messages';
+import { partiesReducer } from '../features/parties';
 import { socketMiddleware } from './socketMiddleware';
 
-const store = configureStore({
+export const store = configureStore({
   reducer: {
     auth: authReducer,
     parties: partiesReducer,
@@ -17,4 +17,4 @@ const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-export default store;
+// export default store;

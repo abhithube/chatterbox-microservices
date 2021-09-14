@@ -1,78 +1,121 @@
 import {
-  createJwtService,
-  createKafkaService,
-  JwtService,
-  KafkaService,
+  BrokerClient,
+  ConfigManager,
+  createAxiosClient,
+  createDotenvManager,
+  createJwtIssuer,
+  createKafkaClient,
+  createMongoConnection,
+  createUuidGenerator,
+  DbConnection,
+  HttpClient,
+  MongoClient,
+  RandomGenerator,
+  TokenIssuer,
 } from '@chttrbx/common';
-import { asFunction, createContainer } from 'awilix';
-import { Router } from 'express';
+import { asFunction, asValue, AwilixContainer, createContainer } from 'awilix';
+import { Application, Router } from 'express';
 import {
   AccountsService,
   createAccountsRouter,
   createAccountsService,
-} from './accounts';
-import { App, createApp } from './app';
-import { AuthService, createAuthRouter, createAuthService } from './auth';
-import {
-  creatAxiosClient,
-  createBcryptHasher,
   createUsersRepository,
-  createUuidGenerator,
-  HttpClient,
-  PasswordHasher,
-  RandomGenerator,
   UsersRepository,
-} from './shared';
+} from './accounts';
+import { createApp } from './app';
+import { AuthService, createAuthRouter, createAuthService } from './auth';
+import { createBcryptHasher, PasswordHasher } from './common';
 
 interface Container {
-  app: App;
+  app: Application;
   accountsRouter: Router;
   authRouter: Router;
   accountsService: AccountsService;
   authService: AuthService;
   usersRepository: UsersRepository;
-  jwtService: JwtService;
-  kafkaService: KafkaService;
-  httpClient: HttpClient;
+  dbConnection: DbConnection<MongoClient>;
+  brokerClient: BrokerClient;
+  tokenIssuer: TokenIssuer;
   passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;
+  httpClient: HttpClient;
+  configManager: ConfigManager;
 }
 
-const container = createContainer<Container>();
+export async function configureContainer(): Promise<
+  AwilixContainer<Container>
+> {
+  const dotenvManager = createDotenvManager();
 
-container.register({
-  app: asFunction(createApp).singleton(),
-  accountsRouter: asFunction(createAccountsRouter).singleton(),
-  authRouter: asFunction(createAuthRouter).singleton(),
-  accountsService: asFunction(createAccountsService).singleton(),
-  authService: asFunction(createAuthService).singleton(),
-  usersRepository: asFunction(createUsersRepository).singleton(),
-  jwtService: asFunction(() =>
-    createJwtService({
-      secretOrKey: process.env.JWT_SECRET!,
-      expiresIn: '15m',
-    })
-  ).singleton(),
-  kafkaService: asFunction(() =>
-    createKafkaService({
-      kafkaConfig: {
-        clientId: 'auth-client',
-        brokers: process.env.BROKER_URLS!.split(','),
-        ssl: process.env.NODE_ENV === 'production',
-        sasl:
-          process.env.NODE_ENV === 'production'
-            ? {
-                mechanism: 'plain',
-                username: process.env.CONFLUENT_API_KEY!,
-                password: process.env.CONFLUENT_API_SECRET!,
-              }
-            : undefined,
-      },
-    })
-  ).singleton(),
-  httpClient: asFunction(creatAxiosClient).singleton(),
-  passwordHasher: asFunction(createBcryptHasher).singleton(),
-  randomGenerator: asFunction(createUuidGenerator).singleton(),
-});
+  const databaseUrl = dotenvManager.get('DATABASE_URL');
+  if (!databaseUrl) {
+    process.exit(1);
+  }
 
-export { container };
+  const mongoConnection = await createMongoConnection({
+    url: databaseUrl,
+  });
+
+  const jwtSecret = dotenvManager.get('JWT_SECRET');
+  if (!jwtSecret) {
+    process.exit(1);
+  }
+
+  const jwtIssuer = createJwtIssuer({
+    secretOrKey: jwtSecret,
+    expiresIn: '15m',
+  });
+
+  let kafkaClient: BrokerClient = {} as BrokerClient;
+  const brokerUrls = dotenvManager.get('BROKER_URLS');
+  const kafkaUsername = dotenvManager.get('KAFKA_USERNAME');
+  const kafkaPassword = dotenvManager.get('KAFKA_PASSWORD');
+
+  if (brokerUrls) {
+    if (dotenvManager.get('NODE_ENV') === 'production') {
+      if (!kafkaUsername || !kafkaPassword) {
+        process.exit(1);
+      }
+
+      kafkaClient = await createKafkaClient({
+        kafkaConfig: {
+          clientId: 'auth-client',
+          brokers: brokerUrls.split(','),
+          ssl: true,
+          sasl: {
+            mechanism: 'plain',
+            username: kafkaUsername,
+            password: kafkaPassword,
+          },
+        },
+      });
+    } else {
+      kafkaClient = await createKafkaClient({
+        kafkaConfig: {
+          clientId: 'auth-client',
+          brokers: brokerUrls.split(','),
+        },
+      });
+    }
+  }
+
+  const container = createContainer<Container>();
+
+  container.register({
+    app: asFunction(createApp).singleton(),
+    accountsRouter: asFunction(createAccountsRouter).singleton(),
+    authRouter: asFunction(createAuthRouter).singleton(),
+    accountsService: asFunction(createAccountsService).singleton(),
+    authService: asFunction(createAuthService).singleton(),
+    usersRepository: asFunction(createUsersRepository).singleton(),
+    dbConnection: asValue(mongoConnection),
+    brokerClient: asValue(kafkaClient),
+    tokenIssuer: asValue(jwtIssuer),
+    passwordHasher: asFunction(createBcryptHasher).singleton(),
+    randomGenerator: asFunction(createUuidGenerator).singleton(),
+    httpClient: asFunction(createAxiosClient).singleton(),
+    configManager: asValue(dotenvManager),
+  });
+
+  return container;
+}

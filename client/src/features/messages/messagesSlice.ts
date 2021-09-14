@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { httpClient } from '../../common/httpClient';
-import { User } from '../login/authSlice';
-import { selectParties } from '../parties/partiesSlice';
+import { httpClient } from '../../common';
+import { User } from '../auth';
+import { selectParties } from '../parties';
 
 export interface Message {
   id: string;
@@ -41,13 +41,13 @@ export const getMessages = createAsyncThunk<
     state: RootState;
   }
 >('messages/getMessages', async (payload, { getState }) => {
-  const { activeTopic } = selectParties(getState());
+  const { activeParty, activeTopic } = selectParties(getState());
 
-  const query =
-    `?topicId=${activeTopic!.id}` +
-    (payload.topicIndex ? `&syncId=${payload.topicIndex}` : '');
-
-  return httpClient.get<Message[]>(`/messages${query}`);
+  return httpClient.get<Message[]>(
+    `/parties/${activeParty?.id}/topics/${activeTopic?.id}/messages?${
+      payload.topicIndex ? `&topicIndex=${payload.topicIndex}` : ''
+    }`
+  );
 });
 
 const messagesSlice = createSlice({
@@ -86,4 +86,4 @@ export const { updateUsersOnline, sendMessage, addMessage, clearMessages } =
 
 export const selectMessages = (state: RootState) => state.messages;
 
-export default messagesSlice.reducer;
+export const messagesReducer = messagesSlice.reducer;

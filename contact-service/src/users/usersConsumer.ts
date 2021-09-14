@@ -1,5 +1,5 @@
-import { KafkaMessage, MessageHandler } from '@chttrbx/common';
-import { UserDto } from './lib';
+import { Message, MessageHandler } from '@chttrbx/common';
+import { UserDto } from './interfaces';
 import { UsersService } from './usersService';
 
 export interface UsersConsumer {
@@ -13,7 +13,7 @@ interface UsersConsumerDeps {
 export function createUsersConsumer({
   usersService,
 }: UsersConsumerDeps): UsersConsumer {
-  async function messageHandler({ event, data }: KafkaMessage<UserDto>) {
+  async function messageHandler({ event, data }: Message<UserDto>) {
     switch (event) {
       case 'user:created':
         usersService.sendEmailVerificationLink(data);

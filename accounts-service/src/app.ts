@@ -1,42 +1,38 @@
-import { errorMiddleware } from '@chttrbx/common';
-import cookieParser from 'cookie-parser';
+import { ConfigManager, errorMiddleware } from '@chttrbx/common';
 import cors from 'cors';
 import express, { Application, Router } from 'express';
-import mongoose from 'mongoose';
-
-export interface App {
-  init(): Promise<Application>;
-}
 
 interface AppDeps {
   accountsRouter: Router;
   authRouter: Router;
+  configManager: ConfigManager;
 }
 
-export function createApp({ accountsRouter, authRouter }: AppDeps) {
-  async function init(): Promise<Application> {
-    await mongoose.connect(process.env.DATABASE_URL!);
+export function createApp({
+  accountsRouter,
+  authRouter,
+  configManager,
+}: AppDeps): Application {
+  const app = express();
 
-    const app = express();
+  app.use(express.json());
 
+  const clientUrl = configManager.get('CLIENT_URL');
+  if (clientUrl) {
     app.use(
       cors({
         credentials: true,
-        origin: process.env.CLIENT_URL!,
+        origin: clientUrl,
       })
     );
-    app.use(express.json());
-    app.use(cookieParser());
-
-    app.use('/accounts', accountsRouter);
-    app.use('/auth', authRouter);
-
-    app.use(errorMiddleware);
-
-    return app;
+  } else {
+    app.use(cors());
   }
 
-  return {
-    init,
-  };
+  app.use('/accounts', accountsRouter);
+  app.use('/auth', authRouter);
+
+  app.use(errorMiddleware);
+
+  return app;
 }

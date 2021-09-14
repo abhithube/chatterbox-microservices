@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import { FaComment, FaPlay } from 'react-icons/fa';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { selectParties } from '../parties/partiesSlice';
+import { selectParties } from '../parties';
 import { sendMessage } from './messagesSlice';
 
 type CreateMessageProps = {

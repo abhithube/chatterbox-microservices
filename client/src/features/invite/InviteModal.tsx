@@ -16,7 +16,7 @@ import {
 import { useEffect, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';
 import { useAppSelector } from '../../app/hooks';
-import { selectParties } from '../parties/partiesSlice';
+import { selectParties } from '../parties';
 
 export const InviteModal = () => {
   const { activeParty: party } = useAppSelector(selectParties);
@@ -36,7 +36,7 @@ export const InviteModal = () => {
   }, [party]);
 
   const handleClick = () => {
-    if (party!.users.length >= 10) {
+    if (party!.members.length >= 10) {
       toast({
         status: 'error',
         isClosable: true,

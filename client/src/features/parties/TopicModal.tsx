@@ -23,7 +23,7 @@ import { FaComments, FaPlus } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { useAppDispatch } from '../../app/hooks';
-import { Alert, AlertMessage } from '../../common/components/Alert';
+import { Alert, AlertMessage } from '../../common';
 import { createTopic, selectParties } from './partiesSlice';
 
 type TopicModalProps = {

@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../app/hooks';
-import { selectAuth } from '../login/authSlice';
+import { selectAuth } from '../auth';
+import { Party } from '../parties';
 
 export const InvitePage = () => {
   const { user } = useAppSelector(selectAuth);
@@ -26,7 +27,7 @@ export const InvitePage = () => {
       try {
         setLoading(true);
 
-        const res = await axios.post(
+        const res = await axios.post<Party>(
           `${process.env.REACT_APP_SERVER_URL}/parties/${partyId}/join`,
           {
             token,
@@ -34,7 +35,14 @@ export const InvitePage = () => {
         );
 
         if (res.status !== 200) setError(true);
-        else setError(false);
+        else {
+          history.push(
+            `/parties/${res.data.id}/topics/${res.data.topics[0].id}`,
+            {
+              joined: true,
+            }
+          );
+        }
       } catch (err) {
         setError(true);
       } finally {

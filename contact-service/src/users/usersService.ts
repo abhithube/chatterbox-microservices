@@ -1,5 +1,6 @@
-import { MailTransport } from '../shared';
-import { UserDto } from './lib';
+import { ConfigManager } from '@chttrbx/common';
+import { MailTransport } from '../common';
+import { UserDto } from './interfaces';
 
 export interface UsersService {
   sendEmailVerificationLink(userDto: UserDto): Promise<void>;
@@ -8,10 +9,12 @@ export interface UsersService {
 
 interface UsersServiceDeps {
   mailTransport: MailTransport;
+  configManager: ConfigManager;
 }
 
 export function createUsersService({
   mailTransport,
+  configManager,
 }: UsersServiceDeps): UsersService {
   async function sendEmailVerificationLink({
     username,
@@ -23,7 +26,9 @@ export function createUsersService({
       subject: 'Email Verification',
       content: `
         <p>Hello ${username},</p>
-        <p>Confirm your email address <a href="${process.env.CLIENT_URL}/confirm?token=${verificationToken}">here</a>.</p>
+        <p>Confirm your email address <a href="${configManager.get(
+          'CLIENT_URL'
+        )}/confirm?token=${verificationToken}">here</a>.</p>
       `,
     });
   }
@@ -38,7 +43,9 @@ export function createUsersService({
       subject: 'Password Reset',
       content: `
       <p>Hello ${username},</p>
-      <p>Reset your password <a href="${process.env.CLIENT_URL}/reset?token=${resetToken}">here.</p>
+      <p>Reset your password <a href="${configManager.get(
+        'CLIENT_URL'
+      )}/reset?token=${resetToken}">here.</p>
       `,
     });
   }

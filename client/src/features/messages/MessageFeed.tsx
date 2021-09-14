@@ -1,7 +1,7 @@
 import { Box, Button, Spinner, Stack, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
-import { selectParties } from '../parties/partiesSlice';
+import { selectParties } from '../parties';
 import { CreateMessage } from './CreateMessage';
 import { MessageItem } from './MessageItem';
 import { clearMessages, getMessages, selectMessages } from './messagesSlice';
