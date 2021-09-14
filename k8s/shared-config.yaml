@@ -7,4 +7,4 @@ data:
   CLIENT_URL: https://chatterbox.abhithube.com
   SERVER_URL: https://api.chatterbox.abhithube.com
   BROKER_URLS: pkc-pgq85.us-west-2.aws.confluent.cloud:9092
-  CONFLUENT_API_KEY: JX7ISYGW3XQ635PS
+  KAFKA_USER: JX7ISYGW3XQ635PS
