@@ -49,20 +49,15 @@ export async function configureContainer(): Promise<
 
   const databaseUrl = dotenvManager.get('DATABASE_URL');
   if (!databaseUrl) {
-    process.exit(1);
+    throw new Error('Database URL missing');
   }
 
   const mongoConnection = await createMongoConnection({
     url: databaseUrl,
   });
 
-  const jwtSecret = dotenvManager.get('JWT_SECRET');
-  if (!jwtSecret) {
-    process.exit(1);
-  }
-
   const jwtIssuer = createJwtIssuer({
-    secretOrKey: jwtSecret,
+    secretOrKey: dotenvManager.get('JWT_SECRET') || 'secret',
     expiresIn: '15m',
   });
 
@@ -74,7 +69,7 @@ export async function configureContainer(): Promise<
   if (brokerUrls) {
     if (dotenvManager.get('NODE_ENV') === 'production') {
       if (!kafkaUser || !kafkaPass) {
-        process.exit(1);
+        throw new Error('Kafka credentials missing');
       }
 
       kafkaClient = await createKafkaClient({

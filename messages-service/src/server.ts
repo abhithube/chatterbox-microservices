@@ -5,6 +5,10 @@ configureContainer().then(async (container) => {
 
   const configManager = container.resolve('configManager');
 
+  if (!configManager.get('CLIENT_URL')) {
+    throw new Error('Configuration missing');
+  }
+
   const port = configManager.get('PORT') || 5000;
   server.listen(port, () => console.log(`Listening on port ${port}...`));
 

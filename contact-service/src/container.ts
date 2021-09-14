@@ -34,7 +34,7 @@ export async function configureContainer(): Promise<
   if (brokerUrls) {
     if (dotenvManager.get('NODE_ENV') === 'production') {
       if (!kafkaUser || !kafkaPass) {
-        process.exit(1);
+        throw new Error('Kafka credentials missing');
       }
 
       kafkaClient = await createKafkaClient({
@@ -66,7 +66,7 @@ export async function configureContainer(): Promise<
   const emailAddress = dotenvManager.get('EMAIL_ADDRESS');
   const mailApiKey = dotenvManager.get('MAIL_API_KEY');
   if (!emailAddress || !mailApiKey) {
-    process.exit(1);
+    throw new Error('Mail configuration missing');
   }
 
   const sendgridTransport = createSendgridTransport({

@@ -23,7 +23,7 @@ export function createApp({
   app.use(express.json());
 
   const clientUrl = configManager.get('CLIENT_URL');
-  if (!clientUrl) {
+  if (clientUrl) {
     app.use(
       cors({
         origin: clientUrl,
