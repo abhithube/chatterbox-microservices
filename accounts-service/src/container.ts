@@ -68,12 +68,12 @@ export async function configureContainer(): Promise<
 
   let kafkaClient: BrokerClient = {} as BrokerClient;
   const brokerUrls = dotenvManager.get('BROKER_URLS');
-  const kafkaUsername = dotenvManager.get('KAFKA_USERNAME');
-  const kafkaPassword = dotenvManager.get('KAFKA_PASSWORD');
+  const kafkaUser = dotenvManager.get('KAFKA_USER');
+  const kafkaPass = dotenvManager.get('KAFKA_PASS');
 
   if (brokerUrls) {
     if (dotenvManager.get('NODE_ENV') === 'production') {
-      if (!kafkaUsername || !kafkaPassword) {
+      if (!kafkaUser || !kafkaPass) {
         process.exit(1);
       }
 
@@ -84,8 +84,8 @@ export async function configureContainer(): Promise<
           ssl: true,
           sasl: {
             mechanism: 'plain',
-            username: kafkaUsername,
-            password: kafkaPassword,
+            username: kafkaUser,
+            password: kafkaPass,
           },
         },
       });
