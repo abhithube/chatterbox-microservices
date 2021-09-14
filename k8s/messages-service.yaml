@@ -42,7 +42,7 @@ spec:
                   key: DATABASE_URL
             - name: REDIS_URL
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: messages-secrets
                   key: REDIS_URL
             - name: BROKER_URLS

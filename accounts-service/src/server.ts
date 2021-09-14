@@ -11,7 +11,7 @@ configureContainer().then(async (container) => {
     !configManager.get('CLIENT_URL') ||
     !configManager.get('SERVER_URL')
   ) {
-    process.exit(1);
+    throw new Error('Configuration missing');
   }
 
   const app = container.resolve('app');

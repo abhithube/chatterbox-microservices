@@ -19,18 +19,21 @@ export function createUsersService({
   async function sendEmailVerificationLink({
     username,
     email,
+    verified,
     verificationToken,
   }: UserDto): Promise<void> {
-    mailTransport.send({
-      to: email,
-      subject: 'Email Verification',
-      content: `
-        <p>Hello ${username},</p>
-        <p>Confirm your email address <a href="${configManager.get(
-          'CLIENT_URL'
-        )}/confirm?token=${verificationToken}">here</a>.</p>
-      `,
-    });
+    if (!verified) {
+      mailTransport.send({
+        to: email,
+        subject: 'Email Verification',
+        content: `
+          <p>Hello ${username},</p>
+          <p>Confirm your email address <a href="${configManager.get(
+            'CLIENT_URL'
+          )}/confirm?token=${verificationToken}">here</a>.</p>
+        `,
+      });
+    }
   }
 
   async function sendPasswordResetLink({

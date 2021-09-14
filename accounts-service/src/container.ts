@@ -49,32 +49,27 @@ export async function configureContainer(): Promise<
 
   const databaseUrl = dotenvManager.get('DATABASE_URL');
   if (!databaseUrl) {
-    process.exit(1);
+    throw new Error('Database URL missing');
   }
 
   const mongoConnection = await createMongoConnection({
     url: databaseUrl,
   });
 
-  const jwtSecret = dotenvManager.get('JWT_SECRET');
-  if (!jwtSecret) {
-    process.exit(1);
-  }
-
   const jwtIssuer = createJwtIssuer({
-    secretOrKey: jwtSecret,
+    secretOrKey: dotenvManager.get('JWT_SECRET') || 'secret',
     expiresIn: '15m',
   });
 
   let kafkaClient: BrokerClient = {} as BrokerClient;
   const brokerUrls = dotenvManager.get('BROKER_URLS');
-  const kafkaUsername = dotenvManager.get('KAFKA_USERNAME');
-  const kafkaPassword = dotenvManager.get('KAFKA_PASSWORD');
+  const kafkaUser = dotenvManager.get('KAFKA_USER');
+  const kafkaPass = dotenvManager.get('KAFKA_PASS');
 
   if (brokerUrls) {
     if (dotenvManager.get('NODE_ENV') === 'production') {
-      if (!kafkaUsername || !kafkaPassword) {
-        process.exit(1);
+      if (!kafkaUser || !kafkaPass) {
+        throw new Error('Kafka credentials missing');
       }
 
       kafkaClient = await createKafkaClient({
@@ -84,8 +79,8 @@ export async function configureContainer(): Promise<
           ssl: true,
           sasl: {
             mechanism: 'plain',
-            username: kafkaUsername,
-            password: kafkaPassword,
+            username: kafkaUser,
+            password: kafkaPass,
           },
         },
       });
