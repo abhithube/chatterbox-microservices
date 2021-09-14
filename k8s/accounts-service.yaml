@@ -50,16 +50,16 @@ spec:
                 configMapKeyRef:
                   name: shared-config
                   key: BROKER_URLS
-            - name: CONFLUENT_API_KEY
+            - name: KAFKA_USER
               valueFrom:
                 configMapKeyRef:
                   name: shared-config
-                  key: CONFLUENT_API_KEY
-            - name: CONFLUENT_API_SECRET
+                  key: KAFKA_USER
+            - name: KAFKA_PASS
               valueFrom:
                 secretKeyRef:
                   name: shared-secrets
-                  key: CONFLUENT_API_SECRET
+                  key: KAFKA_PASS
             - name: GOOGLE_CLIENT_ID
               valueFrom:
                 configMapKeyRef:

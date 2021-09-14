@@ -40,36 +40,26 @@ spec:
                 secretKeyRef:
                   name: messages-secrets
                   key: DATABASE_URL
-            - name: REDIS_HOST
+            - name: REDIS_URL
               valueFrom:
                 configMapKeyRef:
-                  name: messages-config
-                  key: REDIS_HOST
-            - name: REDIS_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: messages-config
-                  key: REDIS_PORT
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
                   name: messages-secrets
-                  key: REDIS_PASSWORD
+                  key: REDIS_URL
             - name: BROKER_URLS
               valueFrom:
                 configMapKeyRef:
                   name: shared-config
                   key: BROKER_URLS
-            - name: CONFLUENT_API_KEY
+            - name: KAFKA_USER
               valueFrom:
                 configMapKeyRef:
                   name: shared-config
-                  key: CONFLUENT_API_KEY
-            - name: CONFLUENT_API_SECRET
+                  key: KAFKA_USER
+            - name: KAFKA_PASS
               valueFrom:
                 secretKeyRef:
                   name: shared-secrets
-                  key: CONFLUENT_API_SECRET
+                  key: KAFKA_PASS
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
