@@ -1,23 +1,25 @@
-import { TokenIssuer } from '@chttrbx/common';
+import { ConfigManager, TokenIssuer } from '@chttrbx/common';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Server as HttpServer } from 'http';
 import Redis from 'ioredis';
 import { Server } from 'socket.io';
 
 interface SocketServerDeps {
-  server: HttpServer;
+  httpServer: HttpServer;
   tokenIssuer: TokenIssuer;
+  configManager: ConfigManager;
 }
 
 export function createSocketServer({
-  server,
+  httpServer,
   tokenIssuer,
+  configManager,
 }: SocketServerDeps): Server {
-  const redisClient = new Redis(process.env.REDIS_URL);
-  const io = new Server(server, {
+  const redisClient = new Redis(configManager.get('REDIS_URL'));
+  const io = new Server(httpServer, {
     adapter: createAdapter(redisClient, redisClient.duplicate()),
     cors: {
-      origin: process.env.CLIENT_URL,
+      origin: configManager.get('CLIENT_URL'),
       credentials: true,
     },
     allowRequest: (req, done) => {

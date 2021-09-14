@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { HttpClient, RequestWithUser } from '@chttrbx/common';
+import { ConfigManager, HttpClient, RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
 import { AuthService } from '../authService';
 
@@ -16,18 +16,23 @@ interface GoogleProfile {
 interface GoogleAuthMiddlewareDeps {
   authService: AuthService;
   httpClient: HttpClient;
+  configManager: ConfigManager;
 }
 
 export const googleAuthMiddleware =
-  ({ authService, httpClient }: GoogleAuthMiddlewareDeps): RequestHandler =>
+  ({
+    authService,
+    httpClient,
+    configManager,
+  }: GoogleAuthMiddlewareDeps): RequestHandler =>
   async (req, _res, next) => {
     const url =
       'https://oauth2.googleapis.com/token' +
-      `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
-      `&client_secret=${process.env.GOOGLE_CLIENT_SECRET}` +
+      `?client_id=${configManager.get('GOOGLE_CLIENT_ID')}` +
+      `&client_secret=${configManager.get('GOOGLE_CLIENT_SECRET')}` +
       `&code=${req.query.code}` +
       '&grant_type=authorization_code' +
-      `&redirect_uri=${process.env.SERVER_URL}/auth/google/callback`;
+      `&redirect_uri=${configManager.get('SERVER_URL')}/auth/google/callback`;
 
     const data = await httpClient.post<void, TokenResponse>(url);
 

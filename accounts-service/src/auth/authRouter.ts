@@ -1,4 +1,5 @@
 import {
+  ConfigManager,
   HttpClient,
   jwtAuthMiddleware,
   RequestWithUser,
@@ -20,12 +21,14 @@ interface AuthRouterDeps {
   authService: AuthService;
   tokenIssuer: TokenIssuer;
   httpClient: HttpClient;
+  configManager: ConfigManager;
 }
 
 export function createAuthRouter({
   authService,
   tokenIssuer,
   httpClient,
+  configManager,
 }: AuthRouterDeps): Router {
   const router = Router();
 
@@ -43,8 +46,9 @@ export function createAuthRouter({
       res
         .cookie('refresh', refreshToken, {
           httpOnly: true,
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : true,
-          secure: process.env.NODE_ENV === 'production',
+          sameSite:
+            configManager.get('NODE_ENV') === 'production' ? 'none' : true,
+          secure: configManager.get('NODE_ENV') === 'production',
         })
         .json({
           user,
@@ -56,8 +60,8 @@ export function createAuthRouter({
   router.get('/google', (_req, res) => {
     const url =
       'https://accounts.google.com/o/oauth2/v2/auth' +
-      `?client_id=${process.env.GOOGLE_CLIENT_ID}` +
-      `&redirect_uri=${process.env.SERVER_URL}/auth/google/callback` +
+      `?client_id=${configManager.get('GOOGLE_CLIENT_ID')}` +
+      `&redirect_uri=${configManager.get('SERVER_URL')}/auth/google/callback` +
       '&response_type=code' +
       '&scope=email profile';
 
@@ -66,7 +70,11 @@ export function createAuthRouter({
 
   router.get(
     '/google/callback',
-    googleAuthMiddleware({ authService, httpClient }),
+    googleAuthMiddleware({
+      authService,
+      httpClient,
+      configManager,
+    }),
     async (req, res) => {
       const { user } = req as RequestWithUser;
 
@@ -75,18 +83,19 @@ export function createAuthRouter({
       res
         .cookie('refresh', refreshToken, {
           httpOnly: true,
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : true,
-          secure: process.env.NODE_ENV === 'production',
+          sameSite:
+            configManager.get('NODE_ENV') === 'production' ? 'none' : true,
+          secure: configManager.get('NODE_ENV') === 'production',
         })
-        .redirect(process.env.CLIENT_URL!);
+        .redirect(configManager.get('CLIENT_URL'));
     }
   );
 
   router.get('/github', (_req, res) => {
     const url =
       'https://github.com/login/oauth/authorize' +
-      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
-      `&redirect_uri=${process.env.SERVER_URL}/auth/github/callback` +
+      `?client_id=${configManager.get('GITHUB_CLIENT_ID')}` +
+      `&redirect_uri=${configManager.get('SERVER_URL')}/auth/github/callback` +
       '&scope=user:email';
 
     res.redirect(url);
@@ -94,15 +103,24 @@ export function createAuthRouter({
 
   router.get(
     '/github/callback',
-    githubAuthMiddleware({ authService, httpClient }),
+    githubAuthMiddleware({
+      authService,
+      httpClient,
+      configManager,
+    }),
     async (req, res) => {
       const { user } = req as RequestWithUser;
 
       const { refreshToken } = await authService.authenticateUser(user);
 
-      res.json({
-        refreshToken,
-      });
+      res
+        .cookie('refresh', refreshToken, {
+          httpOnly: true,
+          sameSite:
+            configManager.get('NODE_ENV') === 'production' ? 'none' : true,
+          secure: configManager.get('NODE_ENV') === 'production',
+        })
+        .redirect(configManager.get('CLIENT_URL'));
     }
   );
 

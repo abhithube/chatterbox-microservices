@@ -1,4 +1,9 @@
-import { BrokerClient, createKafkaClient } from '@chttrbx/common';
+import {
+  BrokerClient,
+  ConfigManager,
+  createDotenvManager,
+  createKafkaClient,
+} from '@chttrbx/common';
 import { asFunction, asValue, createContainer } from 'awilix';
 import { createSendgridTransport, MailTransport } from './common';
 import {
@@ -13,19 +18,22 @@ interface ContainerDeps {
   usersService: UsersService;
   mailTransport: MailTransport;
   brokerClient: BrokerClient;
+  configManager: ConfigManager;
 }
 
 export async function configureContainer() {
+  const dotenvManager = createDotenvManager();
+
   const kafkaBroker = await createKafkaClient({
     kafkaConfig: {
-      brokers: process.env.BROKER_URLS!.split(','),
-      ssl: process.env.NODE_ENV === 'production',
+      brokers: dotenvManager.get('BROKER_URLS').split(','),
+      ssl: dotenvManager.get('NODE_ENV') === 'production',
       sasl:
-        process.env.NODE_ENV === 'production'
+        dotenvManager.get('NODE_ENV') === 'production'
           ? {
               mechanism: 'plain',
-              username: process.env.CONFLUENT_API_KEY!,
-              password: process.env.CONFLUENT_API_SECRET!,
+              username: dotenvManager.get('CONFLUENT_API_KEY'),
+              password: dotenvManager.get('CONFLUENT_API_SECRET'),
             }
           : undefined,
     },
@@ -34,19 +42,20 @@ export async function configureContainer() {
     },
   });
 
+  const sendgridTransport = createSendgridTransport({
+    name: dotenvManager.get('EMAIL_NAME'),
+    email: dotenvManager.get('EMAIL_ADDRESS'),
+    apiKey: dotenvManager.get('SENDGRID_API_KEY'),
+  });
+
   const container = createContainer<ContainerDeps>();
 
   container.register({
     usersConsumer: asFunction(createUsersConsumer).singleton(),
     usersService: asFunction(createUsersService).singleton(),
-    mailTransport: asFunction(() =>
-      createSendgridTransport({
-        name: process.env.EMAIL_NAME,
-        email: process.env.EMAIL_ADDRESS!,
-        apiKey: process.env.SENDGRID_API_KEY!,
-      })
-    ).singleton(),
+    mailTransport: asValue(sendgridTransport),
     brokerClient: asValue(kafkaBroker),
+    configManager: asValue(dotenvManager),
   });
 
   return container;

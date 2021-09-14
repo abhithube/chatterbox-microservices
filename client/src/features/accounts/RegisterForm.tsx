@@ -45,7 +45,7 @@ export const RegisterForm = () => {
       try {
         setLoading(true);
 
-        await httpClient.post<RegisterPayload>('/accounts/register', {
+        await httpClient.post<RegisterPayload>('/accounts', {
           username,
           email,
           password,

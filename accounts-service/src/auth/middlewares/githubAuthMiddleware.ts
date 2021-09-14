@@ -1,12 +1,7 @@
 /* eslint-disable camelcase */
-import { HttpClient, RequestWithUser } from '@chttrbx/common';
+import { ConfigManager, HttpClient, RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
 import { AuthService } from '../authService';
-
-interface GithubAuthMiddlewareDeps {
-  authService: AuthService;
-  httpClient: HttpClient;
-}
 
 interface GitHubProfile {
   login: string;
@@ -14,13 +9,23 @@ interface GitHubProfile {
   email: string;
 }
 
+interface GithubAuthMiddlewareDeps {
+  authService: AuthService;
+  httpClient: HttpClient;
+  configManager: ConfigManager;
+}
+
 export const githubAuthMiddleware =
-  ({ authService, httpClient }: GithubAuthMiddlewareDeps): RequestHandler =>
+  ({
+    authService,
+    httpClient,
+    configManager,
+  }: GithubAuthMiddlewareDeps): RequestHandler =>
   async (req, _res, next) => {
     const url =
       'https://github.com/login/oauth/access_token' +
-      `?client_id=${process.env.GITHUB_CLIENT_ID}` +
-      `&client_secret=${process.env.GITHUB_CLIENT_SECRET}` +
+      `?client_id=${configManager.get('GITHUB_CLIENT_ID')}` +
+      `&client_secret=${configManager.get('GITHUB_CLIENT_SECRET')}` +
       `&code=${req.query.code}`;
 
     const data = await httpClient.post<void, string>(url);

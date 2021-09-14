@@ -1,9 +1,11 @@
 import { configureContainer } from './container';
 
 configureContainer().then(async (container) => {
-  const server = container.resolve('server');
+  const server = container.resolve('httpServer');
 
-  const port = process.env.PORT || 5000;
+  const configManager = container.resolve('configManager');
+
+  const port = configManager.get('PORT') || 5000;
   server.listen(port, () => console.log(`Listening on port ${port}...`));
 
   const io = container.resolve('socketServer');

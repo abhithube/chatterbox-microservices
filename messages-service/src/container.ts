@@ -1,6 +1,8 @@
 import {
   BrokerClient,
   CacheManager,
+  ConfigManager,
+  createDotenvManager,
   createJwtIssuer,
   createKafkaClient,
   createMongoConnection,
@@ -41,9 +43,9 @@ import {
 } from './users';
 
 interface Container {
-  server: HttpServer;
-  app: Application;
+  httpServer: HttpServer;
   socketServer: IoServer;
+  app: Application;
   partiesRouter: Router;
   messagesGateway: MessagesGateway;
   usersConsumer: UsersConsumer;
@@ -57,24 +59,27 @@ interface Container {
   cacheManager: CacheManager;
   tokenIssuer: TokenIssuer;
   brokerClient: BrokerClient;
+  configManager: ConfigManager;
 }
 
 export async function configureContainer() {
+  const dotenvManager = createDotenvManager();
+
   const mongoConnection = await createMongoConnection({
-    url: process.env.DATABASE_URL!,
+    url: dotenvManager.get('DATABASE_URL'),
   });
 
   const kafkaBroker = await createKafkaClient({
     kafkaConfig: {
       clientId: 'messages-client',
-      brokers: process.env.BROKER_URLS!.split(','),
-      ssl: process.env.NODE_ENV === 'production',
+      brokers: dotenvManager.get('BROKER_URLS').split(','),
+      ssl: dotenvManager.get('NODE_ENV') === 'production',
       sasl:
-        process.env.NODE_ENV === 'production'
+        dotenvManager.get('NODE_ENV') === 'production'
           ? {
               mechanism: 'plain',
-              username: process.env.CONFLUENT_API_KEY!,
-              password: process.env.CONFLUENT_API_SECRET!,
+              username: dotenvManager.get('CONFLUENT_API_KEY'),
+              password: dotenvManager.get('CONFLUENT_API_SECRET'),
             }
           : undefined,
     },
@@ -84,19 +89,19 @@ export async function configureContainer() {
   });
 
   const redisManager = createRedisManager({
-    url: process.env.REDIS_URL,
+    url: dotenvManager.get('REDIS_URL'),
   });
 
   const jwtIssuer = createJwtIssuer({
-    secretOrKey: process.env.JWT_SECRET!,
+    secretOrKey: dotenvManager.get('JWT_SECRET'),
   });
 
   const container = createContainer<Container>();
 
   container.register({
-    server: asFunction(createHttpServer).singleton(),
-    app: asFunction(createApp).singleton(),
+    httpServer: asFunction(createHttpServer).singleton(),
     socketServer: asFunction(createSocketServer).singleton(),
+    app: asFunction(createApp).singleton(),
     partiesRouter: asFunction(createPartiesRouter).singleton(),
     messagesGateway: asFunction(createMessagesGateway).singleton(),
     usersConsumer: asFunction(createUsersConsumer).singleton(),
@@ -110,6 +115,7 @@ export async function configureContainer() {
     cacheManager: asValue(redisManager),
     tokenIssuer: asValue(jwtIssuer),
     brokerClient: asValue(kafkaBroker),
+    configManager: asValue(dotenvManager),
   });
 
   return container;

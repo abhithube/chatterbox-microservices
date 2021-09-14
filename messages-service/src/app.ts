@@ -1,4 +1,5 @@
 import {
+  ConfigManager,
   errorMiddleware,
   jwtAuthMiddleware,
   TokenIssuer,
@@ -9,16 +10,21 @@ import express, { Router } from 'express';
 interface AppDeps {
   partiesRouter: Router;
   tokenIssuer: TokenIssuer;
+  configManager: ConfigManager;
 }
 
-export function createApp({ partiesRouter, tokenIssuer }: AppDeps) {
+export function createApp({
+  partiesRouter,
+  tokenIssuer,
+  configManager,
+}: AppDeps) {
   const app = express();
 
   app.use(express.json());
 
   app.use(
     cors({
-      origin: process.env.CLIENT_URL,
+      origin: configManager.get('CLIENT_URL'),
       credentials: true,
     })
   );

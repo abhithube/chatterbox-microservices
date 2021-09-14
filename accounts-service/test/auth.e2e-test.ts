@@ -29,7 +29,9 @@ describe('Auth', () => {
   beforeAll(async () => {
     const container = await configureContainer();
 
-    const oldUrl = process.env.DATABASE_URL!;
+    const configManager = container.resolve('configManager');
+
+    const oldUrl = configManager.get('DATABASE_URL');
     const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/auth-test`;
 
     const mongoConnection = await createMongoConnection({

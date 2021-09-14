@@ -1,7 +1,9 @@
 import {
   BaseRepository,
   BrokerClient,
+  ConfigManager,
   createAxiosClient,
+  createDotenvManager,
   createJwtIssuer,
   createKafkaClient,
   createMongoConnection,
@@ -37,29 +39,32 @@ interface Container {
   httpClient: HttpClient;
   passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;
+  configManager: ConfigManager;
 }
 
 export async function configureContainer() {
+  const dotenvManager = createDotenvManager();
+
   const mongoConnection = await createMongoConnection({
-    url: process.env.DATABASE_URL!,
+    url: dotenvManager.get('DATABASE_URL'),
   });
 
   const jwtIssuer = createJwtIssuer({
-    secretOrKey: process.env.JWT_SECRET!,
+    secretOrKey: dotenvManager.get('JWT_SECRET'),
     expiresIn: '15m',
   });
 
   const kafkaBroker = await createKafkaClient({
     kafkaConfig: {
       clientId: 'auth-client',
-      brokers: process.env.BROKER_URLS!.split(','),
-      ssl: process.env.NODE_ENV === 'production',
+      brokers: dotenvManager.get('BROKER_URLS').split(','),
+      ssl: dotenvManager.get('NODE_ENV') === 'production',
       sasl:
-        process.env.NODE_ENV === 'production'
+        dotenvManager.get('NODE_ENV') === 'production'
           ? {
               mechanism: 'plain',
-              username: process.env.CONFLUENT_API_KEY!,
-              password: process.env.CONFLUENT_API_SECRET!,
+              username: dotenvManager.get('CONFLUENT_API_KEY'),
+              password: dotenvManager.get('CONFLUENT_API_SECRET'),
             }
           : undefined,
     },
@@ -80,6 +85,7 @@ export async function configureContainer() {
     httpClient: asFunction(createAxiosClient).singleton(),
     passwordHasher: asFunction(createBcryptHasher).singleton(),
     randomGenerator: asFunction(createUuidGenerator).singleton(),
+    configManager: asValue(dotenvManager),
   });
 
   return container;
