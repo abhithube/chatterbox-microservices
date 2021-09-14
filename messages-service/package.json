@@ -13,7 +13,7 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "@chttrbx/common": "^2.3.0",
+    "@chttrbx/common": "^2.3.3",
     "@socket.io/redis-adapter": "^7.0.0",
     "awilix": "^5.0.1",
     "cors": "^2.8.5",

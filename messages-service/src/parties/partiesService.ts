@@ -2,6 +2,7 @@ import {
   BrokerClient,
   CurrentUser,
   ForbiddenException,
+  InternalServerException,
   NotFoundException,
 } from '@chttrbx/common';
 import { randomUUID } from 'crypto';
@@ -14,11 +15,11 @@ export interface PartiesService {
     createPartyDto: CreatePartyDto,
     user: CurrentUser
   ): Promise<Party>;
-  getUserParties(userId: string): Promise<Party[]>;
+  getUserParties(user: CurrentUser): Promise<Party[]>;
   getParty(id: string): Promise<Party>;
   joinParty(id: string, inviteToken: string, user: CurrentUser): Promise<Party>;
-  leaveParty(id: string, userId: string): Promise<void>;
-  deleteParty(id: string): Promise<void>;
+  leaveParty(id: string, user: CurrentUser): Promise<void>;
+  deleteParty(id: string, user: CurrentUser): Promise<void>;
   createTopic(createTopicDto: CreateTopicDto, partyId: string): Promise<Topic>;
   deleteTopic(id: string, partyId: string): Promise<void>;
 }
@@ -36,7 +37,7 @@ export function createPartiesService({
     { name }: CreatePartyDto,
     user: CurrentUser
   ): Promise<Party> {
-    const parties = await getUserParties(user.id);
+    const parties = await getUserParties(user);
 
     if (parties.length >= 10) {
       throw new ForbiddenException('Max party count exceeded');
@@ -69,8 +70,8 @@ export function createPartiesService({
     return party;
   }
 
-  async function getUserParties(userId: string): Promise<Party[]> {
-    return partiesRepository.findManyByMember(userId);
+  async function getUserParties(user: CurrentUser): Promise<Party[]> {
+    return partiesRepository.findManyByMember(user.id);
   }
 
   async function getParty(id: string): Promise<Party> {
@@ -108,21 +109,21 @@ export function createPartiesService({
       key: id,
       message: {
         event: 'party:joined',
-        data: party!,
+        data: party,
       },
     });
 
-    return party!;
+    return party;
   }
 
-  async function leaveParty(id: string, userId: string): Promise<void> {
+  async function leaveParty(id: string, user: CurrentUser): Promise<void> {
     let party = await getParty(id);
 
     if (party.members.length === 1) {
       throw new ForbiddenException('Party cannot have 0 members');
     }
 
-    party = await partiesRepository.removeMember(id, userId);
+    party = await partiesRepository.removeMember(id, user.id);
 
     await brokerClient.publish<Party>({
       topic: 'parties',
@@ -134,17 +135,30 @@ export function createPartiesService({
     });
   }
 
-  async function deleteParty(id: string): Promise<void> {
-    const party = await partiesRepository.deleteOne({
+  async function deleteParty(id: string, user: CurrentUser): Promise<void> {
+    const party = await getParty(id);
+    if (!party) {
+      throw new NotFoundException('Party not found');
+    }
+
+    if (!party.members.includes(user.id)) {
+      throw new ForbiddenException('Not a member');
+    }
+
+    const deleted = await partiesRepository.deleteOne({
       id,
     });
+
+    if (!deleted) {
+      throw new InternalServerException();
+    }
 
     await brokerClient.publish<Party>({
       topic: 'parties',
       key: id,
       message: {
         event: 'party:deleted',
-        data: party!,
+        data: deleted,
       },
     });
   }

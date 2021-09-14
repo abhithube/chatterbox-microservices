@@ -1,10 +1,10 @@
-/* eslint-disable camelcase */
 import { ConfigManager, HttpClient, RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
 import { AuthService } from '../authService';
 
 interface GitHubProfile {
   login: string;
+  // eslint-disable-next-line camelcase
   avatar_url: string;
   email: string;
 }

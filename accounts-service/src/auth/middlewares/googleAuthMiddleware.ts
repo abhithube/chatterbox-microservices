@@ -1,9 +1,9 @@
-/* eslint-disable camelcase */
 import { ConfigManager, HttpClient, RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
 import { AuthService } from '../authService';
 
 interface TokenResponse {
+  // eslint-disable-next-line camelcase
   access_token: string;
 }
 

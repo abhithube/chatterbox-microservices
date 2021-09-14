@@ -1,3 +1,3 @@
-export interface DbConnection<T = any> {
+export interface DbConnection<T> {
   getClient: () => T;
 }

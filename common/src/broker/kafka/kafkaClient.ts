@@ -20,7 +20,7 @@ export async function createKafkaClient({
     consumer = kafka.consumer(consumerConfig);
   }
 
-  async function publish<T = any>({ topic, key, message }: PublishOptions<T>) {
+  async function publish<T>({ topic, key, message }: PublishOptions<T>) {
     if (!producer) {
       throw new Error('Kafka producer not configured');
     }
@@ -36,7 +36,7 @@ export async function createKafkaClient({
     });
   }
 
-  async function subscribe<T = any>(topic: string, handler: MessageHandler<T>) {
+  async function subscribe<T>(topic: string, handler: MessageHandler<T>) {
     if (!consumer) {
       throw new Error('Kafka consumer not configured');
     }

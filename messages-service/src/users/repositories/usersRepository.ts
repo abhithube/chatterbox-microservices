@@ -1,6 +1,7 @@
 import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
 import { User } from '../models';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface UsersRepository extends BaseRepository<User> {}
 
 interface UsersRepositoryDeps {

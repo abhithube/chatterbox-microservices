@@ -1,4 +1,4 @@
-export interface BaseRepository<T = any> {
+export interface BaseRepository<T> {
   insertOne(data: T): Promise<T>;
   findOne(options: Partial<T>): Promise<T | null>;
   updateOne(

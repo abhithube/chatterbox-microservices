@@ -1,6 +1,6 @@
 import { ConfigManager, errorMiddleware } from '@chttrbx/common';
 import cors from 'cors';
-import express, { Router } from 'express';
+import express, { Application, Router } from 'express';
 
 interface AppDeps {
   accountsRouter: Router;
@@ -12,16 +12,22 @@ export function createApp({
   accountsRouter,
   authRouter,
   configManager,
-}: AppDeps) {
+}: AppDeps): Application {
   const app = express();
 
-  app.use(
-    cors({
-      credentials: true,
-      origin: configManager.get('CLIENT_URL'),
-    })
-  );
   app.use(express.json());
+
+  const clientUrl = configManager.get('CLIENT_URL');
+  if (clientUrl) {
+    app.use(
+      cors({
+        credentials: true,
+        origin: clientUrl,
+      })
+    );
+  } else {
+    app.use(cors());
+  }
 
   app.use('/accounts', accountsRouter);
   app.use('/auth', authRouter);

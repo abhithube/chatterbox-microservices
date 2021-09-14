@@ -56,45 +56,75 @@ interface Container {
   messagesRepository: MessagesRepository;
   usersRepository: UsersRepository;
   dbConnection: DbConnection<MongoClient>;
+  brokerClient: BrokerClient;
   cacheManager: CacheManager;
   tokenIssuer: TokenIssuer;
-  brokerClient: BrokerClient;
   configManager: ConfigManager;
 }
 
 export async function configureContainer() {
   const dotenvManager = createDotenvManager();
 
+  const databaseUrl = dotenvManager.get('DATABASE_URL');
+  if (!databaseUrl) {
+    process.exit(1);
+  }
+
   const mongoConnection = await createMongoConnection({
-    url: dotenvManager.get('DATABASE_URL'),
+    url: databaseUrl,
   });
 
-  const kafkaBroker = await createKafkaClient({
-    kafkaConfig: {
-      clientId: 'messages-client',
-      brokers: dotenvManager.get('BROKER_URLS').split(','),
-      ssl: dotenvManager.get('NODE_ENV') === 'production',
-      sasl:
-        dotenvManager.get('NODE_ENV') === 'production'
-          ? {
-              mechanism: 'plain',
-              username: dotenvManager.get('CONFLUENT_API_KEY'),
-              password: dotenvManager.get('CONFLUENT_API_SECRET'),
-            }
-          : undefined,
-    },
-    consumerConfig: {
-      groupId: 'messages-consumer-group',
-    },
+  const jwtSecret = dotenvManager.get('JWT_SECRET');
+  if (!jwtSecret) {
+    process.exit(1);
+  }
+
+  const jwtIssuer = createJwtIssuer({
+    secretOrKey: jwtSecret,
+    expiresIn: '15m',
   });
 
   const redisManager = createRedisManager({
     url: dotenvManager.get('REDIS_URL'),
   });
 
-  const jwtIssuer = createJwtIssuer({
-    secretOrKey: dotenvManager.get('JWT_SECRET'),
-  });
+  let kafkaClient: BrokerClient = {} as BrokerClient;
+  const brokerUrls = dotenvManager.get('BROKER_URLS');
+  const kafkaUser = dotenvManager.get('KAFKA_USER');
+  const kafkaPass = dotenvManager.get('KAFKA_PASS');
+
+  if (brokerUrls) {
+    if (dotenvManager.get('NODE_ENV') === 'production') {
+      if (!kafkaUser || !kafkaPass) {
+        process.exit(1);
+      }
+
+      kafkaClient = await createKafkaClient({
+        kafkaConfig: {
+          clientId: 'messages-client',
+          brokers: brokerUrls.split(','),
+          ssl: true,
+          sasl: {
+            mechanism: 'plain',
+            username: kafkaUser,
+            password: kafkaPass,
+          },
+        },
+        consumerConfig: {
+          groupId: 'messages-consumer-group',
+        },
+      });
+    } else {
+      kafkaClient = await createKafkaClient({
+        kafkaConfig: {
+          brokers: brokerUrls.split(','),
+        },
+        consumerConfig: {
+          groupId: 'messages-consumer-group',
+        },
+      });
+    }
+  }
 
   const container = createContainer<Container>();
 
@@ -112,9 +142,9 @@ export async function configureContainer() {
     messagesRepository: asFunction(createMessagesRepository).singleton(),
     usersRepository: asFunction(createUsersRepository).singleton(),
     dbConnection: asValue(mongoConnection),
+    brokerClient: asValue(kafkaClient),
     cacheManager: asValue(redisManager),
     tokenIssuer: asValue(jwtIssuer),
-    brokerClient: asValue(kafkaBroker),
     configManager: asValue(dotenvManager),
   });
 

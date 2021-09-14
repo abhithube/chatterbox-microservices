@@ -32,6 +32,8 @@ export function createAuthRouter({
 }: AuthRouterDeps): Router {
   const router = Router();
 
+  const isProduction = configManager.get('NODE_ENV') === 'production';
+
   router.post(
     '/login',
     validationMiddleware(LoginSchema),
@@ -46,9 +48,8 @@ export function createAuthRouter({
       res
         .cookie('refresh', refreshToken, {
           httpOnly: true,
-          sameSite:
-            configManager.get('NODE_ENV') === 'production' ? 'none' : true,
-          secure: configManager.get('NODE_ENV') === 'production',
+          sameSite: isProduction ? 'none' : true,
+          secure: isProduction,
         })
         .json({
           user,
@@ -83,11 +84,10 @@ export function createAuthRouter({
       res
         .cookie('refresh', refreshToken, {
           httpOnly: true,
-          sameSite:
-            configManager.get('NODE_ENV') === 'production' ? 'none' : true,
-          secure: configManager.get('NODE_ENV') === 'production',
+          sameSite: isProduction ? 'none' : true,
+          secure: isProduction,
         })
-        .redirect(configManager.get('CLIENT_URL'));
+        .redirect(configManager.get('CLIENT_URL')!);
     }
   );
 
@@ -116,11 +116,10 @@ export function createAuthRouter({
       res
         .cookie('refresh', refreshToken, {
           httpOnly: true,
-          sameSite:
-            configManager.get('NODE_ENV') === 'production' ? 'none' : true,
-          secure: configManager.get('NODE_ENV') === 'production',
+          sameSite: isProduction ? 'none' : true,
+          secure: isProduction,
         })
-        .redirect(configManager.get('CLIENT_URL'));
+        .redirect(configManager.get('CLIENT_URL')!);
     }
   );
 

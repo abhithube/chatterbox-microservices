@@ -50,12 +50,12 @@ export function createUsersService({
       id,
     });
 
-    const parties = await partiesService.getUserParties(id);
+    const parties = await partiesService.getUserParties({ id });
 
-    const partyPromises: Promise<any>[] = [];
+    const partyPromises: Promise<void>[] = [];
 
     parties.forEach((party) => {
-      partyPromises.push(partiesService.leaveParty(party.id, id));
+      partyPromises.push(partiesService.leaveParty(party.id, { id }));
     });
 
     await Promise.all(partyPromises);

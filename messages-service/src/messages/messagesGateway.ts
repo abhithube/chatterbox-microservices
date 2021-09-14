@@ -113,15 +113,22 @@ export function createMessagesGateway({
     const clients = await client.in(`party:${client.party}`).allSockets();
 
     const userPromises = [...clients.keys()].map(async (clientId) => {
-      const user = await cacheManager.get(`client:${clientId}`);
-      if (!user) {
-        server.in(clientId).disconnectSockets();
-      }
+      const userId = await cacheManager.get(`client:${clientId}`);
 
-      return user!;
+      return { clientId, userId };
     });
 
-    const connectedSet = new Set(await Promise.all(userPromises));
+    const users = await Promise.all(userPromises);
+
+    const connectedSet = new Set<string>();
+
+    users.forEach(({ clientId, userId }) => {
+      if (!userId) {
+        server.in(clientId).disconnectSockets();
+      } else {
+        connectedSet.add(userId);
+      }
+    });
 
     return [...connectedSet.keys()];
   }

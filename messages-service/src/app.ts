@@ -22,12 +22,17 @@ export function createApp({
 
   app.use(express.json());
 
-  app.use(
-    cors({
-      origin: configManager.get('CLIENT_URL'),
-      credentials: true,
-    })
-  );
+  const clientUrl = configManager.get('CLIENT_URL');
+  if (!clientUrl) {
+    app.use(
+      cors({
+        origin: clientUrl,
+        credentials: true,
+      })
+    );
+  } else {
+    app.use(cors());
+  }
 
   app.use('/parties', jwtAuthMiddleware({ tokenIssuer }), partiesRouter);
 

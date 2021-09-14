@@ -1,6 +1,10 @@
 import { HttpClient } from '../HttpClient';
 
 export const createHttpClientMock = (): HttpClient => ({
-  get: () => Promise.resolve({} as any),
-  post: () => Promise.resolve({} as any),
+  get<T>() {
+    return Promise.resolve({} as T);
+  },
+  post<T>() {
+    return Promise.resolve({} as T);
+  },
 });

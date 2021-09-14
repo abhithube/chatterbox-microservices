@@ -1,6 +1,6 @@
 import { Message } from './Message';
 
-export interface PublishOptions<T = any> {
+export interface PublishOptions<T> {
   topic: string;
   key?: string;
   message: Message<T>;

@@ -32,6 +32,10 @@ describe('Auth', () => {
     const configManager = container.resolve('configManager');
 
     const oldUrl = configManager.get('DATABASE_URL');
+    if (!oldUrl) {
+      process.exit(1);
+    }
+
     const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/auth-test`;
 
     const mongoConnection = await createMongoConnection({

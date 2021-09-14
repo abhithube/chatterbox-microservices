@@ -1,7 +1,7 @@
 import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
 import { User } from '../models';
 
-export interface UsersRepository extends BaseRepository<User> {}
+export type UsersRepository = BaseRepository<User>;
 
 interface UsersRepositoryDeps {
   dbConnection: DbConnection<MongoClient>;

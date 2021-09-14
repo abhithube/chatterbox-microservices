@@ -36,6 +36,10 @@ describe('Accounts', () => {
     const configManager = container.resolve('configManager');
 
     const oldUrl = configManager.get('DATABASE_URL');
+    if (!oldUrl) {
+      process.exit(1);
+    }
+
     const url = `${oldUrl.substring(0, oldUrl.lastIndexOf('/'))}/accounts-test`;
 
     const mongoConnection = await createMongoConnection({

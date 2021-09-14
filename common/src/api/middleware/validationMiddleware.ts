@@ -3,7 +3,7 @@ import { Schema } from 'joi';
 
 export const validationMiddleware =
   (schema: Schema) =>
-  async (req: Request, _res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
     try {
       await schema.validateAsync(req.body);
       next();

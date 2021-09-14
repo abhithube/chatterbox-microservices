@@ -4,7 +4,7 @@ import {
   createDotenvManager,
   createKafkaClient,
 } from '@chttrbx/common';
-import { asFunction, asValue, createContainer } from 'awilix';
+import { asFunction, asValue, AwilixContainer, createContainer } from 'awilix';
 import { createSendgridTransport, MailTransport } from './common';
 import {
   createUsersConsumer,
@@ -13,48 +13,75 @@ import {
   UsersService,
 } from './users';
 
-interface ContainerDeps {
+interface Container {
   usersConsumer: UsersConsumer;
   usersService: UsersService;
-  mailTransport: MailTransport;
   brokerClient: BrokerClient;
+  mailTransport: MailTransport;
   configManager: ConfigManager;
 }
 
-export async function configureContainer() {
+export async function configureContainer(): Promise<
+  AwilixContainer<Container>
+> {
   const dotenvManager = createDotenvManager();
 
-  const kafkaBroker = await createKafkaClient({
-    kafkaConfig: {
-      brokers: dotenvManager.get('BROKER_URLS').split(','),
-      ssl: dotenvManager.get('NODE_ENV') === 'production',
-      sasl:
-        dotenvManager.get('NODE_ENV') === 'production'
-          ? {
-              mechanism: 'plain',
-              username: dotenvManager.get('CONFLUENT_API_KEY'),
-              password: dotenvManager.get('CONFLUENT_API_SECRET'),
-            }
-          : undefined,
-    },
-    consumerConfig: {
-      groupId: 'contact-consumer-group',
-    },
-  });
+  let kafkaClient: BrokerClient = {} as BrokerClient;
+  const brokerUrls = dotenvManager.get('BROKER_URLS');
+  const kafkaUser = dotenvManager.get('KAFKA_USER');
+  const kafkaPass = dotenvManager.get('KAFKA_PASS');
+
+  if (brokerUrls) {
+    if (dotenvManager.get('NODE_ENV') === 'production') {
+      if (!kafkaUser || !kafkaPass) {
+        process.exit(1);
+      }
+
+      kafkaClient = await createKafkaClient({
+        kafkaConfig: {
+          brokers: brokerUrls.split(','),
+          ssl: true,
+          sasl: {
+            mechanism: 'plain',
+            username: kafkaUser,
+            password: kafkaPass,
+          },
+        },
+        consumerConfig: {
+          groupId: 'contact-consumer-group',
+        },
+      });
+    } else {
+      kafkaClient = await createKafkaClient({
+        kafkaConfig: {
+          brokers: brokerUrls.split(','),
+        },
+        consumerConfig: {
+          groupId: 'contact-consumer-group',
+        },
+      });
+    }
+  }
+
+  const emailAddress = dotenvManager.get('EMAIL_ADDRESS');
+  const mailApiKey = dotenvManager.get('MAIL_API_KEY');
+  if (!emailAddress || !mailApiKey) {
+    process.exit(1);
+  }
 
   const sendgridTransport = createSendgridTransport({
     name: dotenvManager.get('EMAIL_NAME'),
-    email: dotenvManager.get('EMAIL_ADDRESS'),
-    apiKey: dotenvManager.get('SENDGRID_API_KEY'),
+    email: emailAddress,
+    apiKey: mailApiKey,
   });
 
-  const container = createContainer<ContainerDeps>();
+  const container = createContainer<Container>();
 
   container.register({
     usersConsumer: asFunction(createUsersConsumer).singleton(),
     usersService: asFunction(createUsersService).singleton(),
+    brokerClient: asValue(kafkaClient),
     mailTransport: asValue(sendgridTransport),
-    brokerClient: asValue(kafkaBroker),
     configManager: asValue(dotenvManager),
   });
 
