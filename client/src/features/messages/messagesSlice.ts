@@ -24,6 +24,7 @@ interface MessagesState {
   data: Message[];
   usersOnline: string[];
   isLoading: boolean;
+  messageReady: boolean;
   error: string | null;
 }
 
@@ -31,6 +32,7 @@ const initialState: MessagesState = {
   data: [],
   usersOnline: [],
   isLoading: true,
+  messageReady: false,
   error: null,
 };
 
@@ -57,6 +59,9 @@ const messagesSlice = createSlice({
     updateUsersOnline: (state, action: PayloadAction<string[]>) => {
       state.usersOnline = action.payload;
     },
+    setMessageReady: (state, action: PayloadAction<boolean>) => {
+      state.messageReady = action.payload;
+    },
     sendMessage: (_state, _action: PayloadAction<CreateMessagePayload>) => {},
     addMessage: (state, action: PayloadAction<Message>) => {
       state.data = [action.payload, ...state.data];
@@ -81,8 +86,13 @@ const messagesSlice = createSlice({
   },
 });
 
-export const { updateUsersOnline, sendMessage, addMessage, clearMessages } =
-  messagesSlice.actions;
+export const {
+  updateUsersOnline,
+  setMessageReady,
+  sendMessage,
+  addMessage,
+  clearMessages,
+} = messagesSlice.actions;
 
 export const selectMessages = (state: RootState) => state.messages;
 

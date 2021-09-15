@@ -1,5 +1,5 @@
 import { Box, Button, Spinner, Stack, Text } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectParties } from '../parties';
 import { CreateMessage } from './CreateMessage';
@@ -11,8 +11,6 @@ export const MessageFeed = () => {
   const { data: messages, isLoading } = useAppSelector(selectMessages);
 
   const dispatch = useAppDispatch();
-
-  const [isReady, setIsReady] = useState(true);
 
   useEffect(() => {
     if (!activeTopic) return;
@@ -54,7 +52,7 @@ export const MessageFeed = () => {
           )}
         {isLoading && <Spinner color="teal.500" />}
       </Stack>
-      <CreateMessage isReady={isReady} setIsReady={setIsReady} />
+      <CreateMessage />
     </Box>
   );
 };

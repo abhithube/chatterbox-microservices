@@ -15,7 +15,7 @@ export const MessageItem = ({ message }: MessageProps) => {
             {message.user.username}
           </Box>
           <Box as="span" ml={2} color="gray.400" fontWeight="light">
-            {message.createdAt}
+            {new Date(message.createdAt).toLocaleString()}
           </Box>
         </Box>
         <Text>{message.body}</Text>

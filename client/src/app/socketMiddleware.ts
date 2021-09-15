@@ -1,6 +1,11 @@
 import { Middleware, PayloadAction } from '@reduxjs/toolkit';
 import { io, Socket } from 'socket.io-client';
-import { addMessage, Message, updateUsersOnline } from '../features/messages';
+import {
+  addMessage,
+  Message,
+  setMessageReady,
+  updateUsersOnline,
+} from '../features/messages';
 
 export const socketMiddleware: Middleware = ({ dispatch }) => {
   let socket: Socket;
@@ -14,6 +19,20 @@ export const socketMiddleware: Middleware = ({ dispatch }) => {
           },
         });
 
+        socket.on('error', err => {
+          if (err.type === 'topic:connection') {
+            socket.emit(
+              'topic:connect',
+              {
+                topic: err.data,
+              },
+              () => {
+                dispatch(setMessageReady(true));
+              }
+            );
+          }
+        });
+
         socket.on('users:read', (users: string[]) => {
           dispatch(updateUsersOnline(users));
         });
@@ -23,23 +42,31 @@ export const socketMiddleware: Middleware = ({ dispatch }) => {
         });
         break;
       case 'parties/setActiveParty':
-        socket.emit('party:disconnect');
-
-        socket.emit('party:connect', {
-          party: action.payload.id,
-        });
+        socket.emit(
+          'party:connect',
+          {
+            party: action.payload.id,
+          },
+          () => {}
+        );
 
         break;
       case 'parties/setActiveTopic':
-        socket.emit('topic:disconnect');
-
-        socket.emit('topic:connect', {
-          topic: action.payload.id,
-        });
+        socket.emit(
+          'topic:connect',
+          {
+            topic: action.payload.id,
+          },
+          () => {
+            dispatch(setMessageReady(true));
+          }
+        );
 
         break;
       case 'messages/sendMessage':
-        socket.emit('message:create', action.payload);
+        socket.emit('message:create', action.payload, () => {
+          dispatch(setMessageReady(true));
+        });
         break;
       case 'auth/getAuth/rejected':
       case 'auth/signOut/fulfilled':
