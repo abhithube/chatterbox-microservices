@@ -7,21 +7,17 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  Spinner,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaComment, FaPlay } from 'react-icons/fa';
+import { selectMessages, setMessageReady } from '.';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { selectParties } from '../parties';
 import { sendMessage } from './messagesSlice';
 
-type CreateMessageProps = {
-  isReady: boolean;
-  setIsReady: React.Dispatch<React.SetStateAction<boolean>>;
-};
-
-export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
+export const CreateMessage = () => {
   const { activeTopic } = useAppSelector(selectParties);
+  const { messageReady } = useAppSelector(selectMessages);
   const dispatch = useAppDispatch();
 
   const [message, setMessage] = useState('');
@@ -29,8 +25,7 @@ export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
   const handleClick = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // setIsReady(false);
-
+    dispatch(setMessageReady(false));
     dispatch(
       sendMessage({
         body: message,
@@ -61,8 +56,7 @@ export const CreateMessage = ({ isReady, setIsReady }: CreateMessageProps) => {
             aria-label="create-message-button"
             icon={<Icon as={FaPlay} />}
             colorScheme="teal"
-            isLoading={!isReady}
-            spinner={<Spinner />}
+            disabled={!messageReady}
             type="submit"
             ml={4}
             w={16}
