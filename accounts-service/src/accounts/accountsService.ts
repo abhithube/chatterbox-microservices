@@ -1,22 +1,28 @@
 import {
   BadRequestException,
   BrokerClient,
+  CurrentUser,
   ForbiddenException,
   InternalServerException,
   NotFoundException,
   RandomGenerator,
 } from '@chttrbx/common';
 import { PasswordHasher } from '../common';
-import { RegisterDto } from './interfaces';
+import {
+  ConfirmEmailDto,
+  ForgotPasswordDto,
+  RegisterDto,
+  ResetPasswordDto,
+} from './interfaces';
 import { User } from './models';
 import { UsersRepository } from './repositories';
 
 export interface AccountsService {
   createAccount({ username, email, password }: RegisterDto): Promise<User>;
-  getAccount(id: string): Promise<User>;
-  confirmEmail(verificationToken: string): Promise<void>;
-  getPasswordResetLink(email: string): Promise<void>;
-  resetPassword(resetToken: string, password: string): Promise<void>;
+  getAccount(user: CurrentUser): Promise<User>;
+  confirmEmail(confirmEmailDto: ConfirmEmailDto): Promise<void>;
+  getPasswordResetLink(forgotPasswordDto: ForgotPasswordDto): Promise<void>;
+  resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void>;
   deleteAccount(id: string): Promise<void>;
 }
 
@@ -76,7 +82,7 @@ export function createAccountsService({
     return user;
   }
 
-  async function getAccount(id: string): Promise<User> {
+  async function getAccount({ id }: CurrentUser): Promise<User> {
     const user = await usersRepository.findOne({
       id,
     });
@@ -87,10 +93,10 @@ export function createAccountsService({
     return user;
   }
 
-  async function confirmEmail(verificationToken: string): Promise<void> {
+  async function confirmEmail({ token }: ConfirmEmailDto): Promise<void> {
     const user = await usersRepository.updateOne(
       {
-        verificationToken,
+        verificationToken: token,
       },
       {
         verified: true,
@@ -111,7 +117,9 @@ export function createAccountsService({
     });
   }
 
-  async function getPasswordResetLink(email: string): Promise<void> {
+  async function getPasswordResetLink({
+    email,
+  }: ForgotPasswordDto): Promise<void> {
     const user = await usersRepository.findOne({
       email,
     });
@@ -133,13 +141,13 @@ export function createAccountsService({
     });
   }
 
-  async function resetPassword(
-    resetToken: string,
-    password: string
-  ): Promise<void> {
+  async function resetPassword({
+    token,
+    password,
+  }: ResetPasswordDto): Promise<void> {
     const user = await usersRepository.updateOne(
       {
-        resetToken,
+        resetToken: token,
       },
       {
         password: passwordHasher.hashSync(password),

@@ -5,16 +5,14 @@ import {
   createDotenvManager,
   createJwtIssuer,
   createKafkaClient,
-  createMongoConnection,
   createUuidGenerator,
-  DbConnection,
   HttpClient,
-  MongoClient,
   RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
 import { asFunction, asValue, AwilixContainer, createContainer } from 'awilix';
 import { Application, Router } from 'express';
+import { MongoClient } from 'mongodb';
 import {
   AccountsService,
   createAccountsRouter,
@@ -33,7 +31,7 @@ interface Container {
   accountsService: AccountsService;
   authService: AuthService;
   usersRepository: UsersRepository;
-  dbConnection: DbConnection<MongoClient>;
+  dbClient: MongoClient;
   brokerClient: BrokerClient;
   tokenIssuer: TokenIssuer;
   passwordHasher: PasswordHasher;
@@ -52,9 +50,8 @@ export async function configureContainer(): Promise<
     throw new Error('Database URL missing');
   }
 
-  const mongoConnection = await createMongoConnection({
-    url: databaseUrl,
-  });
+  const mongo = new MongoClient(databaseUrl);
+  const mongoClient = await mongo.connect();
 
   const jwtIssuer = createJwtIssuer({
     secretOrKey: dotenvManager.get('JWT_SECRET') || 'secret',
@@ -103,7 +100,7 @@ export async function configureContainer(): Promise<
     accountsService: asFunction(createAccountsService).singleton(),
     authService: asFunction(createAuthService).singleton(),
     usersRepository: asFunction(createUsersRepository).singleton(),
-    dbConnection: asValue(mongoConnection),
+    dbClient: asValue(mongoClient),
     brokerClient: asValue(kafkaClient),
     tokenIssuer: asValue(jwtIssuer),
     passwordHasher: asFunction(createBcryptHasher).singleton(),

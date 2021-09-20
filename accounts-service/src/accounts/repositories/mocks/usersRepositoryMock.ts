@@ -1,5 +1,5 @@
-import { BaseRepository } from '@chttrbx/common';
 import { User } from '../../models';
+import { UsersRepository } from '../usersRepository';
 
 export const MOCK_VERIFIED_USER: User = {
   id: 'id',
@@ -18,7 +18,7 @@ export const MOCK_UNVERIFIED_USER: User = {
   verificationToken: 'verification',
 };
 
-export const createUsersRepositoryMock = (): BaseRepository<User> => ({
+export const createUsersRepositoryMock = (): UsersRepository => ({
   insertOne: () => Promise.resolve(MOCK_UNVERIFIED_USER),
   findOne: () => Promise.resolve(MOCK_VERIFIED_USER),
   updateOne: () => Promise.resolve(MOCK_VERIFIED_USER),
