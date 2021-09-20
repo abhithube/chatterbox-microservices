@@ -8,8 +8,7 @@ import {
 } from '@chttrbx/common';
 import { Router } from 'express';
 import { AuthService } from './authService';
-import { LoginSchema } from './interfaces';
-import { RequestWithCookies } from './interfaces/RequestWithCookies';
+import { LoginSchema, RequestWithCookies } from './interfaces';
 import {
   cookieMiddleware,
   githubAuthMiddleware,
