@@ -47,7 +47,7 @@ export function createMessagesGateway({
     socket.on(
       'party:connect',
       async ({ party }: PartyConnection, callback: () => void) => {
-        await messagesService.validatePartyConnection(party, client.user.id);
+        await messagesService.validatePartyConnection(party, client.user);
 
         if (client.party) {
           client.leave(`party:${client.party}`);
@@ -105,7 +105,11 @@ export function createMessagesGateway({
           client.leave(`topic:${client.topic}`);
         }
 
-        await messagesService.validateTopicConnection(topic, client.party);
+        await messagesService.validateTopicConnection(
+          topic,
+          client.party,
+          client.user
+        );
 
         client.join(`topic:${topic}`);
         client.topic = topic;

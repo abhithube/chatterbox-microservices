@@ -12,7 +12,7 @@ interface PartiesRouterDeps {
 export function createPartiesRouter({
   partiesService,
   messagesService,
-}: PartiesRouterDeps) {
+}: PartiesRouterDeps): Router {
   const router = Router();
 
   router.post(
@@ -36,9 +36,9 @@ export function createPartiesRouter({
   });
 
   router.get('/:id', async (req, res) => {
-    const { params } = req;
+    const { params, user } = req as unknown as RequestWithUser;
 
-    const party = await partiesService.getParty(params.id);
+    const party = await partiesService.getParty(params.id, user);
 
     res.json(party);
   });
@@ -75,9 +75,9 @@ export function createPartiesRouter({
     '/:id/topics',
     validationMiddleware(CreateTopicSchema),
     async (req, res) => {
-      const { params, body } = req;
+      const { params, body, user } = req as RequestWithUser;
 
-      const topic = await partiesService.createTopic(body, params.id);
+      const topic = await partiesService.createTopic(body, params.id, user);
 
       res.status(201).json(topic);
     }
@@ -97,9 +97,9 @@ export function createPartiesRouter({
   });
 
   router.delete('/:id/topics/:topicId', async (req, res) => {
-    const { params } = req;
+    const { params, user } = req as unknown as RequestWithUser;
 
-    await partiesService.deleteTopic(params.topicId, params.id);
+    await partiesService.deleteTopic(params.topicId, params.id, user);
 
     res.json();
   });

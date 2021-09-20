@@ -5,7 +5,7 @@ import {
   TokenIssuer,
 } from '@chttrbx/common';
 import cors from 'cors';
-import express, { Router } from 'express';
+import express, { Application, Router } from 'express';
 
 interface AppDeps {
   partiesRouter: Router;
@@ -17,7 +17,7 @@ export function createApp({
   partiesRouter,
   tokenIssuer,
   configManager,
-}: AppDeps) {
+}: AppDeps): Application {
   const app = express();
 
   app.use(express.json());

@@ -1,194 +1,132 @@
-import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
-import { Party, Topic } from '../models';
+import { Client } from 'pg';
+import { Party } from '../entities';
+import { PartyWithMembersAndTopics } from '../types';
 
-export interface PartiesRepository extends BaseRepository<Party> {
-  findMany(options: Partial<Party>): Promise<Party[]>;
-  findManyByMember(userId: string): Promise<Party[]>;
-  addMember(id: string, userId: string): Promise<Party>;
-  removeMember(id: string, userId: string): Promise<Party>;
-  addTopic(partyId: string, topic: Topic): Promise<Party>;
-  removeTopic(partyId: string, topicId: string): Promise<Party>;
+export interface PartiesRepository {
+  insertOne(party: Partial<Party>): Promise<Party>;
+  findManyByUserId(userId: string): Promise<Party[]>;
+  findOne(id: string): Promise<Party | null>;
+  findOneWithMembersAndTopics(
+    id: string
+  ): Promise<PartyWithMembersAndTopics | null>;
+  deleteOne(id: string): Promise<Party | null>;
+  deleteMany(options: Partial<Party>): Promise<void>;
 }
 
 interface PartiesRepositoryDeps {
-  dbConnection: DbConnection<MongoClient>;
+  dbClient: Client;
 }
 
 export function createPartiesRepository({
-  dbConnection,
+  dbClient,
 }: PartiesRepositoryDeps): PartiesRepository {
-  const collection = dbConnection.getClient().db().collection<Party>('parties');
-
-  async function insertOne(party: Party): Promise<Party> {
-    await collection.insertOne(party);
-
-    const result = await findOne({
-      id: party.id,
-    });
-
-    return result!;
-  }
-
-  async function findMany(options: Partial<Party>): Promise<Party[]> {
-    return collection
-      .aggregate()
-      .match(options)
-      .lookup({
-        from: 'users',
-        localField: 'members',
-        foreignField: 'id',
-        as: 'members',
-      })
-      .project<Party>({
-        _id: 0,
-      })
-      .toArray();
-  }
-
-  async function findManyByMember(userId: string): Promise<Party[]> {
-    return collection
-      .aggregate()
-      .match({
-        members: {
-          $in: [userId],
-        },
-      })
-      .lookup({
-        from: 'users',
-        localField: 'members',
-        foreignField: 'id',
-        as: 'members',
-      })
-      .project<Party>({
-        _id: 0,
-      })
-      .toArray();
-  }
-
-  async function findOne(options: Partial<Party>): Promise<Party | null> {
-    return collection
-      .aggregate()
-      .match(options)
-      .lookup({
-        from: 'users',
-        localField: 'members',
-        foreignField: 'id',
-        as: 'members',
-      })
-      .project<Party>({
-        _id: 0,
-      })
-      .limit(1)
-      .next();
-  }
-
-  async function updateOne(
-    filterOptions: Partial<Party>,
-    updateOptions: Partial<Party>
-  ): Promise<Party | null> {
-    const { modifiedCount } = await collection.updateOne(filterOptions, {
-      $set: updateOptions,
-    });
-
-    if (modifiedCount === 0) {
-      return null;
-    }
-
-    const party = await findOne(filterOptions);
-    return party!;
-  }
-
-  async function addMember(id: string, userId: string): Promise<Party> {
-    await collection.updateOne(
-      {
-        id,
-      },
-      {
-        $push: {
-          members: userId,
-        },
-      }
+  async function insertOne({ id, name, inviteToken }: Party): Promise<Party> {
+    const result = await dbClient.query<Party>(
+      `
+       INSERT INTO parties(id, name, invite_token)
+       VALUES ($1, $2, $3)
+    RETURNING id, name, invite_token AS "inviteToken"
+    `,
+      [id, name, inviteToken]
     );
 
-    const party = await findOne({ id });
-    return party!;
+    const party = result.rows[0];
+
+    return party;
   }
 
-  async function removeMember(id: string, userId: string): Promise<Party> {
-    await collection.updateOne(
-      {
-        id,
-      },
-      {
-        $pull: {
-          members: userId,
-        },
-      }
+  async function findManyByUserId(userId: string): Promise<Party[]> {
+    const result = await dbClient.query<Party>(
+      `
+      SELECT p.id, p.name, p.invite_token AS "inviteToken"
+        FROM members as m
+             LEFT JOIN parties AS p
+             ON p.id = m.party_id
+       WHERE m.user_id = $1
+      `,
+      [userId]
     );
 
-    const party = await findOne({ id });
-    return party!;
+    const parties = result.rows;
+
+    return parties;
   }
 
-  async function addTopic(partyId: string, topic: Topic): Promise<Party> {
-    await collection.updateOne(
-      {
-        id: partyId,
-      },
-      {
-        $push: {
-          topics: topic,
-        },
-      }
+  async function findOne(id: string): Promise<Party | null> {
+    const partyResult = await dbClient.query<Party>(
+      `
+      SELECT id,
+             name,
+             invite_token AS "inviteToken"
+        FROM parties
+       WHERE id = $1
+      `,
+      [id]
     );
 
-    const party = await findOne({ id: partyId });
-    return party!;
+    const party = partyResult.rows[0];
+
+    return party;
   }
 
-  async function removeTopic(partyId: string, topicId: string): Promise<Party> {
-    await collection.updateOne(
-      {
-        id: partyId,
-      },
-      {
-        $pull: {
-          topics: {
-            id: topicId,
-          },
-        },
-      }
+  async function findOneWithMembersAndTopics(
+    id: string
+  ): Promise<PartyWithMembersAndTopics | null> {
+    const result = await dbClient.query<PartyWithMembersAndTopics>(
+      `
+      SELECT p.id,
+             p.name,
+             p.invite_token AS "inviteToken",
+             CASE WHEN COUNT(u) = 0
+                  THEN '[]'
+                  ELSE json_agg(DISTINCT jsonb_build_object('id', u.id, 'username', u.username, 'avatarUrl', u.avatar_url))
+             END AS members,
+             CASE WHEN COUNT(t) = 0
+                  THEN '[]'
+                  ELSE json_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name, 'partyId', t.party_id))
+             END AS topics
+        FROM parties AS p
+             LEFT JOIN members AS m
+             ON m.party_id = p.id
+             LEFT JOIN users AS u
+             ON m.user_id = u.id
+             LEFT JOIN topics AS t
+             ON t.party_id = p.id
+       WHERE p.id = $1
+       GROUP BY p.id
+      `,
+      [id]
     );
 
-    const party = await findOne({ id: partyId });
-    return party!;
+    const party = result.rows[0];
+
+    return party;
   }
 
-  async function deleteOne(options: Partial<Party>): Promise<Party | null> {
-    const { deletedCount } = await collection.deleteOne(options);
+  async function deleteOne(id: string): Promise<Party | null> {
+    const result = await dbClient.query<Party>(
+      `
+         DELETE FROM parties
+          WHERE id = $1
+      RETURNING id, name, invite_token AS "inviteToken"
+      `,
+      [id]
+    );
 
-    if (deletedCount === 0) {
-      return null;
-    }
+    const party = result.rows[0];
 
-    const party = await findOne(options);
-    return party!;
+    return party;
   }
 
-  async function deleteMany(options: Partial<Party>) {
-    await collection.deleteMany(options);
+  async function deleteMany() {
+    await dbClient.query('DELETE FROM parties');
   }
 
   return {
     insertOne,
-    findMany,
-    findManyByMember,
+    findManyByUserId,
     findOne,
-    updateOne,
-    addMember,
-    removeMember,
-    addTopic,
-    removeTopic,
+    findOneWithMembersAndTopics,
     deleteOne,
     deleteMany,
   };

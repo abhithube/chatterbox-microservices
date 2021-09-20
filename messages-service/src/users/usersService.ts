@@ -1,4 +1,3 @@
-import { PartiesService } from '../parties';
 import { UserDto } from './interfaces';
 import { UsersRepository } from './repositories';
 
@@ -10,12 +9,10 @@ export interface UsersService {
 
 interface UsersServiceDeps {
   usersRepository: UsersRepository;
-  partiesService: PartiesService;
 }
 
 export function createUsersService({
   usersRepository,
-  partiesService,
 }: UsersServiceDeps): UsersService {
   async function createUser({
     id,
@@ -34,31 +31,15 @@ export function createUsersService({
     username,
     avatarUrl,
   }: UserDto): Promise<void> {
-    await usersRepository.updateOne(
-      {
-        id,
-      },
-      {
-        username,
-        avatarUrl,
-      }
-    );
+    await usersRepository.updateOne(id, {
+      id,
+      username,
+      avatarUrl,
+    });
   }
 
   async function deleteUser({ id }: UserDto): Promise<void> {
-    await usersRepository.deleteOne({
-      id,
-    });
-
-    const parties = await partiesService.getUserParties({ id });
-
-    const partyPromises: Promise<void>[] = [];
-
-    parties.forEach((party) => {
-      partyPromises.push(partiesService.leaveParty(party.id, { id }));
-    });
-
-    await Promise.all(partyPromises);
+    await usersRepository.deleteOne(id);
   }
 
   return {

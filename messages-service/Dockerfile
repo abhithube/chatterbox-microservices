@@ -7,6 +7,11 @@ FROM base AS deps
 COPY ["package.json", "package-lock.json", "./"]
 RUN npm ci --only=production
 
+# Copy migration files
+FROM base as migration
+COPY entrypoint.sh .
+COPY migrations ./migrations
+
 # Build source code
 FROM base AS build
 COPY ["package.json", "package-lock.json", "./"]
@@ -17,6 +22,7 @@ RUN npm run build
 # Merge previous stages
 FROM base
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=migration /app .
 COPY --from=build /app/dist ./dist
 
-CMD ["node", "dist/server"]
+CMD ["./entrypoint.sh"]

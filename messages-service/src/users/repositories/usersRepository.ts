@@ -1,64 +1,88 @@
-import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
+import { Client } from 'pg';
 import { User } from '../models';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface UsersRepository extends BaseRepository<User> {}
+export interface UsersRepository {
+  insertOne(user: User): Promise<User>;
+  findOne(id: string): Promise<User | null>;
+  updateOne(id: string, updateOptions: Partial<User>): Promise<User | null>;
+  deleteOne(id: string): Promise<User | null>;
+  deleteMany(): Promise<void>;
+}
 
 interface UsersRepositoryDeps {
-  dbConnection: DbConnection<MongoClient>;
+  dbClient: Client;
 }
 
 export function createUsersRepository({
-  dbConnection,
+  dbClient,
 }: UsersRepositoryDeps): UsersRepository {
-  const collection = dbConnection.getClient().db().collection<User>('users');
+  async function insertOne({ id, username, avatarUrl }: User): Promise<User> {
+    const result = await dbClient.query<User>(
+      `
+      INSERT INTO users(id, username, avatar_url)
+      VALUES ($1, $2, $3)
+      RETURNING id, username, avatar_url AS "avatarUrl"
+      `,
+      [id, username, avatarUrl]
+    );
 
-  async function insertOne(user: User): Promise<User> {
-    await collection.insertOne(user);
+    const user = result.rows[0];
 
     return user;
   }
 
-  async function findOne(options: Partial<User>): Promise<User | null> {
-    return collection.findOne(options, {
-      projection: {
-        _id: 0,
-      },
-    });
+  async function findOne(id: string): Promise<User | null> {
+    const result = await dbClient.query<User>(
+      `
+      SELECT id, username, avatar_url AS "avatarUrl"
+        FROM members
+       WHERE user_id = $1 AND party_id = $2
+    `,
+      [id]
+    );
+
+    const user = result.rows[0];
+
+    return user;
   }
 
   async function updateOne(
-    filterOptions: Partial<User>,
-    updateOptions: Partial<User>
+    id: string,
+    { username, avatarUrl }: User
   ): Promise<User | null> {
-    const result = await collection.findOneAndUpdate(
-      filterOptions,
-      {
-        $set: updateOptions,
-      },
-      {
-        projection: {
-          _id: 0,
-        },
-        returnDocument: 'after',
-      }
+    const result = await dbClient.query<User>(
+      `
+         UPDATE users
+            SET username = $1,
+                avatar_url = $2
+          WHERE id = $3
+      RETURNING id, username, avatar_url AS "avatarUrl"
+    `,
+      [username, avatarUrl, id]
     );
 
-    return result.value;
+    const user = result.rows[0];
+
+    return user;
   }
 
-  async function deleteOne(options: Partial<User>): Promise<User | null> {
-    const result = await collection.findOneAndDelete(options, {
-      projection: {
-        _id: 0,
-      },
-    });
+  async function deleteOne(id: string): Promise<User | null> {
+    const result = await dbClient.query<User>(
+      `
+         DELETE FROM users
+          WHERE id = $1
+      RETURNING id, username, avatar_url AS "avatarUrl"
+      `,
+      [id]
+    );
 
-    return result.value;
+    const user = result.rows[0];
+
+    return user;
   }
 
-  async function deleteMany(options: Partial<User>): Promise<void> {
-    await collection.deleteMany(options);
+  async function deleteMany(): Promise<void> {
+    await dbClient.query('DELETE FROM users');
   }
 
   return {
