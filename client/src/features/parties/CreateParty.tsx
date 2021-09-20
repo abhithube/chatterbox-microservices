@@ -43,7 +43,7 @@ export const CreateParty = ({ onClose }: CreatePartyProps) => {
         })
       ).unwrap();
 
-      history.push(`/parties/${party.id}/topics/${party.topics[0].id}`);
+      history.push(`/parties/${party.id}`);
 
       setName('');
       setAlert(null);

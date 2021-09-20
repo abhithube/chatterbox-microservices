@@ -25,10 +25,7 @@ export const App = () => (
         <Box h="calc(100% - 48px)">
           <Switch>
             <Route exact path="/" component={HomePage} />
-            <ProtectedRoute
-              path="/parties/:partyId/topics/:topicId"
-              component={PartyPage}
-            />
+            <ProtectedRoute path="/parties/:partyId" component={PartyPage} />
             <ProtectedRoute path="/invite" component={InvitePage} />
             <ProtectedRoute
               path="/register"

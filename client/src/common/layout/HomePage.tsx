@@ -34,9 +34,7 @@ export const HomePage = () => {
     <>
       {!userLoading && !user && <Redirect to="/login" />}
       {!partiesLoading && parties.length !== 0 && (
-        <Redirect
-          to={`/parties/${parties[0].id}/topics/${parties[0].topics[0].id}`}
-        />
+        <Redirect to={`/parties/${parties[0].id}`} />
       )}
       <Modal
         isOpen={isOpen}
@@ -48,13 +46,11 @@ export const HomePage = () => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Create a New Party</ModalHeader>
-          {/* <ModalCloseButton /> */}
           <ModalBody>
             <CreateParty onClose={onClose} />
           </ModalBody>
         </ModalContent>
       </Modal>
-      {/* {!partiesLoading && parties.length === 0 && onOpen()} */}
     </>
   );
 };
