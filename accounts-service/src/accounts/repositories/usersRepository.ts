@@ -1,23 +1,34 @@
-import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
+import { MongoClient } from 'mongodb';
 import { User } from '../models';
 
-export type UsersRepository = BaseRepository<User>;
+export interface UsersRepository {
+  insertOne(user: User): Promise<User>;
+  findOne(options: Partial<User>): Promise<User | null>;
+  updateOne(
+    filterOptions: Partial<User>,
+    updateOptions: Partial<User>
+  ): Promise<User | null>;
+  deleteOne(options: Partial<User>): Promise<User | null>;
+  deleteMany(options: Partial<User>): Promise<void>;
+}
 
 interface UsersRepositoryDeps {
-  dbConnection: DbConnection<MongoClient>;
+  dbClient: MongoClient;
 }
 
 export function createUsersRepository({
-  dbConnection,
+  dbClient,
 }: UsersRepositoryDeps): UsersRepository {
-  const collection = dbConnection.getClient().db().collection<User>('users');
+  const collection = dbClient.db().collection<User>('users');
 
   collection.createIndex('id', {
     unique: true,
   });
 
   async function insertOne(user: User): Promise<User> {
-    await collection.insertOne(user);
+    await collection.insertOne({
+      ...user,
+    });
 
     return user;
   }

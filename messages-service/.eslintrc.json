@@ -26,8 +26,6 @@
         "js": "never",
         "ts": "never"
       }
-    ],
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "no-use-before-define": ["error", { "functions": false }]
+    ]
   }
 }

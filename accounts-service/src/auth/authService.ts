@@ -1,13 +1,12 @@
 import {
   BadRequestException,
-  BaseRepository,
   BrokerClient,
   CurrentUser,
   ForbiddenException,
   RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
-import { User } from '../accounts';
+import { User, UsersRepository } from '../accounts';
 import { PasswordHasher } from '../common';
 import { RefreshResponseDto, TokenResponseDto } from './types';
 
@@ -23,7 +22,7 @@ export interface AuthService {
 }
 
 interface AuthServiceDeps {
-  usersRepository: BaseRepository<User>;
+  usersRepository: UsersRepository;
   tokenIssuer: TokenIssuer;
   brokerClient: BrokerClient;
   passwordHasher: PasswordHasher;

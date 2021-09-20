@@ -1,5 +1,4 @@
 import {
-  BaseRepository,
   BrokerClient,
   createBrokerClientMock,
   createRandomGeneratorMock,
@@ -14,6 +13,7 @@ import {
   MOCK_VERIFIED_USER,
   RegisterDto,
   User,
+  UsersRepository,
 } from '../accounts';
 import { createPasswordHasherMock, PasswordHasher } from '../common';
 import { AuthService, createAuthService } from './authService';
@@ -43,7 +43,7 @@ const currentUser: CurrentUser = {
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersRepository: BaseRepository<User>;
+  let usersRepository: UsersRepository;
   let passwordHasher: PasswordHasher;
   let tokenIssuer: TokenIssuer;
   let brokerClient: BrokerClient;

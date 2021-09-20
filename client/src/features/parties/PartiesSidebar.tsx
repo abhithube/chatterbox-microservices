@@ -19,7 +19,7 @@ export const PartiesSidebar = () => {
         <Link
           key={party.id}
           as={RouterLink}
-          to={`/parties/${party.id}/topics/${party.topics[0].id}`}
+          to={`/parties/${party.id}`}
           m={2}
           px={2}
           borderLeftWidth={3}

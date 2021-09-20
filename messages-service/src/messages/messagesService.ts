@@ -1,90 +1,88 @@
 import {
   CurrentUser,
   ForbiddenException,
-  NotFoundException,
+  RandomGenerator,
 } from '@chttrbx/common';
-import { randomUUID } from 'crypto';
-import { PartiesService } from '../parties/partiesService';
+import { MembersRepository, TopicsRepository } from '../parties/repositories';
 import { CreateMessageDto } from './dto';
-import { Message } from './models';
 import { MessagesRepository } from './repositories';
+import { MessageWithUser } from './types';
 
 export interface MessagesService {
-  validatePartyConnection(id: string, userId: string): Promise<void>;
-  validateTopicConnection(id: string, partyId: string): Promise<void>;
+  validatePartyConnection(id: string, user: CurrentUser): Promise<void>;
+  validateTopicConnection(
+    id: string,
+    partyId: string,
+    user: CurrentUser
+  ): Promise<void>;
   createMessage(
     createMessageDto: CreateMessageDto,
     topicId: string,
     user: CurrentUser
-  ): Promise<Message>;
+  ): Promise<MessageWithUser>;
   getMessages(
     topicId: string,
     partyId: string,
     userId: string,
     topicIndex?: number
-  ): Promise<Message[]>;
+  ): Promise<MessageWithUser[]>;
 }
 
 interface MessagesServiceDeps {
-  partiesService: PartiesService;
   messagesRepository: MessagesRepository;
+  membersRepository: MembersRepository;
+  topicsRepository: TopicsRepository;
+  randomGenerator: RandomGenerator;
 }
 
 export function createMessagesService({
   messagesRepository,
-  partiesService,
+  membersRepository,
+  topicsRepository,
+  randomGenerator,
 }: MessagesServiceDeps): MessagesService {
   async function validatePartyConnection(
     id: string,
-    userId: string
+    user: CurrentUser
   ): Promise<void> {
-    try {
-      const party = await partiesService.getParty(id);
+    const member = await membersRepository.findOne(user.id, id);
 
-      if (!party.members.includes(userId)) {
-        throw new Error('Not a member');
-      }
-    } catch (err) {
-      if (err instanceof NotFoundException) {
-        throw new Error('Party not found');
-      }
+    if (!member) {
+      throw new Error('Not a member');
     }
   }
 
-  async function validateTopicConnection(
-    id: string,
-    partyId: string
-  ): Promise<void> {
-    try {
-      const party = await partiesService.getParty(partyId);
+  async function validateTopicConnection(id: string): Promise<void> {
+    const topic = await topicsRepository.findOne(id);
 
-      if (!party.topics.find((topic) => topic.id === id)) {
-        throw new Error('Topic not found');
-      }
-    } catch (err) {
-      if (err instanceof NotFoundException) {
-        throw new Error('Party not found');
-      }
+    if (!topic) {
+      throw new Error('Topic not found');
     }
   }
 
   async function createMessage(
     { body }: CreateMessageDto,
     topicId: string,
-    user: CurrentUser
-  ): Promise<Message> {
-    const latest = await messagesRepository.findOne({ topicId });
+    { id: userId }: CurrentUser
+  ): Promise<MessageWithUser> {
+    const latest = await messagesRepository.findOneByTopicIdAndDate(topicId);
 
-    const message: Message = {
-      id: randomUUID(),
+    const id = randomGenerator.generate();
+
+    await messagesRepository.insertOne({
+      id,
       topicIndex: (latest?.topicIndex || 0) + 1,
       body,
       topicId,
-      user: user.id,
-      createdAt: new Date(),
-    };
+      userId,
+    });
 
-    return messagesRepository.insertOne(message);
+    const message = await messagesRepository.findOne(id);
+    if (!message) {
+      throw new Error('Something went wrong');
+    }
+
+    return message;
   }
 
   async function getMessages(
@@ -92,23 +90,15 @@ export function createMessagesService({
     partyId: string,
     userId: string,
     topicIndex?: number
-  ): Promise<Message[]> {
-    try {
-      const party = await partiesService.getParty(partyId);
+  ): Promise<MessageWithUser[]> {
+    const member = await membersRepository.findOne(userId, partyId);
 
-      if (!party.members.includes(userId)) {
-        throw new ForbiddenException('Not a member');
-      }
-    } catch (err) {
-      if (err instanceof NotFoundException) {
-        throw new NotFoundException('Topic not found');
-      }
+    if (!member) {
+      throw new ForbiddenException('Not a member');
     }
 
-    return messagesRepository.findManyByIndex(
-      {
-        topicId,
-      },
+    return messagesRepository.findManyByTopicIdAndTopicIndex(
+      topicId,
       topicIndex
     );
   }

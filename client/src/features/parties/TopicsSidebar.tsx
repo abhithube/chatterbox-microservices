@@ -1,21 +1,19 @@
-import {
-  Box,
-  Flex,
-  Heading,
-  HStack,
-  LinkBox,
-  LinkOverlay,
-} from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
-import { useAppSelector } from '../../app/hooks';
+import { Box, Flex, Heading, HStack } from '@chakra-ui/react';
+import { setActiveTopic } from '.';
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { InviteModal } from '../invite';
-import { selectParties } from './partiesSlice';
+import { selectParties, Topic } from './partiesSlice';
 import { TopicModal } from './TopicModal';
 
 export const TopicsSidebar = () => {
   const { activeParty, activeTopic } = useAppSelector(selectParties);
+  const dispatch = useAppDispatch();
 
   if (!activeParty) return null;
+
+  const handleClick = (topic: Topic) => {
+    dispatch(setActiveTopic(topic));
+  };
 
   return (
     <Flex direction="column" align="center" h="full" bgColor="gray.100">
@@ -27,26 +25,22 @@ export const TopicsSidebar = () => {
       </Box>
       <Box mt={8}>
         {activeParty.topics.map(topic => (
-          <LinkBox
+          <Box
             key={topic.id}
             m={1}
             px={4}
             bgColor={topic.id === activeTopic?.id ? 'gray.300' : 'gray.100'}
             rounded="sm"
-            _hover={{}}
+            _hover={{ cursor: 'pointer' }}
+            onClick={() => handleClick(topic)}
           >
             <HStack>
               <Box as="span" fontSize="xl" color="teal.500">
                 #
               </Box>
-              <LinkOverlay
-                as={RouterLink}
-                to={`/parties/${activeParty.id}/topics/${topic.id}`}
-              >
-                <Box as="span">{topic.name}</Box>
-              </LinkOverlay>
+              <Box as="span">{topic.name}</Box>
             </HStack>
-          </LinkBox>
+          </Box>
         ))}
       </Box>
       <Box mt={4}>

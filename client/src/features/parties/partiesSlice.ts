@@ -7,6 +7,9 @@ export interface Party {
   id: string;
   name: string;
   inviteToken: string;
+}
+
+export interface PartyWithMembersAndTopics extends Party {
   members: User[];
   topics: Topic[];
 }
@@ -26,7 +29,7 @@ interface CreateTopicPayload {
 
 interface PartiesState {
   data: Party[];
-  activeParty: Party | null;
+  activeParty: PartyWithMembersAndTopics | null;
   activeTopic: Topic | null;
   isLoading: boolean;
   error: string | null;
@@ -43,6 +46,13 @@ const initialState: PartiesState = {
 export const getParties = createAsyncThunk('parties/getParties', async () => {
   return httpClient.get<Party[]>('/parties/@me');
 });
+
+export const getParty = createAsyncThunk(
+  'parties/getActiveParty',
+  async (id: string) => {
+    return httpClient.get<PartyWithMembersAndTopics>(`/parties/${id}`);
+  }
+);
 
 export const createParty = createAsyncThunk(
   'parties/createParty',
@@ -69,9 +79,6 @@ const partiesSlice = createSlice({
   name: 'parties',
   initialState,
   reducers: {
-    setActiveParty: (state, action: PayloadAction<Party>) => {
-      state.activeParty = action.payload;
-    },
     setActiveTopic: (state, action: PayloadAction<Topic>) => {
       state.activeTopic = action.payload;
     },
@@ -85,6 +92,9 @@ const partiesSlice = createSlice({
         state.data = action.payload;
         state.isLoading = false;
       })
+      .addCase(getParty.fulfilled, (state, action) => {
+        state.activeParty = action.payload;
+      })
       .addCase(getParties.rejected, (state, action) => {
         state.error = action.error.message!;
         state.isLoading = false;
@@ -93,17 +103,12 @@ const partiesSlice = createSlice({
         state.data.push(action.payload);
       })
       .addCase(createTopic.fulfilled, (state, action) => {
-        const partyToUpdate = state.data.find(
-          party => party.id === state.activeParty?.id
-        );
-
-        partyToUpdate!.topics.push(action.payload);
-        state.activeParty = partyToUpdate!;
+        state.activeParty?.topics.push(action.payload);
       });
   },
 });
 
-export const { setActiveParty, setActiveTopic } = partiesSlice.actions;
+export const { setActiveTopic } = partiesSlice.actions;
 
 export const selectParties = (state: RootState) => state.parties;
 

@@ -1,117 +1,152 @@
-import { BaseRepository, DbConnection, MongoClient } from '@chttrbx/common';
+import { Client } from 'pg';
 import { Message } from '../models';
+import { MessageWithUser } from '../types';
 
-export interface MessagesRepository extends BaseRepository<Message> {
-  findManyByIndex(
-    options: Omit<Partial<Message>, 'topicIndex'>,
+export interface MessagesRepository {
+  insertOne(message: Omit<Message, 'createdAt'>): Promise<Message>;
+  findManyByTopicIdAndTopicIndex(
+    topicId: string,
     topicIndex?: number
-  ): Promise<Message[]>;
+  ): Promise<MessageWithUser[]>;
+  findOne(id: string): Promise<MessageWithUser | null>;
+  findOneByTopicIdAndDate(topicId: string): Promise<Message | null>;
+  deleteOne(id: string): Promise<Message | null>;
+  deleteMany(): Promise<void>;
 }
 
 interface MessagesRepositoryDeps {
-  dbConnection: DbConnection<MongoClient>;
+  dbClient: Client;
 }
 
 export function createMessagesRepository({
-  dbConnection,
+  dbClient,
 }: MessagesRepositoryDeps): MessagesRepository {
-  const collection = dbConnection
-    .getClient()
-    .db()
-    .collection<Message>('messages');
+  async function insertOne({
+    id,
+    topicIndex,
+    body,
+    userId,
+    topicId,
+  }: Omit<Message, 'createdAt'>): Promise<Message> {
+    const result = await dbClient.query<Message>(
+      `
+         INSERT INTO messages (id, topic_index, body, user_id, topic_id)
+         VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, topic_index AS "topicIndex", body, created_at AS "createdAt", user_id AS "userId", topic_id AS "topicId"
+      `,
+      [id, topicIndex, body, userId, topicId]
+    );
 
-  async function insertOne(message: Message): Promise<Message> {
-    await collection.insertOne(message);
+    const message = result.rows[0];
 
-    const result = await findOne({ id: message.id });
-
-    return result!;
+    return message;
   }
 
-  async function findManyByIndex(
-    options: Omit<Partial<Message>, 'topicIndex'>,
+  async function findManyByTopicIdAndTopicIndex(
+    topicId: string,
     topicIndex?: number
-  ): Promise<Message[]> {
-    return collection
-      .aggregate()
-      .match({
-        ...options,
-        topicIndex: topicIndex ? { $lt: topicIndex } : { $gt: 0 },
-      })
-      .lookup({
-        from: 'users',
-        localField: 'user',
-        foreignField: 'id',
-        as: 'user',
-      })
-      .project<Message>({
-        _id: 0,
-        id: 1,
-        topicIndex: 1,
-        body: 1,
-        topicId: 1,
-        createdAt: 1,
-        user: {
-          $arrayElemAt: ['$user', 0],
-        },
-      })
-      .sort({ topicIndex: -1 })
-      .limit(50)
-      .toArray();
+  ): Promise<MessageWithUser[]> {
+    const values: unknown[] = [topicId];
+    let whereClause = 'WHERE m.topic_id = $1';
+
+    if (topicIndex) {
+      values.push(topicIndex);
+      whereClause += ' AND m.topic_index < $2';
+    }
+
+    const result = await dbClient.query<MessageWithUser>(
+      `
+      SELECT m.id,
+             m.topic_index AS "topicIndex",
+             m.body,
+             m.created_at as "createdAt",
+             json_build_object('id', u.id, 'username', u.username, 'avatarUrl', u.avatar_url) AS user,
+             m.topic_id AS "topicId"
+        FROM messages as m
+             LEFT JOIN users as u
+             ON u.id = m.user_id
+       ${whereClause}
+       ORDER BY m.created_at DESC
+       LIMIT 50
+      `,
+      values
+    );
+
+    const messages = result.rows;
+
+    return messages;
   }
 
-  async function findOne(options: Partial<Message>): Promise<Message | null> {
-    return collection
-      .aggregate()
-      .match(options)
-      .lookup({
-        from: 'users',
-        localField: 'user',
-        foreignField: 'id',
-        as: 'user',
-      })
-      .project<Message>({
-        _id: 0,
-        id: 1,
-        topicIndex: 1,
-        body: 1,
-        topicId: 1,
-        createdAt: 1,
-        user: {
-          $arrayElemAt: ['$user', 0],
-        },
-      })
-      .sort({ topicIndex: -1 })
-      .limit(1)
-      .next();
+  async function findOne(id: string): Promise<MessageWithUser | null> {
+    const result = await dbClient.query<MessageWithUser>(
+      `
+      SELECT m.id,
+             m.topic_index AS "topicIndex",
+             m.body,
+             m.created_at as "createdAt",
+             json_build_object('id', u.id, 'username', u.username, 'avatarUrl', u.avatar_url) AS user,
+             m.topic_id AS "topicId"
+        FROM messages as m
+             LEFT JOIN users as u
+             ON u.id = m.user_id
+       WHERE m.id = $1
+      `,
+      [id]
+    );
+
+    const message = result.rows[0];
+
+    return message;
   }
 
-  async function updateOne(
-    filterOptions: Partial<Message>,
-    updateOptions: Partial<Message>
+  async function findOneByTopicIdAndDate(
+    topicId: string
   ): Promise<Message | null> {
-    await collection.updateOne(filterOptions, {
-      $set: updateOptions,
-    });
+    const result = await dbClient.query<Message>(
+      `
+      SELECT id,
+             topic_index AS "topicIndex",
+             body,
+             created_at as "createdAt",
+             user_id AS "userId",
+             topic_id AS "topicId"
+        FROM messages
+       WHERE topic_id = $1
+       ORDER BY created_at DESC
+       LIMIT 1
+      `,
+      [topicId]
+    );
 
-    return findOne(filterOptions);
+    const message = result.rows[0];
+
+    return message;
   }
 
-  async function deleteOne(options: Partial<Message>): Promise<Message | null> {
-    await collection.deleteOne(options);
+  async function deleteOne(id: string): Promise<Message | null> {
+    const result = await dbClient.query<Message>(
+      `
+         DELETE FROM members
+          WHERE id = $1
+      RETURNING id, topic_index AS "topicIndex", body, created_at AS "createdAt", user_id AS "userId", topic_id AS "topicId"
+      `,
+      [id]
+    );
 
-    return findOne(options);
+    const message = result.rows[0];
+
+    return message;
   }
 
-  async function deleteMany(options: Partial<Message>): Promise<void> {
-    await collection.deleteMany(options);
+  async function deleteMany(): Promise<void> {
+    await dbClient.query('DELETE FROM messages');
   }
 
   return {
     insertOne,
-    findManyByIndex,
+    findManyByTopicIdAndTopicIndex,
     findOne,
-    updateOne,
+    findOneByTopicIdAndDate,
     deleteOne,
     deleteMany,
   };

@@ -1,16 +1,13 @@
 import {
-  BaseRepository,
   createBrokerClientMock,
-  createMongoConnection,
-  DbConnection,
-  MongoClient,
   RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
 import { asFunction, asValue } from 'awilix';
 import { Application } from 'express';
+import { MongoClient } from 'mongodb';
 import request from 'supertest';
-import { User } from '../src/accounts';
+import { User, UsersRepository } from '../src/accounts';
 import { LoginResponseDto, RefreshResponseDto } from '../src/auth';
 import { PasswordHasher } from '../src/common';
 import { configureContainer } from '../src/container';
@@ -20,8 +17,8 @@ const password = 'password';
 describe('Auth', () => {
   let app: Application;
 
-  let mongoConnection: DbConnection<MongoClient>;
-  let usersRepository: BaseRepository<User>;
+  let dbClient: MongoClient;
+  let usersRepository: UsersRepository;
   let tokenIssuer: TokenIssuer;
   let passwordHasher: PasswordHasher;
   let randomGenerator: RandomGenerator;
@@ -32,8 +29,8 @@ describe('Auth', () => {
   beforeAll(async () => {
     const container = await configureContainer();
 
-    mongoConnection = container.resolve('dbConnection');
-    mongoConnection.getClient().close();
+    dbClient = container.resolve('dbClient');
+    dbClient.close();
 
     const configManager = container.resolve('configManager');
 
@@ -42,12 +39,11 @@ describe('Auth', () => {
       process.exit(1);
     }
 
-    mongoConnection = await createMongoConnection({
-      url: databaseUrl,
-    });
+    const mongo = new MongoClient(databaseUrl);
+    dbClient = await mongo.connect();
 
     container.register({
-      dbConnection: asValue(mongoConnection),
+      dbClient: asValue(dbClient),
       brokerClient: asFunction(createBrokerClientMock).singleton(),
     });
 
@@ -83,7 +79,7 @@ describe('Auth', () => {
   });
 
   afterAll(async () => {
-    await mongoConnection.getClient().close();
+    await dbClient.close();
   });
 
   it('POST /auth/login - logs in a value user', async () => {

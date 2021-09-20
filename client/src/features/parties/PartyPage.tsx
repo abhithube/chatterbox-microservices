@@ -4,7 +4,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { MessageFeed, UserSidebar } from '../messages';
 import { PartiesSidebar } from './PartiesSidebar';
-import { selectParties, setActiveParty, setActiveTopic } from './partiesSlice';
+import { getParty, selectParties, setActiveTopic } from './partiesSlice';
 import { TopicsSidebar } from './TopicsSidebar';
 
 type PartyPageParams = {
@@ -17,7 +17,7 @@ type PartyPageState = {
 };
 
 export const PartyPage = () => {
-  const { partyId, topicId } = useParams<PartyPageParams>();
+  const { partyId } = useParams<PartyPageParams>();
 
   const { isLoading, data, activeParty } = useAppSelector(selectParties);
   const dispatch = useAppDispatch();
@@ -38,16 +38,14 @@ export const PartyPage = () => {
   useEffect(() => {
     if (isLoading || data.length === 0) return;
 
-    const party = data.find(party => party.id === partyId)!;
-    dispatch(setActiveParty(party));
+    dispatch(getParty(partyId));
   }, [isLoading, data, partyId, dispatch]);
 
   useEffect(() => {
-    if (isLoading || !activeParty) return;
+    if (!activeParty) return;
 
-    const topic = activeParty.topics.find(topic => topic.id === topicId)!;
-    if (topic) dispatch(setActiveTopic(topic));
-  }, [isLoading, activeParty, topicId, dispatch]);
+    dispatch(setActiveTopic(activeParty.topics[0]));
+  }, [isLoading, activeParty, dispatch]);
 
   return (
     <Flex boxSize="full">

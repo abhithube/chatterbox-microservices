@@ -7,12 +7,9 @@ import {
 import { Router } from 'express';
 import { AccountsService } from './accountsService';
 import {
-  ConfirmEmailDto,
   ConfirmEmailSchema,
-  ForgotPasswordDto,
   ForgotPasswordSchema,
   RegisterSchema,
-  ResetPasswordDto,
   ResetPasswordSchema,
 } from './interfaces';
 
@@ -36,7 +33,7 @@ export function createAccountsRouter({
   router.get('/@me', jwtAuthMiddleware({ tokenIssuer }), async (req, res) => {
     const { user } = req as RequestWithUser;
 
-    const account = await accountsService.getAccount(user.id);
+    const account = await accountsService.getAccount(user);
 
     res.json(account);
   });
@@ -45,9 +42,9 @@ export function createAccountsRouter({
     '/confirm',
     validationMiddleware(ConfirmEmailSchema),
     async (req, res) => {
-      const { token } = req.body as ConfirmEmailDto;
+      const { body } = req;
 
-      await accountsService.confirmEmail(token);
+      await accountsService.confirmEmail(body);
 
       res.json();
     }
@@ -57,9 +54,9 @@ export function createAccountsRouter({
     '/forgot',
     validationMiddleware(ForgotPasswordSchema),
     async (req, res) => {
-      const { email } = req.body as ForgotPasswordDto;
+      const { body } = req;
 
-      await accountsService.getPasswordResetLink(email);
+      await accountsService.getPasswordResetLink(body);
 
       res.json();
     }
@@ -69,9 +66,9 @@ export function createAccountsRouter({
     '/reset',
     validationMiddleware(ResetPasswordSchema),
     async (req, res) => {
-      const { token, password } = req.body as ResetPasswordDto;
+      const { body } = req;
 
-      await accountsService.resetPassword(token, password);
+      await accountsService.resetPassword(body);
 
       res.json();
     }

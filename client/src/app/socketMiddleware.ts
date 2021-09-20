@@ -41,7 +41,7 @@ export const socketMiddleware: Middleware = ({ dispatch }) => {
           dispatch(addMessage(message));
         });
         break;
-      case 'parties/setActiveParty':
+      case 'parties/getActiveParty/fulfilled':
         socket.emit(
           'party:connect',
           {

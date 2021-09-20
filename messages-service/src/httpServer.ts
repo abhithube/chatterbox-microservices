@@ -1,10 +1,10 @@
 import { Application } from 'express';
-import { createServer } from 'http';
+import { createServer, Server } from 'http';
 
 interface HttpServerDeps {
   app: Application;
 }
 
-export function createHttpServer({ app }: HttpServerDeps) {
+export function createHttpServer({ app }: HttpServerDeps): Server {
   return createServer(app);
 }

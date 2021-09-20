@@ -5,15 +5,15 @@ import {
   createDotenvManager,
   createJwtIssuer,
   createKafkaClient,
-  createMongoConnection,
   createRedisManager,
-  DbConnection,
-  MongoClient,
+  createUuidGenerator,
+  RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
-import { asFunction, asValue, createContainer } from 'awilix';
+import { asFunction, asValue, AwilixContainer, createContainer } from 'awilix';
 import { Application, Router } from 'express';
 import { Server as HttpServer } from 'http';
+import { Client } from 'pg';
 import { Server as IoServer } from 'socket.io';
 import { createApp } from './app';
 import { createHttpServer } from './httpServer';
@@ -26,11 +26,15 @@ import {
   MessagesService,
 } from './messages';
 import {
+  createMembersRepository,
   createPartiesRepository,
   createPartiesRouter,
   createPartiesService,
+  createTopicsRepository,
+  MembersRepository,
   PartiesRepository,
   PartiesService,
+  TopicsRepository,
 } from './parties';
 import { createSocketServer } from './socketServer';
 import {
@@ -53,16 +57,21 @@ interface Container {
   messagesService: MessagesService;
   usersService: UsersService;
   partiesRepository: PartiesRepository;
+  topicsRepository: TopicsRepository;
+  membersRepository: MembersRepository;
   messagesRepository: MessagesRepository;
   usersRepository: UsersRepository;
-  dbConnection: DbConnection<MongoClient>;
+  randomGenerator: RandomGenerator;
+  dbClient: Client;
   brokerClient: BrokerClient;
   cacheManager: CacheManager;
   tokenIssuer: TokenIssuer;
   configManager: ConfigManager;
 }
 
-export async function configureContainer() {
+export async function configureContainer(): Promise<
+  AwilixContainer<Container>
+> {
   const dotenvManager = createDotenvManager();
 
   const databaseUrl = dotenvManager.get('DATABASE_URL');
@@ -70,9 +79,17 @@ export async function configureContainer() {
     throw new Error('Database URL missing');
   }
 
-  const mongoConnection = await createMongoConnection({
-    url: databaseUrl,
+  const postgresClient = new Client({
+    connectionString: dotenvManager.get('DATABASE_URL'),
+    ssl:
+      dotenvManager.get('NODE_ENV') === 'production'
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
   });
+
+  postgresClient.connect();
 
   const jwtIssuer = createJwtIssuer({
     secretOrKey: dotenvManager.get('JWT_SECRET') || 'secret',
@@ -134,9 +151,12 @@ export async function configureContainer() {
     messagesService: asFunction(createMessagesService).singleton(),
     usersService: asFunction(createUsersService).singleton(),
     partiesRepository: asFunction(createPartiesRepository).singleton(),
+    topicsRepository: asFunction(createTopicsRepository).singleton(),
+    membersRepository: asFunction(createMembersRepository).singleton(),
     messagesRepository: asFunction(createMessagesRepository).singleton(),
     usersRepository: asFunction(createUsersRepository).singleton(),
-    dbConnection: asValue(mongoConnection),
+    randomGenerator: asFunction(createUuidGenerator).singleton(),
+    dbClient: asValue(postgresClient),
     brokerClient: asValue(kafkaClient),
     cacheManager: asValue(redisManager),
     tokenIssuer: asValue(jwtIssuer),
