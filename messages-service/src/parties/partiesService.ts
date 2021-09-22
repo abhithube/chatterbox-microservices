@@ -116,7 +116,7 @@ export function createPartiesService({
   ): Promise<void> {
     const party = await partiesRepository.findOneWithMembersAndTopics(id);
     if (!party) {
-      throw new NotFoundException();
+      throw new NotFoundException('Party not found');
     }
 
     if (token !== party.inviteToken) {
