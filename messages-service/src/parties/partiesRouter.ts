@@ -49,18 +49,18 @@ export function createPartiesRouter({
     async (req, res) => {
       const { params, body, user } = req as RequestWithUser;
 
-      const party = await partiesService.joinParty(params.id, body, user);
+      await partiesService.joinParty(params.id, body, user);
 
-      res.json(party);
+      res.json();
     }
   );
 
   router.post('/:id/leave', async (req, res) => {
     const { params, user } = req as unknown as RequestWithUser;
 
-    const party = await partiesService.leaveParty(params.id, user);
+    await partiesService.leaveParty(params.id, user);
 
-    res.json(party);
+    res.json();
   });
 
   router.delete('/:id', async (req, res) => {
@@ -84,12 +84,10 @@ export function createPartiesRouter({
   );
 
   router.get('/:id/topics/:topicId/messages', async (req, res) => {
-    const { params, query, user } = req as unknown as RequestWithUser;
+    const { params, query } = req;
 
     const topic = await messagesService.getMessages(
       params.topicId,
-      params.id,
-      user.id,
       query.topicIndex ? parseInt(query.topicIndex as string, 10) : undefined
     );
 

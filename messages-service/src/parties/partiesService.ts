@@ -4,9 +4,9 @@ import {
   ForbiddenException,
   InternalServerException,
   NotFoundException,
+  RandomGenerator,
 } from '@chttrbx/common';
-import { randomUUID } from 'crypto';
-import { CreatePartyDto, CreateTopicDto } from './dto';
+import { CreatePartyDto, CreateTopicDto, JoinPartyDto } from './dto';
 import { Member, Party, Topic } from './entities';
 import {
   MembersRepository,
@@ -22,7 +22,11 @@ export interface PartiesService {
   ): Promise<PartyWithMembersAndTopics>;
   getUserParties(user: CurrentUser): Promise<Party[]>;
   getParty(id: string, user: CurrentUser): Promise<PartyWithMembersAndTopics>;
-  joinParty(id: string, inviteToken: string, user: CurrentUser): Promise<void>;
+  joinParty(
+    id: string,
+    joinPartyDto: JoinPartyDto,
+    user: CurrentUser
+  ): Promise<void>;
   leaveParty(id: string, user: CurrentUser): Promise<void>;
   deleteParty(id: string, user: CurrentUser): Promise<void>;
   createTopic(
@@ -38,6 +42,7 @@ interface PartiesServiceDeps {
   topicsRepository: TopicsRepository;
   membersRepository: MembersRepository;
   brokerClient: BrokerClient;
+  randomGenerator: RandomGenerator;
 }
 
 export function createPartiesService({
@@ -45,25 +50,20 @@ export function createPartiesService({
   topicsRepository,
   membersRepository,
   brokerClient,
+  randomGenerator,
 }: PartiesServiceDeps): PartiesService {
   async function createParty(
     { name }: CreatePartyDto,
     user: CurrentUser
   ): Promise<PartyWithMembersAndTopics> {
-    const parties = await partiesRepository.findManyByUserId(user.id);
-
-    if (parties.length >= 10) {
-      throw new ForbiddenException('Max party count exceeded');
-    }
-
     const partyToInsert: Party = {
-      id: randomUUID(),
+      id: randomGenerator.generate(),
       name,
-      inviteToken: randomUUID(),
+      inviteToken: randomGenerator.generate(),
     };
 
     const topicToInsert: Topic = {
-      id: randomUUID(),
+      id: randomGenerator.generate(),
       name: 'general',
       partyId: partyToInsert.id,
     };
@@ -111,41 +111,35 @@ export function createPartiesService({
 
   async function joinParty(
     id: string,
-    inviteToken: string,
+    { token }: JoinPartyDto,
     user: CurrentUser
   ): Promise<void> {
-    const party = await partiesRepository.findOne(id);
+    const party = await partiesRepository.findOneWithMembersAndTopics(id);
     if (!party) {
-      throw new InternalServerException();
+      throw new NotFoundException();
     }
 
-    if (inviteToken !== party.inviteToken) {
+    if (token !== party.inviteToken) {
       throw new ForbiddenException('Invalid invite token');
     }
 
-    const members = await membersRepository.findManyByPartyId(id);
-
-    if (members.length >= 10) {
-      throw new ForbiddenException('Max member count exceeded');
-    }
-
-    if (members.find((member) => member.userId === user.id)) {
+    if (party.members.find((member) => member.id === user.id)) {
       throw new ForbiddenException('Already a member');
     }
 
-    const member: Member = {
+    const memberToInsert: Member = {
       partyId: id,
       userId: user.id,
     };
 
-    await membersRepository.insertOne(member);
+    await membersRepository.insertOne(memberToInsert);
 
     await brokerClient.publish<Member>({
       topic: 'parties',
       key: id,
       message: {
-        event: 'party:joined',
-        data: member,
+        event: 'member:created',
+        data: memberToInsert,
       },
     });
   }
@@ -154,41 +148,33 @@ export function createPartiesService({
     id: string,
     { id: userId }: CurrentUser
   ): Promise<void> {
-    const members = await membersRepository.findManyByPartyId(id);
-
-    if (members.length === 1) {
-      throw new ForbiddenException('Party cannot have 0 members');
-    }
-
-    if (!members.find((member) => member.userId === userId)) {
-      throw new ForbiddenException('Not a member');
-    }
-
     const member = await membersRepository.deleteOneByUserId(userId);
     if (!member) {
-      throw new InternalServerException();
+      throw new ForbiddenException('Not a member');
     }
 
     await brokerClient.publish<Member>({
       topic: 'parties',
       key: id,
       message: {
-        event: 'party:left',
+        event: 'member:deleted',
         data: member,
       },
     });
+
+    const members = await membersRepository.findManyByPartyId(id);
+
+    if (members.length === 0) {
+      await partiesRepository.deleteOne(id);
+    }
   }
 
   async function deleteParty(
     id: string,
     { id: userId }: CurrentUser
   ): Promise<void> {
-    const members = await membersRepository.findManyByPartyId(id);
-    if (members.length === 0) {
-      throw new NotFoundException('Party not found');
-    }
-
-    if (!members.find((member) => member.userId === userId)) {
+    const member = await membersRepository.findOne(userId, id);
+    if (!member) {
       throw new ForbiddenException('Not a member');
     }
 
@@ -209,26 +195,16 @@ export function createPartiesService({
     partyId: string,
     { id: userId }: CurrentUser
   ): Promise<Topic> {
-    const party = await partiesRepository.findOneWithMembersAndTopics(partyId);
+    const party = await membersRepository.findOne(userId, partyId);
     if (!party) {
-      throw new NotFoundException('Party not found');
-    }
-
-    if (!party.members.find((member) => member.id === userId)) {
       throw new ForbiddenException('Not a member');
     }
 
-    if (party.topics.length >= 10) {
-      throw new ForbiddenException('Max topic count exceeded');
-    }
-
-    const topic: Topic = {
-      id: randomUUID(),
+    const topic = await topicsRepository.insertOne({
+      id: randomGenerator.generate(),
       name,
       partyId,
-    };
-
-    await topicsRepository.insertOne(topic);
+    });
 
     await brokerClient.publish<Topic>({
       topic: 'parties',
@@ -247,20 +223,15 @@ export function createPartiesService({
     partyId: string,
     { id: userId }: CurrentUser
   ): Promise<void> {
-    const party = await partiesRepository.findOneWithMembersAndTopics(partyId);
-    if (!party) {
-      throw new NotFoundException('Party not found');
-    }
-
-    if (!party.members.find((member) => member.id === userId)) {
+    const member = await membersRepository.findOne(userId, partyId);
+    if (!member) {
       throw new ForbiddenException('Not a member');
     }
 
-    if (!party.topics.find((topic) => topic.id === id)) {
+    const topic = await topicsRepository.deleteOne(id);
+    if (!topic) {
       throw new NotFoundException('Topic not found');
     }
-
-    await topicsRepository.deleteOne(id);
 
     await brokerClient.publish<string>({
       topic: 'parties',

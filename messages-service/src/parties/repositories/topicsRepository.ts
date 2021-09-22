@@ -56,7 +56,7 @@ export function createTopicsRepository({
       [id]
     );
 
-    const topic = result.rows[0];
+    const topic = result.rows[0] || null;
 
     return topic;
   }
@@ -71,7 +71,7 @@ export function createTopicsRepository({
       [id]
     );
 
-    const topic = result.rows[0];
+    const topic = result.rows[0] || null;
 
     return topic;
   }

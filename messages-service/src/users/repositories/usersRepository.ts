@@ -41,7 +41,7 @@ export function createUsersRepository({
       [id]
     );
 
-    const user = result.rows[0];
+    const user = result.rows[0] || null;
 
     return user;
   }
@@ -61,7 +61,7 @@ export function createUsersRepository({
       [username, avatarUrl, id]
     );
 
-    const user = result.rows[0];
+    const user = result.rows[0] || null;
 
     return user;
   }
@@ -76,7 +76,7 @@ export function createUsersRepository({
       [id]
     );
 
-    const user = result.rows[0];
+    const user = result.rows[0] || null;
 
     return user;
   }

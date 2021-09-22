@@ -59,7 +59,7 @@ export function createMembersRepository({
       [userId, partyId]
     );
 
-    const member = result.rows[0];
+    const member = result.rows[0] || null;
 
     return member;
   }
@@ -74,7 +74,7 @@ export function createMembersRepository({
       [userId]
     );
 
-    const member = result.rows[0];
+    const member = result.rows[0] || null;
 
     return member;
   }
