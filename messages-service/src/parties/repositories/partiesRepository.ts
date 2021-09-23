@@ -10,7 +10,7 @@ export interface PartiesRepository {
     id: string
   ): Promise<PartyWithMembersAndTopics | null>;
   deleteOne(id: string): Promise<Party | null>;
-  deleteMany(options: Partial<Party>): Promise<void>;
+  deleteMany(): Promise<void>;
 }
 
 interface PartiesRepositoryDeps {
@@ -64,7 +64,7 @@ export function createPartiesRepository({
       [id]
     );
 
-    const party = partyResult.rows[0];
+    const party = partyResult.rows[0] || null;
 
     return party;
   }
@@ -98,7 +98,7 @@ export function createPartiesRepository({
       [id]
     );
 
-    const party = result.rows[0];
+    const party = result.rows[0] || null;
 
     return party;
   }
@@ -113,7 +113,7 @@ export function createPartiesRepository({
       [id]
     );
 
-    const party = result.rows[0];
+    const party = result.rows[0] || null;
 
     return party;
   }

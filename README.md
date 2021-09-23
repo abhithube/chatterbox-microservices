@@ -33,16 +33,16 @@ Chatterbox is a web application designed for group messaging, in a similar vein 
 - JavaScript/TypeScript
 - Node.js
 - React
-- NestJS
+- Express
 - MongoDB
-- Redis
+- PostgreSQL
 - Kafka
 - Docker
 - Kubernetes
 
 ## Project Structure
 
-This repo contains all of the code for the application. Each service has its own directory. The _client_ directory contains the frontend React application. The _common_ directory contains several reusable NestJS modules that were published as NPM packages and made available for the microservices to use. The _k8s_ directory contains all of the manifests for the Kubernetes cluster running on DigitalOcean.
+This repo contains all of the code for the application. Each service has its own directory. The _client_ directory contains the frontend React application. The _common_ directory contains several reusable TS modules that were published as NPM packages and made available for the microservices to use, in an effort to reduce code duplication. The _k8s_ directory contains all of the manifests for the Kubernetes cluster running on DigitalOcean.
 
 ## Frontend Design
 
@@ -50,13 +50,13 @@ The client application is a fairly straightforward React application boostrapped
 
 ## Backend Design
 
-The backend of this application is broken into several components, following the event-driven microservices architecture. All of the services are built in the NestJS web framework for Node.js. Each service has its own MongoDB database, deployed in the cloud on MongoDB Atlas. The services communicate asynchronously via a Kafka broker deployed on Confluent Cloud. Details below.
+The backend of this application is broken into several components, following the event-driven microservices architecture. The services are built using the Express web framework for Node.js. The _Accounts Service_ connects to a MongoDB database (deployed on MongoDB Atlas), which was chosen for the ease of use and the lack of relational data. The _Messages Service_, on the other hand, has quite a bit of relational data, so PostgreSQL (deployed on Heroku) was the database of choice. The services communicate asynchronously via a Kafka broker (deployed on Confluent Cloud). Details below.
 
 ### Microservices
 
-- AccountsService is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
-- MessagesService handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a CRUD RESTful API for managing parties and topics.
-- ContactService deals with direct communications with the user. Currently, it sends email verification and password reset emails based on events received from Kafka.
+- _Accounts Service_ is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
+- _Messages Service_ handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a CRUD RESTful API for managing parties and topics.
+- _Contact Service_ deals with direct communications with the user. Currently, it sends email verification and password reset emails based on events received from Kafka.
 
 ### Asynchronous Communication
 
@@ -64,7 +64,7 @@ These microservices are designed to be completely self-sufficient, meaning that 
 
 ### Shared Library
 
-Because all of the services are written in the same language and framework, a shared library of code was necessary in order to avoid a lot of duplicate code for things such as authorizing JWTs and subscribing to Kafka topics. As NestJS strongly encourages encapsulating functionality into reusable modules, this shared library consists of several NestJS modules. All of these modules are available as NPM packages, allowing the microservices to install and import them for use. In addition to reducing code duplication, this also helps to keep the services more focused.
+Because all of the services are written in the same language and framework, a shared library of code was necessary in order to avoid a lot of duplicate code for things such as authorizing JWTs and subscribing to Kafka topics. All of the modules are available as NPM packages, allowing the microservices to install and import them for use. In addition to reducing code duplication, this also helps to keep the services more focused.
 
 ### Scalability
 

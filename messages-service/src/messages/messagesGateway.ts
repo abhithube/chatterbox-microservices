@@ -31,6 +31,7 @@ export function createMessagesGateway({
     const client = socket as SocketWithUser;
 
     const auth = client.handshake.headers.authorization;
+
     if (!auth) {
       client.disconnect(true);
       return;
@@ -47,8 +48,6 @@ export function createMessagesGateway({
     socket.on(
       'party:connect',
       async ({ party }: PartyConnection, callback: () => void) => {
-        await messagesService.validatePartyConnection(party, client.user);
-
         if (client.party) {
           client.leave(`party:${client.party}`);
           await cacheManager.del(`client:${client.id}`);
@@ -92,24 +91,9 @@ export function createMessagesGateway({
     socket.on(
       'topic:connect',
       async ({ topic }: TopicConnection, callback: () => void) => {
-        if (!client.party) {
-          client.emit('error', {
-            type: 'topic:connection',
-            data: topic,
-          });
-
-          return;
-        }
-
         if (client.topic) {
           client.leave(`topic:${client.topic}`);
         }
-
-        await messagesService.validateTopicConnection(
-          topic,
-          client.party,
-          client.user
-        );
 
         client.join(`topic:${topic}`);
         client.topic = topic;

@@ -1,6 +1,7 @@
 import { Party } from '../../entities';
 import { PartyWithMembersAndTopics } from '../../types';
 import { PartiesRepository } from '../partiesRepository';
+import { MOCK_TOPIC } from './topicsRepositoryMock';
 
 export const MOCK_PARTY: Party = {
   id: '1',
@@ -19,13 +20,7 @@ export const MOCK_PARTY_WITH_MEMBERS_AND_TOPICS: PartyWithMembersAndTopics = {
       avatarUrl: null,
     },
   ],
-  topics: [
-    {
-      id: '1',
-      name: 'topic',
-      partyId: '1',
-    },
-  ],
+  topics: [MOCK_TOPIC],
 };
 
 export const createPartiesRepositoryMock = (): PartiesRepository => ({

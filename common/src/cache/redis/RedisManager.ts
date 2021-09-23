@@ -8,6 +8,14 @@ export function createRedisManager({
 }: CacheOptions): CacheManager {
   const client = new Redis(url);
 
+  async function connect(): Promise<void> {
+    await client.connect();
+  }
+
+  async function disconnect(): Promise<void> {
+    client.disconnect();
+  }
+
   async function get(key: string): Promise<string | null> {
     return client.get(key);
   }
@@ -34,6 +42,8 @@ export function createRedisManager({
   }
 
   return {
+    connect,
+    disconnect,
     get,
     set,
     del,
