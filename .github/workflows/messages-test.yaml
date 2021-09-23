@@ -33,9 +33,9 @@ jobs:
       - name: Run unit tests
         run: npm test
       - name: Run migrations
-        run: npm run migration up
+        run: npm run migrate up
       - name: Run integration tests
         run: npm run test:e2e
-        env:
-          DATABASE_URL: ${{ secrets.MESSAGES_DATABASE_URL }}
-          JWT_SECRET: secret
+    env:
+      DATABASE_URL: ${{ secrets.MESSAGES_DATABASE_URL }}
+      JWT_SECRET: secret
