@@ -8,7 +8,7 @@ import {
   Icon,
   Input,
   InputGroup,
-  InputLeftElement,
+  InputLeftElement
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaUserFriends } from 'react-icons/fa';

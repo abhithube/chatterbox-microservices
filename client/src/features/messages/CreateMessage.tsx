@@ -6,7 +6,7 @@ import {
   IconButton,
   Input,
   InputGroup,
-  InputLeftElement,
+  InputLeftElement
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaComment, FaPlay } from 'react-icons/fa';

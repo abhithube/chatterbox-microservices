@@ -3,11 +3,11 @@ import { User } from '../features/auth';
 
 axios.defaults.baseURL = process.env.REACT_APP_SERVER_URL;
 
-axios.interceptors.request.use(req => {
+axios.interceptors.request.use((req) => {
   const token = localStorage.getItem('token');
 
   if (token) {
-    req.headers.Authorization = `Bearer ${token}`;
+    req.headers!.Authorization = `Bearer ${token}`;
     req.withCredentials = true;
   }
 
@@ -15,10 +15,10 @@ axios.interceptors.request.use(req => {
 });
 
 axios.interceptors.response.use(
-  res => {
+  (res) => {
     return res;
   },
-  async err => {
+  async (err) => {
     if (err.response.status === 401 && !err.config._retry) {
       try {
         const { data } = await axios.post<{ user: User; accessToken: string }>(

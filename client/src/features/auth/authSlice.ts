@@ -34,7 +34,7 @@ export const getAuth = createAsyncThunk<User>('auth/getAuth', async () => {
 
 export const signIn = createAsyncThunk<User, LoginPayload>(
   'auth/signIn',
-  async payload => {
+  async (payload) => {
     const { user, accessToken } = await httpClient.post<
       LoginPayload,
       LoginResponse
@@ -62,23 +62,23 @@ const authSlice = createSlice({
       state.user = action.payload;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(getAuth.pending, state => {
+      .addCase(getAuth.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(getAuth.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isLoading = false;
       })
-      .addCase(getAuth.rejected, state => {
+      .addCase(getAuth.rejected, (state) => {
         state.user = null;
         state.isLoading = false;
       })
       .addCase(signIn.fulfilled, (state, action) => {
         state.user = action.payload;
       })
-      .addCase(signOut.fulfilled, state => {
+      .addCase(signOut.fulfilled, (state) => {
         state.user = null;
       });
   },

@@ -4,7 +4,7 @@ import {
   FormControl,
   FormLabel,
   Input,
-  VStack,
+  VStack
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';

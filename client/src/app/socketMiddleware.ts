@@ -9,7 +9,7 @@ import {
 
 export const socketMiddleware: Middleware = ({ dispatch }) => {
   let socket: Socket;
-  return next => (action: PayloadAction<any>) => {
+  return (next) => (action: PayloadAction<any>) => {
     switch (action.type) {
       case 'auth/getAuth/fulfilled':
       case 'auth/signIn/fulfilled':
@@ -19,7 +19,7 @@ export const socketMiddleware: Middleware = ({ dispatch }) => {
           },
         });
 
-        socket.on('error', err => {
+        socket.on('error', (err) => {
           if (err.type === 'topic:connection') {
             socket.emit(
               'topic:connect',

@@ -9,7 +9,7 @@ export interface UsersRepository {
     updateOptions: Partial<User>
   ): Promise<User | null>;
   deleteOne(options: Partial<User>): Promise<User | null>;
-  deleteMany(options: Partial<User>): Promise<void>;
+  deleteMany(): Promise<void>;
 }
 
 interface UsersRepositoryDeps {
@@ -71,8 +71,8 @@ export function createUsersRepository({
     return result.value;
   }
 
-  async function deleteMany(options: Partial<User>): Promise<void> {
-    await collection.deleteMany(options);
+  async function deleteMany(): Promise<void> {
+    await collection.deleteMany({});
   }
 
   return {

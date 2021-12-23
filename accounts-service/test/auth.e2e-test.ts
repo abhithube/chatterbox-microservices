@@ -53,8 +53,6 @@ describe('Auth', () => {
     tokenIssuer = container.resolve('tokenIssuer');
     passwordHasher = container.resolve('passwordHasher');
     randomGenerator = container.resolve('randomGenerator');
-
-    await usersRepository.deleteMany({});
   });
 
   beforeEach(async () => {
@@ -75,7 +73,7 @@ describe('Auth', () => {
   });
 
   afterEach(async () => {
-    await usersRepository.deleteMany({});
+    await usersRepository.deleteMany();
   });
 
   afterAll(async () => {

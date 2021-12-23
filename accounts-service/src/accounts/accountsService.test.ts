@@ -43,16 +43,16 @@ describe('AccountsService', () => {
   it('registers a new user', async () => {
     jest
       .spyOn(usersRepository, 'findOne')
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null);
+      .mockResolvedValue(null)
+      .mockResolvedValue(null);
 
-    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
+    const spy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.createAccount(registerDto)).resolves.toEqual(
       MOCK_UNVERIFIED_USER
     );
 
-    expect(kafkaSpy).toHaveBeenCalledWith(
+    expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.objectContaining({
           event: 'user:created',
@@ -68,7 +68,7 @@ describe('AccountsService', () => {
   });
 
   it('prevents duplicate emails', async () => {
-    jest.spyOn(usersRepository, 'findOne').mockResolvedValueOnce(null);
+    jest.spyOn(usersRepository, 'findOne').mockResolvedValue(null);
 
     await expect(service.createAccount(registerDto)).rejects.toThrow(
       'Email already taken'
@@ -76,11 +76,11 @@ describe('AccountsService', () => {
   });
 
   it("verifies a user's email address", async () => {
-    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
+    const spy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.confirmEmail({ token: '' })).resolves.not.toThrow();
 
-    expect(kafkaSpy).toHaveBeenCalledWith(
+    expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.objectContaining({
           event: 'user:updated',
@@ -93,7 +93,7 @@ describe('AccountsService', () => {
   });
 
   it('rejects an invalid email verification code', async () => {
-    jest.spyOn(usersRepository, 'updateOne').mockResolvedValueOnce(null);
+    jest.spyOn(usersRepository, 'updateOne').mockResolvedValue(null);
 
     await expect(service.confirmEmail({ token: '' })).rejects.toThrow(
       'Invalid verification code'
@@ -101,13 +101,13 @@ describe('AccountsService', () => {
   });
 
   it('sends a user a password reset email', async () => {
-    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
+    const spy = jest.spyOn(brokerClient, 'publish');
 
     await expect(
       service.getPasswordResetLink({ email: '' })
     ).resolves.not.toThrow();
 
-    expect(kafkaSpy).toHaveBeenCalledWith(
+    expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.objectContaining({
           event: 'user:forgot_password',
@@ -117,13 +117,13 @@ describe('AccountsService', () => {
   });
 
   it("resets a user's password", async () => {
-    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
+    const spy = jest.spyOn(brokerClient, 'publish');
 
     await expect(
       service.resetPassword({ token: '', password: '' })
     ).resolves.not.toThrow();
 
-    expect(kafkaSpy).toHaveBeenCalledWith(
+    expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.objectContaining({
           event: 'user:updated',
@@ -133,7 +133,7 @@ describe('AccountsService', () => {
   });
 
   it('rejects an invalid password reset code', async () => {
-    jest.spyOn(usersRepository, 'updateOne').mockResolvedValueOnce(null);
+    jest.spyOn(usersRepository, 'updateOne').mockResolvedValue(null);
 
     await expect(
       service.resetPassword({ token: '', password: '' })
@@ -141,11 +141,11 @@ describe('AccountsService', () => {
   });
 
   it('deletes an existing user', async () => {
-    const kafkaSpy = jest.spyOn(brokerClient, 'publish');
+    const spy = jest.spyOn(brokerClient, 'publish');
 
     await expect(service.deleteAccount('')).resolves.not.toThrow();
 
-    expect(kafkaSpy).toHaveBeenCalledWith(
+    expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.objectContaining({
           event: 'user:deleted',

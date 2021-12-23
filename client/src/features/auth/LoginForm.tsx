@@ -9,7 +9,7 @@ import {
   InputGroup,
   InputLeftElement,
   Link,
-  VStack,
+  VStack
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { FaLock, FaUser } from 'react-icons/fa';

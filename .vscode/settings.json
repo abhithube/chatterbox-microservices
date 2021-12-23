@@ -1,6 +1,7 @@
 {
   "eslint.workingDirectories": [
     "./accounts-service",
+    "./client",
     "./common",
     "./contact-service",
     "./messages-service"

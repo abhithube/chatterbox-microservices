@@ -10,7 +10,7 @@ export const store = configureStore({
     parties: partiesReducer,
     messages: messagesReducer,
   },
-  middleware: getDefaultMiddleware =>
+  middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(socketMiddleware),
 });
 

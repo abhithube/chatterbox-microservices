@@ -8,7 +8,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  VStack,
+  VStack
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaEnvelope } from 'react-icons/fa';

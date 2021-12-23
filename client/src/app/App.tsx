@@ -5,13 +5,13 @@ import {
   Navbar,
   NotFoundErrorPage,
   ProtectedRoute,
-  ServerErrorPage,
+  ServerErrorPage
 } from '../common';
 import {
   ConfirmPage,
   ForgotPasswordPage,
   RegisterPage,
-  ResetPasswordPage,
+  ResetPasswordPage
 } from '../features/accounts';
 import { LoginPage } from '../features/auth';
 import { InvitePage } from '../features/invite';

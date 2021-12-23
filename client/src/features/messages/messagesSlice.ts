@@ -66,13 +66,13 @@ const messagesSlice = createSlice({
     addMessage: (state, action: PayloadAction<Message>) => {
       state.data = [action.payload, ...state.data];
     },
-    clearMessages: state => {
+    clearMessages: (state) => {
       state.data = [];
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(getMessages.pending, state => {
+      .addCase(getMessages.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(getMessages.fulfilled, (state, action) => {

@@ -11,7 +11,7 @@ import {
   ModalOverlay,
   Text,
   useDisclosure,
-  useToast,
+  useToast
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { FaUserPlus } from 'react-icons/fa';

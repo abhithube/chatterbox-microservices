@@ -4,7 +4,7 @@ import {
   Box,
   Heading,
   List,
-  ListItem,
+  ListItem
 } from '@chakra-ui/react';
 import { useAppSelector } from '../../app/hooks';
 import { selectParties } from '../parties';

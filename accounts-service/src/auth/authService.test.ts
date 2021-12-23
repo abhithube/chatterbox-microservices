@@ -63,6 +63,10 @@ describe('AuthService', () => {
     });
   });
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
@@ -76,7 +80,7 @@ describe('AuthService', () => {
   });
 
   it('rejects incorrect username/password combination', async () => {
-    jest.spyOn(passwordHasher, 'compareSync').mockReturnValueOnce(false);
+    jest.spyOn(passwordHasher, 'compareSync').mockReturnValue(false);
 
     await expect(service.validateLocal('', '')).rejects.toThrow(
       'Invalid credentials'
@@ -86,7 +90,7 @@ describe('AuthService', () => {
   it('rejects unverified users', async () => {
     jest
       .spyOn(usersRepository, 'findOne')
-      .mockResolvedValueOnce(MOCK_UNVERIFIED_USER);
+      .mockResolvedValue(MOCK_UNVERIFIED_USER);
 
     await expect(service.validateLocal('', '')).rejects.toThrow(
       'Email not verified'
@@ -104,7 +108,7 @@ describe('AuthService', () => {
   });
 
   it('validates OAuth login for a new user', async () => {
-    jest.spyOn(usersRepository, 'findOne').mockResolvedValueOnce(null);
+    jest.spyOn(usersRepository, 'findOne').mockResolvedValue(null);
 
     const kafkaSpy = jest.spyOn(brokerClient, 'publish');
 
@@ -129,8 +133,8 @@ describe('AuthService', () => {
 
     jest
       .spyOn(tokenIssuer, 'generate')
-      .mockReturnValueOnce(accessToken)
-      .mockReturnValueOnce(refreshToken);
+      .mockReturnValue(accessToken)
+      .mockReturnValue(refreshToken);
 
     await expect(service.authenticateUser(currentUser)).resolves.toEqual({
       accessToken,
@@ -141,7 +145,7 @@ describe('AuthService', () => {
   it("refreshes a user's access token", async () => {
     const accessToken = 'access';
 
-    jest.spyOn(tokenIssuer, 'generate').mockReturnValueOnce(accessToken);
+    jest.spyOn(tokenIssuer, 'generate').mockReturnValue(accessToken);
 
     await expect(service.refreshAccessToken('refresh')).resolves.toEqual({
       accessToken,

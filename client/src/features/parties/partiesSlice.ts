@@ -83,9 +83,9 @@ const partiesSlice = createSlice({
       state.activeTopic = action.payload;
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(getParties.pending, state => {
+      .addCase(getParties.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(getParties.fulfilled, (state, action) => {

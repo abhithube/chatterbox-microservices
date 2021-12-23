@@ -6,7 +6,7 @@ import {
   Heading,
   Link,
   Text,
-  VStack,
+  VStack
 } from '@chakra-ui/react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { LoginForm } from './LoginForm';
