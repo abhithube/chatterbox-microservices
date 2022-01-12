@@ -29,7 +29,7 @@ const initialState: AuthState = {
 };
 
 export const getAuth = createAsyncThunk<User>('auth/getAuth', async () => {
-  return httpClient.get<User>('/auth/@me');
+  return httpClient.get<User>('/accounts-service/auth/@me');
 });
 
 export const signIn = createAsyncThunk<User, LoginPayload>(
@@ -38,7 +38,7 @@ export const signIn = createAsyncThunk<User, LoginPayload>(
     const { user, accessToken } = await httpClient.post<
       LoginPayload,
       LoginResponse
-    >(`${process.env.REACT_APP_SERVER_URL}/auth/login`, payload);
+    >('/accounts-service/auth/login', payload);
 
     localStorage.setItem('token', accessToken);
 
@@ -47,9 +47,7 @@ export const signIn = createAsyncThunk<User, LoginPayload>(
 );
 
 export const signOut = createAsyncThunk<void>('auth/signOut', async () => {
-  await httpClient.post<null, LoginResponse>(
-    `${process.env.REACT_APP_SERVER_URL}/auth/logout`
-  );
+  await httpClient.post<null, LoginResponse>('/accounts-service/auth/logout');
 
   localStorage.removeItem('token');
 });

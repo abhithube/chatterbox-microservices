@@ -4,7 +4,7 @@ import {
   FormControl,
   FormLabel,
   Input,
-  VStack
+  VStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -43,7 +43,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
         setLoading(true);
 
         await httpClient.post<ResetPasswordPayload>(
-          `${process.env.REACT_APP_SERVER_URL}/accounts/reset`,
+          '/accounts-service/accounts/reset',
           {
             token,
             password,
@@ -79,7 +79,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
           <Input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter a password..."
           />
         </FormControl>
@@ -88,7 +88,7 @@ export const ResetPasswordForm = ({ token }: ResetPasswordFormProps) => {
           <Input
             type="password"
             value={passwordConfirm}
-            onChange={e => setPasswordConfirm(e.target.value)}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
             placeholder="Re-enter the password..."
           />
         </FormControl>

@@ -32,7 +32,7 @@ export const googleAuthMiddleware =
       `&client_secret=${configManager.get('GOOGLE_CLIENT_SECRET')}` +
       `&code=${req.query.code}` +
       '&grant_type=authorization_code' +
-      `&redirect_uri=${configManager.get('SERVER_URL')}/auth/google/callback`;
+      `&redirect_uri=${configManager.get('GOOGLE_OAUTH_CALLBACK_URL')}`;
 
     const data = await httpClient.post<void, TokenResponse>(url);
 

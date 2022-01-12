@@ -27,7 +27,7 @@ export const InvitePage = () => {
         setLoading(true);
 
         const res = await axios.post(
-          `${process.env.REACT_APP_SERVER_URL}/parties/${partyId}/join`,
+          `/messages-service/parties/${partyId}/join`,
           {
             token,
           }

@@ -76,17 +76,11 @@ export async function configureContainer(): Promise<
 
   const databaseUrl = dotenvManager.get('DATABASE_URL');
   if (!databaseUrl) {
-    throw new Error('Database URL missing');
+    throw new Error('Database config missing');
   }
 
   const postgresClient = new Client({
     connectionString: dotenvManager.get('DATABASE_URL'),
-    ssl:
-      dotenvManager.get('NODE_ENV') === 'production'
-        ? {
-            rejectUnauthorized: false,
-          }
-        : false,
   });
 
   postgresClient.connect();
@@ -105,38 +99,25 @@ export async function configureContainer(): Promise<
   const kafkaUser = dotenvManager.get('KAFKA_USER');
   const kafkaPass = dotenvManager.get('KAFKA_PASS');
 
-  if (brokerUrls) {
-    if (dotenvManager.get('NODE_ENV') === 'production') {
-      if (!kafkaUser || !kafkaPass) {
-        throw new Error('Kafka credentials missing');
-      }
-
-      kafkaClient = await createKafkaClient({
-        kafkaConfig: {
-          clientId: 'messages-client',
-          brokers: brokerUrls.split(','),
-          ssl: true,
-          sasl: {
-            mechanism: 'plain',
-            username: kafkaUser,
-            password: kafkaPass,
-          },
-        },
-        consumerConfig: {
-          groupId: 'messages-consumer-group',
-        },
-      });
-    } else {
-      kafkaClient = await createKafkaClient({
-        kafkaConfig: {
-          brokers: brokerUrls.split(','),
-        },
-        consumerConfig: {
-          groupId: 'messages-consumer-group',
-        },
-      });
-    }
+  if (!brokerUrls || !kafkaUser || !kafkaPass) {
+    throw new Error('Kafka config missing');
   }
+
+  kafkaClient = await createKafkaClient({
+    kafkaConfig: {
+      clientId: 'messages-client',
+      brokers: brokerUrls.split(','),
+      ssl: true,
+      sasl: {
+        mechanism: 'scram-sha-256',
+        username: kafkaUser,
+        password: kafkaPass,
+      },
+    },
+    consumerConfig: {
+      groupId: 'messages-consumer-group',
+    },
+  });
 
   const container = createContainer<Container>();
 

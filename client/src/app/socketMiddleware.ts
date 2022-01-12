@@ -14,6 +14,7 @@ export const socketMiddleware: Middleware = ({ dispatch }) => {
       case 'auth/getAuth/fulfilled':
       case 'auth/signIn/fulfilled':
         socket = io(process.env.REACT_APP_SERVER_URL!, {
+          path: '/messages-service/socket.io',
           extraHeaders: {
             authorization: `Bearer ${localStorage.getItem('token')}`,
           },

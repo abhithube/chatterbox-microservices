@@ -34,7 +34,13 @@ export function createApp({
     app.use(cors());
   }
 
-  app.use('/parties', jwtAuthMiddleware({ tokenIssuer }), partiesRouter);
+  app.use(
+    '/messages-service/parties',
+    jwtAuthMiddleware({ tokenIssuer }),
+    partiesRouter
+  );
+
+  app.get('/messages-service/health', (_, res) => res.send('OK'));
 
   app.use(errorMiddleware);
 

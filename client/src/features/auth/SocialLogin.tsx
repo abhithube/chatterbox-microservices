@@ -1,14 +1,11 @@
-import { Button, Icon, Text } from '@chakra-ui/react';
+import { Button, Icon, VStack } from '@chakra-ui/react';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
 
 export const SocialLogin = () => (
-  <>
-    <Text as="span" color="gray.600" fontWeight="bold">
-      Or, choose a social account
-    </Text>
+  <VStack spacing={4} w="full" mt={6}>
     <Button
       as="a"
-      href={`${process.env.REACT_APP_SERVER_URL}/auth/google`}
+      href={`${process.env.REACT_APP_SERVER_URL}/accounts-service/auth/google`}
       leftIcon={<Icon as={FaGoogle} />}
       w="100%"
       bgColor="red.400"
@@ -19,7 +16,7 @@ export const SocialLogin = () => (
     </Button>
     <Button
       as="a"
-      href={`${process.env.REACT_APP_SERVER_URL}/auth/github`}
+      href={`${process.env.REACT_APP_SERVER_URL}/accounts-service/auth/github`}
       leftIcon={<Icon as={FaGithub} />}
       w="100%"
       bgColor="gray.600"
@@ -28,5 +25,5 @@ export const SocialLogin = () => (
     >
       Sign in with GitHub
     </Button>
-  </>
+  </VStack>
 );

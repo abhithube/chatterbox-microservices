@@ -35,7 +35,7 @@ export function createAuthRouter({
     const url =
       'https://accounts.google.com/o/oauth2/v2/auth' +
       `?client_id=${configManager.get('GOOGLE_CLIENT_ID')}` +
-      `&redirect_uri=${configManager.get('SERVER_URL')}/auth/google/callback` +
+      `&redirect_uri=${configManager.get('GOOGLE_OAUTH_CALLBACK_URL')}` +
       '&response_type=code' +
       '&scope=email profile';
 

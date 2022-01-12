@@ -7,7 +7,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  VStack
+  VStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
@@ -45,7 +45,7 @@ export const RegisterForm = () => {
       try {
         setLoading(true);
 
-        await httpClient.post<RegisterPayload>('/accounts', {
+        await httpClient.post<RegisterPayload>('/accounts-service/accounts', {
           username,
           email,
           password,
@@ -85,7 +85,7 @@ export const RegisterForm = () => {
             />
             <Input
               value={username}
-              onChange={e => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username..."
             />
           </InputGroup>
@@ -100,7 +100,7 @@ export const RegisterForm = () => {
             <Input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email..."
             />
           </InputGroup>
@@ -115,7 +115,7 @@ export const RegisterForm = () => {
             <Input
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password..."
             />
           </InputGroup>
@@ -130,7 +130,7 @@ export const RegisterForm = () => {
             <Input
               type="password"
               value={passwordConfirm}
-              onChange={e => setPasswordConfirm(e.target.value)}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
               placeholder="Re-enter the password..."
             />
           </InputGroup>

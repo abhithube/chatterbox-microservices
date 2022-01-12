@@ -44,20 +44,25 @@ const initialState: PartiesState = {
 };
 
 export const getParties = createAsyncThunk('parties/getParties', async () => {
-  return httpClient.get<Party[]>('/parties/@me');
+  return httpClient.get<Party[]>('/messages-service/parties/@me');
 });
 
 export const getParty = createAsyncThunk(
   'parties/getActiveParty',
   async (id: string) => {
-    return httpClient.get<PartyWithMembersAndTopics>(`/parties/${id}`);
+    return httpClient.get<PartyWithMembersAndTopics>(
+      `/messages-service/parties/${id}`
+    );
   }
 );
 
 export const createParty = createAsyncThunk(
   'parties/createParty',
   async (payload: CreatePartyPayload) => {
-    return httpClient.post<CreatePartyPayload, Party>('/parties', payload);
+    return httpClient.post<CreatePartyPayload, Party>(
+      '/messages-service/parties',
+      payload
+    );
   }
 );
 
@@ -70,7 +75,7 @@ export const createTopic = createAsyncThunk<
 >('parties/createTopic', async (payload: CreateTopicPayload, { getState }) => {
   const { activeParty } = selectParties(getState());
   return httpClient.post<CreateTopicPayload, Topic>(
-    `/parties/${activeParty!.id}/topics`,
+    `/messages-service/parties/${activeParty!.id}/topics`,
     payload
   );
 });

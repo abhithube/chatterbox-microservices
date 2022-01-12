@@ -46,9 +46,9 @@ export const getMessages = createAsyncThunk<
   const { activeParty, activeTopic } = selectParties(getState());
 
   return httpClient.get<Message[]>(
-    `/parties/${activeParty?.id}/topics/${activeTopic?.id}/messages${
-      payload.topicIndex ? `?topicIndex=${payload.topicIndex}` : ''
-    }`
+    `/messages-service/parties/${activeParty?.id}/topics/${
+      activeTopic?.id
+    }/messages${payload.topicIndex ? `?topicIndex=${payload.topicIndex}` : ''}`
   );
 });
 

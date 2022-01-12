@@ -9,7 +9,7 @@ configureContainer().then(async (container) => {
     !configManager.get('GITHUB_CLIENT_ID') ||
     !configManager.get('GITHUB_CLIENT_SECRET') ||
     !configManager.get('CLIENT_URL') ||
-    !configManager.get('SERVER_URL')
+    !configManager.get('GOOGLE_OAUTH_CALLBACK_URL')
   ) {
     throw new Error('Configuration missing');
   }

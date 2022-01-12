@@ -22,7 +22,7 @@ axios.interceptors.response.use(
     if (err.response.status === 401 && !err.config._retry) {
       try {
         const { data } = await axios.post<{ user: User; accessToken: string }>(
-          '/auth/refresh',
+          '/accounts-service/auth/refresh',
           {},
           {
             withCredentials: true,

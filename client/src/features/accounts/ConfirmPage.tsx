@@ -26,7 +26,7 @@ export const ConfirmPage = () => {
         setLoading(true);
 
         await httpClient.post<EmailConfirmationPayload>(
-          `${process.env.REACT_APP_SERVER_URL}/accounts/confirm`,
+          '/accounts-service/accounts/confirm',
           {
             token,
           }

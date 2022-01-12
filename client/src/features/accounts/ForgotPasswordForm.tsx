@@ -8,7 +8,7 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  VStack
+  VStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaEnvelope } from 'react-icons/fa';
@@ -35,7 +35,7 @@ export const ForgotPasswordForm = () => {
         setLoading(true);
 
         await httpClient.post<ForgotPasswordPayload>(
-          `${process.env.REACT_APP_SERVER_URL}/accounts/forgot`,
+          '/accounts-service/accounts/forgot',
           {
             email,
           }
@@ -72,7 +72,7 @@ export const ForgotPasswordForm = () => {
             <Input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email..."
             />
           </InputGroup>

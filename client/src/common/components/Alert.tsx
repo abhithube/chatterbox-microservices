@@ -21,7 +21,9 @@ export const Alert = ({
 }: AlertProps) => {
   const [isClosed, setIsClosed] = useState(false);
 
-  return !isClosed ? (
+  if (isClosed) return null;
+
+  return (
     <ChakraAlert status={status} variant="left-accent">
       {!hideIcon && <AlertIcon />}
       {children}
@@ -34,5 +36,5 @@ export const Alert = ({
         />
       )}
     </ChakraAlert>
-  ) : null;
+  );
 };
