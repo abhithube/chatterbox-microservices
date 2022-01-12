@@ -24,8 +24,10 @@ export function createApp({
     })
   );
 
-  app.use('/accounts', accountsRouter);
-  app.use('/auth', authRouter);
+  app.use('/accounts-service/accounts', accountsRouter);
+  app.use('/accounts-service/auth', authRouter);
+
+  app.get('/accounts-service/health', (_, res) => res.send('OK'));
 
   app.use(errorMiddleware);
 

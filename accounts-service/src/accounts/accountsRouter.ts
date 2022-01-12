@@ -24,6 +24,8 @@ export function createAccountsRouter({
 }: AccountsRouterDeps): Router {
   const router = Router();
 
+  router.get('/', (_, res) => res.status(200).json({ status: 'UP' }));
+
   router.post('/', validationMiddleware(RegisterSchema), async (req, res) => {
     const user = await accountsService.createAccount(req.body);
 
