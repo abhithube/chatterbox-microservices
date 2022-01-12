@@ -4,8 +4,8 @@ import {
   CurrentUser,
   InternalServerException,
 } from '@chttrbx/common';
-import { User } from './models';
-import { UsersRepository } from './repositories';
+import { User } from '../models';
+import { UsersRepository } from '../repositories';
 
 export interface AccountsService {
   getAccount(user: CurrentUser): Promise<User>;

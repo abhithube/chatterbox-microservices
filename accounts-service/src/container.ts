@@ -13,15 +13,15 @@ import {
 import { asFunction, asValue, AwilixContainer, createContainer } from 'awilix';
 import { Application, Router } from 'express';
 import { MongoClient } from 'mongodb';
+import { createApp } from './app';
+import { createUsersRepository, UsersRepository } from './repositories';
+import { createAccountsRouter, createAuthRouter } from './routes';
 import {
   AccountsService,
-  createAccountsRouter,
+  AuthService,
   createAccountsService,
-  createUsersRepository,
-  UsersRepository,
-} from './accounts';
-import { createApp } from './app';
-import { AuthService, createAuthRouter, createAuthService } from './auth';
+  createAuthService,
+} from './services';
 
 interface Container {
   app: Application;

@@ -6,12 +6,12 @@ import {
   CurrentUser,
   TokenIssuer,
 } from '@chttrbx/common';
+import { User } from '../models';
 import {
   createUsersRepositoryMock,
   MOCK_USER,
-  User,
   UsersRepository,
-} from '../accounts';
+} from '../repositories';
 import { AuthService, createAuthService } from './authService';
 
 const user: User = {

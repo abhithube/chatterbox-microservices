@@ -6,13 +6,13 @@ import {
   TokenIssuer,
 } from '@chttrbx/common';
 import { Router } from 'express';
-import { AuthService } from './authService';
-import { RequestWithCookies } from './interfaces';
+import { RequestWithCookies } from '../interfaces';
 import {
   cookieMiddleware,
   githubAuthMiddleware,
   googleAuthMiddleware,
-} from './middlewares';
+} from '../middleware';
+import { AuthService } from '../services';
 
 interface AuthRouterDeps {
   authService: AuthService;

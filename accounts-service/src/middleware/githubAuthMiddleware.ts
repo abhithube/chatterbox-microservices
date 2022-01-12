@@ -1,6 +1,6 @@
 import { ConfigManager, HttpClient, RequestWithUser } from '@chttrbx/common';
 import { RequestHandler } from 'express';
-import { AuthService } from '../authService';
+import { AuthService } from '../services';
 
 interface GitHubProfile {
   login: string;

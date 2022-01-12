@@ -1,6 +1,6 @@
 import { BrokerClient, createBrokerClientMock } from '@chttrbx/common';
+import { createUsersRepositoryMock, UsersRepository } from '../repositories';
 import { AccountsService, createAccountsService } from './accountsService';
-import { createUsersRepositoryMock, UsersRepository } from './repositories';
 
 describe('AccountsService', () => {
   let service: AccountsService;

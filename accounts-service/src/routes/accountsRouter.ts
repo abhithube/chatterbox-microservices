@@ -4,7 +4,7 @@ import {
   TokenIssuer,
 } from '@chttrbx/common';
 import { Router } from 'express';
-import { AccountsService } from './accountsService';
+import { AccountsService } from '../services';
 
 interface AccountsRouterDeps {
   accountsService: AccountsService;

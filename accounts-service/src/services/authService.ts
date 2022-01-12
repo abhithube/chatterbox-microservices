@@ -5,8 +5,9 @@ import {
   RandomGenerator,
   TokenIssuer,
 } from '@chttrbx/common';
-import { User, UsersRepository } from '../accounts';
-import { RefreshResponseDto, TokenResponseDto } from './types';
+import { User } from '../models';
+import { UsersRepository } from '../repositories';
+import { RefreshResponseDto, TokenResponseDto } from '../types';
 
 export interface AuthService {
   validateOAuth(
