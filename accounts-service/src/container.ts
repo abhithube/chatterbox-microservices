@@ -22,7 +22,6 @@ import {
 } from './accounts';
 import { createApp } from './app';
 import { AuthService, createAuthRouter, createAuthService } from './auth';
-import { createBcryptHasher, PasswordHasher } from './common';
 
 interface Container {
   app: Application;
@@ -34,7 +33,6 @@ interface Container {
   dbClient: MongoClient;
   brokerClient: BrokerClient;
   tokenIssuer: TokenIssuer;
-  passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;
   httpClient: HttpClient;
   configManager: ConfigManager;
@@ -63,33 +61,22 @@ export async function configureContainer(): Promise<
   const kafkaUser = dotenvManager.get('KAFKA_USER');
   const kafkaPass = dotenvManager.get('KAFKA_PASS');
 
-  if (brokerUrls) {
-    if (dotenvManager.get('NODE_ENV') === 'production') {
-      if (!kafkaUser || !kafkaPass) {
-        throw new Error('Kafka credentials missing');
-      }
-
-      kafkaClient = await createKafkaClient({
-        kafkaConfig: {
-          clientId: 'auth-client',
-          brokers: brokerUrls.split(','),
-          ssl: true,
-          sasl: {
-            mechanism: 'plain',
-            username: kafkaUser,
-            password: kafkaPass,
-          },
-        },
-      });
-    } else {
-      kafkaClient = await createKafkaClient({
-        kafkaConfig: {
-          clientId: 'auth-client',
-          brokers: brokerUrls.split(','),
-        },
-      });
-    }
+  if (!brokerUrls || !kafkaUser || !kafkaPass) {
+    throw new Error('Kafka config missing');
   }
+
+  kafkaClient = await createKafkaClient({
+    kafkaConfig: {
+      clientId: 'accounts-client',
+      brokers: brokerUrls.split(','),
+      ssl: true,
+      sasl: {
+        mechanism: 'scram-sha-256',
+        username: kafkaUser,
+        password: kafkaPass,
+      },
+    },
+  });
 
   const container = createContainer<Container>();
 
@@ -103,7 +90,6 @@ export async function configureContainer(): Promise<
     dbClient: asValue(mongoClient),
     brokerClient: asValue(kafkaClient),
     tokenIssuer: asValue(jwtIssuer),
-    passwordHasher: asFunction(createBcryptHasher).singleton(),
     randomGenerator: asFunction(createUuidGenerator).singleton(),
     httpClient: asFunction(createAxiosClient).singleton(),
     configManager: asValue(dotenvManager),

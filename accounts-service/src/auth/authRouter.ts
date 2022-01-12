@@ -4,16 +4,14 @@ import {
   jwtAuthMiddleware,
   RequestWithUser,
   TokenIssuer,
-  validationMiddleware,
 } from '@chttrbx/common';
 import { Router } from 'express';
 import { AuthService } from './authService';
-import { LoginSchema, RequestWithCookies } from './interfaces';
+import { RequestWithCookies } from './interfaces';
 import {
   cookieMiddleware,
   githubAuthMiddleware,
   googleAuthMiddleware,
-  localAuthMiddleware,
 } from './middlewares';
 
 interface AuthRouterDeps {
@@ -32,30 +30,6 @@ export function createAuthRouter({
   const router = Router();
 
   const isProduction = configManager.get('NODE_ENV') === 'production';
-
-  router.post(
-    '/login',
-    validationMiddleware(LoginSchema),
-    localAuthMiddleware({ authService }),
-    async (req, res) => {
-      const { user } = req as RequestWithUser;
-
-      const { accessToken, refreshToken } = await authService.authenticateUser(
-        user
-      );
-
-      res
-        .cookie('refresh', refreshToken, {
-          httpOnly: true,
-          sameSite: isProduction ? 'none' : true,
-          secure: isProduction,
-        })
-        .json({
-          user,
-          accessToken,
-        });
-    }
-  );
 
   router.get('/google', (_req, res) => {
     const url =

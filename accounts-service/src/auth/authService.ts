@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   BrokerClient,
   CurrentUser,
   ForbiddenException,
@@ -7,11 +6,9 @@ import {
   TokenIssuer,
 } from '@chttrbx/common';
 import { User, UsersRepository } from '../accounts';
-import { PasswordHasher } from '../common';
 import { RefreshResponseDto, TokenResponseDto } from './types';
 
 export interface AuthService {
-  validateLocal(username: string, password: string): Promise<CurrentUser>;
   validateOAuth(
     username: string,
     email: string,
@@ -25,7 +22,6 @@ interface AuthServiceDeps {
   usersRepository: UsersRepository;
   tokenIssuer: TokenIssuer;
   brokerClient: BrokerClient;
-  passwordHasher: PasswordHasher;
   randomGenerator: RandomGenerator;
 }
 
@@ -33,34 +29,8 @@ export function createAuthService({
   usersRepository,
   tokenIssuer,
   brokerClient,
-  passwordHasher,
   randomGenerator,
 }: AuthServiceDeps): AuthService {
-  async function validateLocal(
-    username: string,
-    password: string
-  ): Promise<CurrentUser> {
-    const user = await usersRepository.findOne({
-      username,
-    });
-
-    if (
-      !user ||
-      !user.password ||
-      !passwordHasher.compareSync(password, user.password)
-    ) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    if (!user.verified) {
-      throw new ForbiddenException('Email not verified');
-    }
-
-    return {
-      id: user.id,
-    };
-  }
-
   async function validateOAuth(
     username: string,
     email: string,
@@ -75,10 +45,6 @@ export function createAuthService({
         username,
         email,
         avatarUrl,
-        password: null,
-        verified: true,
-        verificationToken: randomGenerator.generate(),
-        resetToken: randomGenerator.generate(),
       });
 
       await brokerClient.publish<User>({
@@ -138,7 +104,6 @@ export function createAuthService({
   }
 
   return {
-    validateLocal,
     validateOAuth,
     authenticateUser,
     refreshAccessToken,

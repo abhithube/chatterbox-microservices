@@ -6,35 +6,19 @@ import {
   CurrentUser,
   TokenIssuer,
 } from '@chttrbx/common';
-import bcrypt from 'bcrypt';
 import {
   createUsersRepositoryMock,
-  MOCK_UNVERIFIED_USER,
-  MOCK_VERIFIED_USER,
-  RegisterDto,
+  MOCK_USER,
   User,
   UsersRepository,
 } from '../accounts';
-import { createPasswordHasherMock, PasswordHasher } from '../common';
 import { AuthService, createAuthService } from './authService';
-
-const pass = 'testpass';
-
-const registerDto: RegisterDto = {
-  username: 'testuser',
-  email: 'testemail',
-  password: bcrypt.hashSync(pass, 10),
-};
 
 const user: User = {
   id: '1',
-  username: registerDto.username,
-  email: registerDto.email,
-  password: registerDto.password,
+  username: 'testuser',
+  email: 'testemail',
   avatarUrl: null,
-  verified: true,
-  verificationToken: 'verify',
-  resetToken: 'reset',
 };
 
 const currentUser: CurrentUser = {
@@ -44,13 +28,11 @@ const currentUser: CurrentUser = {
 describe('AuthService', () => {
   let service: AuthService;
   let usersRepository: UsersRepository;
-  let passwordHasher: PasswordHasher;
   let tokenIssuer: TokenIssuer;
   let brokerClient: BrokerClient;
 
   beforeAll(async () => {
     usersRepository = createUsersRepositoryMock();
-    passwordHasher = createPasswordHasherMock();
     tokenIssuer = createTokenIssuerMock();
     brokerClient = createBrokerClientMock();
 
@@ -58,7 +40,6 @@ describe('AuthService', () => {
       usersRepository,
       tokenIssuer,
       brokerClient,
-      passwordHasher,
       randomGenerator: createRandomGeneratorMock(),
     });
   });
@@ -71,37 +52,11 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 
-  it('validates correct username/password combination', async () => {
-    await expect(service.validateLocal('', '')).resolves.toEqual(
-      expect.objectContaining({
-        id: MOCK_VERIFIED_USER.id,
-      })
-    );
-  });
-
-  it('rejects incorrect username/password combination', async () => {
-    jest.spyOn(passwordHasher, 'compareSync').mockReturnValue(false);
-
-    await expect(service.validateLocal('', '')).rejects.toThrow(
-      'Invalid credentials'
-    );
-  });
-
-  it('rejects unverified users', async () => {
-    jest
-      .spyOn(usersRepository, 'findOne')
-      .mockResolvedValue(MOCK_UNVERIFIED_USER);
-
-    await expect(service.validateLocal('', '')).rejects.toThrow(
-      'Email not verified'
-    );
-  });
-
   it('validates OAuth login for an existing user', async () => {
     const spy = jest.spyOn(usersRepository, 'insertOne');
 
     await expect(service.validateOAuth('', '', '')).resolves.toEqual(
-      expect.objectContaining({ id: MOCK_VERIFIED_USER.id })
+      expect.objectContaining({ id: MOCK_USER.id })
     );
 
     expect(spy).not.toHaveBeenCalled();
@@ -114,7 +69,7 @@ describe('AuthService', () => {
 
     await expect(service.validateOAuth('', '', '')).resolves.toEqual(
       expect.objectContaining({
-        id: MOCK_VERIFIED_USER.id,
+        id: MOCK_USER.id,
       })
     );
 
