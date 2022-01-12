@@ -4,7 +4,7 @@ import {
   Box,
   Heading,
   List,
-  ListItem
+  ListItem,
 } from '@chakra-ui/react';
 import { useAppSelector } from '../../app/hooks';
 import { selectParties } from '../parties';
@@ -20,7 +20,7 @@ export const UserSidebar = () => {
         Users
       </Heading>
       <List mt={4} pl={4}>
-        {activeParty?.members.map(member => (
+        {activeParty?.members.map((member) => (
           <ListItem
             key={member.id}
             display="flex"

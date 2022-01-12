@@ -6,7 +6,7 @@ import {
   IconButton,
   Input,
   InputGroup,
-  InputLeftElement
+  InputLeftElement,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaComment, FaPlay } from 'react-icons/fa';
@@ -47,7 +47,7 @@ export const CreateMessage = () => {
               />
               <Input
                 value={message}
-                onChange={e => setMessage(e.target.value)}
+                onChange={(e) => setMessage(e.target.value)}
                 placeholder={`Message #${activeTopic!.name}`}
               />
             </InputGroup>

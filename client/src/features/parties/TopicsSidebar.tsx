@@ -24,7 +24,7 @@ export const TopicsSidebar = () => {
         <InviteModal />
       </Box>
       <Box mt={8}>
-        {activeParty.topics.map(topic => (
+        {activeParty.topics.map((topic) => (
           <Box
             key={topic.id}
             m={1}

@@ -4,7 +4,7 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
-  useDisclosure
+  useDisclosure,
 } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { Redirect } from 'react-router-dom';

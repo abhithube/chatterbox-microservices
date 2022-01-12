@@ -8,7 +8,7 @@ import {
   Icon,
   Input,
   InputGroup,
-  InputLeftElement
+  InputLeftElement,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { FaUserFriends } from 'react-icons/fa';
@@ -76,7 +76,7 @@ export const CreateParty = ({ onClose }: CreatePartyProps) => {
             />
             <Input
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Enter a name..."
             />
           </InputGroup>

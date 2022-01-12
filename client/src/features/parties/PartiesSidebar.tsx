@@ -15,7 +15,7 @@ export const PartiesSidebar = () => {
 
   return (
     <Flex direction="column" align="center" pt={4} h="full" bgColor="gray.300">
-      {parties.map(party => (
+      {parties.map((party) => (
         <Link
           key={party.id}
           as={RouterLink}

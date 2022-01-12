@@ -42,7 +42,7 @@ export const MessageFeed = () => {
             This is the beginning of #{activeTopic?.name}
           </Text>
         )}
-        {messages.map(message => (
+        {messages.map((message) => (
           <MessageItem key={message.id} message={message} />
         ))}
         {!isLoading &&

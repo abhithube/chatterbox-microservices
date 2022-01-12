@@ -9,7 +9,7 @@ import {
   ModalOverlay,
   Tooltip,
   useDisclosure,
-  useToast
+  useToast,
 } from '@chakra-ui/react';
 import { FaPlus } from 'react-icons/fa';
 import { CreateParty } from './CreateParty';

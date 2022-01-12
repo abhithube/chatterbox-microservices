@@ -16,7 +16,7 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
-  useToast
+  useToast,
 } from '@chakra-ui/react';
 import { useRef, useState } from 'react';
 import { FaComments, FaPlus } from 'react-icons/fa';
@@ -116,7 +116,7 @@ export const TopicModal = ({ count }: TopicModalProps) => {
                     />
                     <Input
                       value={name}
-                      onChange={e => setName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       placeholder="Enter a name..."
                       ref={inputRef}
                     />
