@@ -3,7 +3,6 @@
     "./accounts-service",
     "./client",
     "./common",
-    "./contact-service",
     "./messages-service"
   ]
 }
