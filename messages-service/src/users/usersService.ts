@@ -3,8 +3,6 @@ import { UsersRepository } from './repositories';
 
 export interface UsersService {
   createUser(userDto: UserDto): Promise<void>;
-  updateUser(userDto: UserDto): Promise<void>;
-  deleteUser(userDto: UserDto): Promise<void>;
 }
 
 interface UsersServiceDeps {
@@ -26,25 +24,7 @@ export function createUsersService({
     });
   }
 
-  async function updateUser({
-    id,
-    username,
-    avatarUrl,
-  }: UserDto): Promise<void> {
-    await usersRepository.updateOne(id, {
-      id,
-      username,
-      avatarUrl,
-    });
-  }
-
-  async function deleteUser({ id }: UserDto): Promise<void> {
-    await usersRepository.deleteOne(id);
-  }
-
   return {
     createUser,
-    updateUser,
-    deleteUser,
   };
 }

@@ -18,12 +18,6 @@ export function createUsersConsumer({
       case 'user:created':
         usersService.createUser(data);
         break;
-      case 'user:updated':
-        usersService.updateUser(data);
-        break;
-      case 'user:deleted':
-        usersService.deleteUser(data);
-        break;
       default:
         break;
     }

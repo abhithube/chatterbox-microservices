@@ -4,11 +4,6 @@ import { User } from '../models';
 export interface UsersRepository {
   insertOne(user: User): Promise<User>;
   findOne(options: Partial<User>): Promise<User | null>;
-  updateOne(
-    filterOptions: Partial<User>,
-    updateOptions: Partial<User>
-  ): Promise<User | null>;
-  deleteOne(options: Partial<User>): Promise<User | null>;
   deleteMany(): Promise<void>;
 }
 
@@ -41,36 +36,6 @@ export function createUsersRepository({
     });
   }
 
-  async function updateOne(
-    filterOptions: Partial<User>,
-    updateOptions: Partial<User>
-  ): Promise<User | null> {
-    const result = await collection.findOneAndUpdate(
-      filterOptions,
-      {
-        $set: updateOptions,
-      },
-      {
-        projection: {
-          _id: 0,
-        },
-        returnDocument: 'after',
-      }
-    );
-
-    return result.value;
-  }
-
-  async function deleteOne(options: Partial<User>): Promise<User | null> {
-    const result = await collection.findOneAndDelete(options, {
-      projection: {
-        _id: 0,
-      },
-    });
-
-    return result.value;
-  }
-
   async function deleteMany(): Promise<void> {
     await collection.deleteMany({});
   }
@@ -78,8 +43,6 @@ export function createUsersRepository({
   return {
     insertOne,
     findOne,
-    updateOne,
-    deleteOne,
     deleteMany,
   };
 }

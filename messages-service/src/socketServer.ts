@@ -15,7 +15,7 @@ export function createSocketServer({
   tokenIssuer,
   configManager,
 }: SocketServerDeps): Server {
-  const redisClient = new Redis(configManager.get('REDIS_URL'));
+  const redisClient = new Redis(configManager.get('REDIS_URL')!);
   const io = new Server(httpServer, {
     path: '/messages-service/socket.io',
     adapter: createAdapter(redisClient, redisClient.duplicate()),

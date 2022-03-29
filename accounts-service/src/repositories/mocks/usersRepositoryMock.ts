@@ -11,7 +11,5 @@ export const MOCK_USER: User = {
 export const createUsersRepositoryMock = (): UsersRepository => ({
   insertOne: () => Promise.resolve(MOCK_USER),
   findOne: () => Promise.resolve(MOCK_USER),
-  updateOne: () => Promise.resolve(MOCK_USER),
-  deleteOne: () => Promise.resolve(MOCK_USER),
   deleteMany: () => Promise.resolve(),
 });
