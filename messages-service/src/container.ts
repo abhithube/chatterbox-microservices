@@ -1,11 +1,9 @@
 import {
   BrokerClient,
-  CacheManager,
   ConfigManager,
   createDotenvManager,
   createJwtIssuer,
   createKafkaClient,
-  createRedisManager,
   createUuidGenerator,
   RandomGenerator,
   TokenIssuer,
@@ -13,6 +11,7 @@ import {
 import { asFunction, asValue, AwilixContainer, createContainer } from 'awilix';
 import { Application, Router } from 'express';
 import { Server as HttpServer } from 'http';
+import Redis from 'ioredis';
 import { Client } from 'pg';
 import { Server as IoServer } from 'socket.io';
 import { createApp } from './app';
@@ -64,7 +63,7 @@ interface Container {
   randomGenerator: RandomGenerator;
   dbClient: Client;
   brokerClient: BrokerClient;
-  cacheManager: CacheManager;
+  redisClient: Redis;
   tokenIssuer: TokenIssuer;
   configManager: ConfigManager;
 }
@@ -90,9 +89,7 @@ export async function configureContainer(): Promise<
     expiresIn: '15m',
   });
 
-  const redisManager = createRedisManager({
-    url: dotenvManager.get('REDIS_URL'),
-  });
+  const redisClient = new Redis(dotenvManager.get('REDIS_URL')!);
 
   let kafkaClient: BrokerClient = {} as BrokerClient;
   const brokerUrls = dotenvManager.get('BROKER_URLS');
@@ -139,7 +136,7 @@ export async function configureContainer(): Promise<
     randomGenerator: asFunction(createUuidGenerator).singleton(),
     dbClient: asValue(postgresClient),
     brokerClient: asValue(kafkaClient),
-    cacheManager: asValue(redisManager),
+    redisClient: asValue(redisClient),
     tokenIssuer: asValue(jwtIssuer),
     configManager: asValue(dotenvManager),
   });

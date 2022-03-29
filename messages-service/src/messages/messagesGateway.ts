@@ -1,4 +1,5 @@
-import { CacheManager, TokenIssuer } from '@chttrbx/common';
+import { TokenIssuer } from '@chttrbx/common';
+import Redis from 'ioredis';
 import { Server, Socket } from 'socket.io';
 import { CreateMessageDto, CreateMessageSchema } from './dto';
 import { SocketWithUser } from './interfaces';
@@ -19,13 +20,13 @@ export interface MessagesGateway {
 interface MessagesGatewayDeps {
   messagesService: MessagesService;
   tokenIssuer: TokenIssuer;
-  cacheManager: CacheManager;
+  redisClient: Redis;
 }
 
 export function createMessagesGateway({
   messagesService,
   tokenIssuer,
-  cacheManager,
+  redisClient,
 }: MessagesGatewayDeps): MessagesGateway {
   function socketHandler(io: Server, socket: Socket) {
     const client = socket as SocketWithUser;
@@ -50,20 +51,23 @@ export function createMessagesGateway({
       async ({ party }: PartyConnection, callback: () => void) => {
         if (client.party) {
           client.leave(`party:${client.party}`);
-          await cacheManager.del(`client:${client.id}`);
+          await redisClient.del(`client:${client.id}`);
         }
 
         client.join(`party:${party}`);
         client.party = party;
 
-        await cacheManager.set(`client:${client.id}`, client.user.id, {
-          expiryTime: 60 * 60 * 24 * 1,
-        });
+        await redisClient.set(
+          `client:${client.id}`,
+          client.user.id,
+          'EX',
+          60 * 60 * 24 * 1
+        );
 
         const clients = await client.in(`party:${client.party}`).allSockets();
 
         const userPromises = [...clients.keys()].map(async (clientId) => {
-          const userId = await cacheManager.get(`client:${clientId}`);
+          const userId = await redisClient.get(`client:${clientId}`);
 
           return { clientId, userId };
         });

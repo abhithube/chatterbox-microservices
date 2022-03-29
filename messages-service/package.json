@@ -13,7 +13,7 @@
     "test:e2e": "jest --setupFiles dotenv/config --config ./jest-e2e.config.ts"
   },
   "dependencies": {
-    "@chttrbx/common": "^2.5.0",
+    "@chttrbx/common": "^3.0.0",
     "@socket.io/redis-adapter": "^7.1.0",
     "awilix": "^7.0.1",
     "cors": "^2.8.5",

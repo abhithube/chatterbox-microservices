@@ -8,14 +8,15 @@ interface SocketServerDeps {
   httpServer: HttpServer;
   tokenIssuer: TokenIssuer;
   configManager: ConfigManager;
+  redisClient: Redis;
 }
 
 export function createSocketServer({
   httpServer,
   tokenIssuer,
   configManager,
+  redisClient,
 }: SocketServerDeps): Server {
-  const redisClient = new Redis(configManager.get('REDIS_URL')!);
   const io = new Server(httpServer, {
     path: '/messages-service/socket.io',
     adapter: createAdapter(redisClient, redisClient.duplicate()),
