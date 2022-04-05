@@ -1,3 +1,7 @@
+resource "aws_ecs_cluster" "main" {
+  name = var.ecs_cluster_name
+}
+
 resource "aws_ecs_capacity_provider" "main" {
   name = "ChatterboxECSCapacityProvider"
 
@@ -11,9 +15,15 @@ resource "aws_ecs_capacity_provider" "main" {
   }
 }
 
-resource "aws_ecs_cluster" "main" {
-  name               = var.ecs_cluster_name
-  capacity_providers = [aws_ecs_capacity_provider.main.name]
+resource "aws_ecs_cluster_capacity_providers" "main" {
+  cluster_name        = aws_ecs_cluster.main.name
+  capacity_providers  = [aws_ecs_capacity_provider.main.name]
+
+  default_capacity_provider_strategy {
+    capacity_provider = aws_ecs_capacity_provider.main.name
+    weight            = 100
+    base              = 1
+  }
 }
 
 ### Accounts
@@ -26,7 +36,7 @@ resource "aws_ecs_task_definition" "accounts" {
   container_definitions = jsonencode([
     {
       name  = "accounts"
-      image = "abhithube/chatterbox-accounts"
+      image = aws_ecr_repository.accounts.repository_url
       portMappings = [
         {
           containerPort = 80
@@ -90,9 +100,9 @@ resource "aws_ecs_task_definition" "accounts" {
       logConfiguration = {
         logDriver = "awslogs",
         options = {
-          awslogs-group        = "/chatterbox/ecs/accounts-service",
-          awslogs-region       = "us-west-1",
-          awslogs-create-group = "true",
+          awslogs-group         = "/chatterbox/ecs/accounts-service",
+          awslogs-region        = "us-west-1",
+          awslogs-create-group  = "true",
           awslogs-stream-prefix = "accounts-service"
         }
       }
@@ -126,7 +136,7 @@ resource "aws_ecs_task_definition" "messages" {
   container_definitions = jsonencode([
     {
       name  = "messages"
-      image = "abhithube/chatterbox-messages"
+      image = aws_ecr_repository.messages.repository_url
       portMappings = [
         {
           containerPort = 80
@@ -174,9 +184,9 @@ resource "aws_ecs_task_definition" "messages" {
       logConfiguration = {
         logDriver = "awslogs",
         options = {
-          awslogs-group        = "/chatterbox/ecs/messages-service",
-          awslogs-region       = "us-west-1",
-          awslogs-create-group = "true",
+          awslogs-group         = "/chatterbox/ecs/messages-service",
+          awslogs-region        = "us-west-1",
+          awslogs-create-group  = "true",
           awslogs-stream-prefix = "messages-service"
         }
       }
