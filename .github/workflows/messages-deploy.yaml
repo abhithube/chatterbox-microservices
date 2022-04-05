@@ -17,22 +17,35 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          username: abhithube
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push to Docker Hub
-        uses: docker/build-push-action@v2
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-1
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: chatterbox-messages
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Pull Amazon ECS task definition
+        run: |
+          aws ecs describe-task-definition --task-definition ChatterboxMessagesECSTaskDefinition --query taskDefinition > task-definition.json
+      - name: Fill in new image ID in Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          context: messages-service
-          push: true
-          tags: abhithube/chatterbox-messages:latest
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+          task-definition: task-definition.json
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-      - name: Get DigitalOcean Kubernetes cluster config
-        run: doctl kubernetes cluster kubeconfig save abhithube-k8s
-      - name: Restart Kubernetes deployment
-        run: kubectl rollout restart deployment messages-deploy
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ChatterboxMessagesECSService
+          cluster: ChatterboxECSCluster
+          wait-for-service-stability: true
