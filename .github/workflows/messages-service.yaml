@@ -13,7 +13,7 @@ env:
   ECS_SERVICE: ChatterboxMessagesECSService
   ECS_CLUSTER: ChatterboxECSCluster
   ECS_TASK_DEFINITION_NAME: ChatterboxMessagesECSTaskDefinition
-  ECS_TASK_DEFINITION_PATH: .aws/task-definition.json
+  ECS_TASK_DEFINITION_PATH: task-definition.json
   CONTAINER_NAME: chatterbox-messages
 
 jobs:
