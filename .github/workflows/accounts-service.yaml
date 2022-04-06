@@ -23,11 +23,12 @@ jobs:
           aws-region: us-west-1
 
       - name: Login to Amazon ECR
+        id: ecr-login
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and push image to Amazon ECR
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           ECR_REPOSITORY: chatterbox-accounts
           IMAGE_TAG: ${{ github.sha }}
         run: |
@@ -39,6 +40,7 @@ jobs:
           aws ecs describe-task-definition --task-definition ChatterboxAccountsECSTaskDefinition --query taskDefinition > task-definition.json
 
       - name: Fill in new image ID in Amazon ECS task definition
+        id: task-def-update
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
@@ -47,7 +49,7 @@ jobs:
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          task-definition: ${{ steps.task-def-update.outputs.task-definition }}
           service: ChatterboxAccountsECSService
           cluster: ChatterboxECSCluster
           wait-for-service-stability: true
