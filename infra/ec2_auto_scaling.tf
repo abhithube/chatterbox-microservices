@@ -10,7 +10,7 @@ resource "aws_launch_template" "main" {
     name = aws_iam_instance_profile.ecs.name
   }
 
-  user_data = base64encode("#!/bin/bash\necho 'ECS_CLUSTER=${var.ecs_cluster_name}' >> /etc/ecs/ecs.config")
+  user_data = base64encode("#!/bin/bash\necho 'ECS_CLUSTER=ChatterboxECSCluster' >> /etc/ecs/ecs.config")
 }
 
 resource "aws_autoscaling_group" "main" {

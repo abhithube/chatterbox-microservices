@@ -5,6 +5,12 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  backend "s3" {
+    bucket = "chatterbox-tf-backend"
+    key    = "terraform.tfstate"
+    region = "us-west-1"
+  }
 }
 
 provider "aws" {

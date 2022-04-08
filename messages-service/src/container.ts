@@ -73,13 +73,13 @@ export async function configureContainer(): Promise<
 > {
   const dotenvManager = createDotenvManager();
 
-  const databaseUrl = dotenvManager.get('DATABASE_URL');
+  const databaseUrl = dotenvManager.get('MESSAGES_DATABASE_URL');
   if (!databaseUrl) {
     throw new Error('Database config missing');
   }
 
   const postgresClient = new Client({
-    connectionString: dotenvManager.get('DATABASE_URL'),
+    connectionString: databaseUrl,
   });
 
   postgresClient.connect();

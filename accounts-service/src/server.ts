@@ -16,6 +16,6 @@ configureContainer().then(async (container) => {
 
   const app = container.resolve('app');
 
-  const port = configManager.get('PORT') || 5000;
+  const port = configManager.get('PORT') || 5001;
   app.listen(port, () => console.log(`Listening on port ${port}...`));
 });

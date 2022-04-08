@@ -43,7 +43,7 @@ export async function configureContainer(): Promise<
 > {
   const dotenvManager = createDotenvManager();
 
-  const databaseUrl = dotenvManager.get('DATABASE_URL');
+  const databaseUrl = dotenvManager.get('ACCOUNTS_DATABASE_URL');
   if (!databaseUrl) {
     throw new Error('Database URL missing');
   }
