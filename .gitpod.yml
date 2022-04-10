@@ -1,6 +1,10 @@
 tasks:
   - init: npm install
-    command: echo $GITPOD_WORKSPACE_URL
+    command: |
+      export REACT_APP_CLIENT_URL=$(gp url 3000)
+      export REACT_APP_SERVER_URL=$(gp url 8000)
+      export CLIENT_URL=$REACT_APP_CLIENT_URL
+      export GOOGLE_OAUTH_CALLBACK_URL=$REACT_APP_SERVER_URL/accounts-service/auth/google/callback
 
   - name: Accounts Service
     before: cd accounts-service
