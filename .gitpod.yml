@@ -1,0 +1,22 @@
+tasks:
+  - init: npm install
+    command: echo $GITPOD_WORKSPACE_URL
+
+  - name: Accounts Service
+    before: cd accounts-service
+    init: npm install
+    command: npm run dev
+
+  - name: Messages Service
+    before: cd messages-service
+    init: npm install
+    command: npm run dev
+
+  - name: Client
+    before: cd client
+    init: npm install
+    command: npm start
+
+  - name: Common
+    before: cd common
+    init: npm install
