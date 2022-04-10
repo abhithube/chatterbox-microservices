@@ -24,6 +24,9 @@ tasks:
       export REACT_APP_SERVER_URL=$(gp url 8000)
       npm start
 
-  - name: Common
-    before: cd common
-    init: npm install
+  - name: Infra
+    before: cd infra
+    init: terraform init
+    
+image:
+  file: .gitpod.Dockerfile
