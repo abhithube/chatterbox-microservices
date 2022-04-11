@@ -26,7 +26,9 @@ tasks:
 
   - name: Infra
     before: cd infra
-    init: terraform init
+    init: |
+      eval $(command gp env -e)
+      terraform init
     
 image:
   file: .gitpod.Dockerfile
