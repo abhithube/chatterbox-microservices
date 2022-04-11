@@ -44,3 +44,10 @@ tasks:
     
 image:
   file: .gitpod.Dockerfile
+
+vscode:
+  extensions:
+    - dbaeumer.vscode-eslint
+    - hashicorp.terraform
+    - esbenp.prettier-vscode
+    - bradlc.vscode-tailwindcss
