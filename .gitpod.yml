@@ -1,5 +1,17 @@
+ports:
+  - port: 3000
+    visibility: public
+
+  - port: 8000
+    visibility: public
+
+  - port: 5000-5999
+    visibility: private
+    onOpen: ignore
+
 tasks:
   - init: npm install
+    command: nginx
 
   - name: Accounts Service
     before: cd accounts-service
