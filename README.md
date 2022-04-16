@@ -1,12 +1,11 @@
 # Chatterbox
 
-![Accounts Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/accounts-test.yaml/badge.svg)
-![Contact Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/contact-test.yaml/badge.svg)
-![Messages Service CI](https://github.com/abhithube/chatterbox-microservices/actions/workflows/messages-test.yaml/badge.svg)
+![Deploy Accounts Service](https://github.com/abhithube/chatterbox-microservices/actions/workflows/accounts-service.yaml/badge.svg)
+![Deploy Messages Service](https://github.com/abhithube/chatterbox-microservices/actions/workflows/messages-service.yaml/badge.svg)
 
 ## Link
 
-The application is live on DigitalOcean and can be found at https://chatterbox.abhithube.com.
+The application is live on AWS and can be found at https://chatterbox.abhithube.com.
 
 ## Intro
 
@@ -16,17 +15,10 @@ Chatterbox is a web application designed for group messaging, in a similar vein 
 
 - User registration and login with email/password or OAuth with Google/GitHub
 - Email verification and password reset
-- Create parties to connect with other users (up to 10 parties)
-- Join parties via an invite link (up to 10 users)
-- Create topics within parties (up to 10 topics)
+- Create parties to connect with other users
+- Join parties via an invite link
+- Create topics within parties
 - Send messages to other users within topics
-
-## To Do
-
-1. Configure auto-scaling for Kubernetes deployments
-2. Finish testing MessagesService
-3. Create a landing page
-4. Implement client-side caching to improve performance and minimize loading spinners
 
 ## Tech Stack
 
@@ -38,7 +30,8 @@ Chatterbox is a web application designed for group messaging, in a similar vein 
 - PostgreSQL
 - Kafka
 - Docker
-- Kubernetes
+- AWS
+- Terraform
 
 ## Project Structure
 
@@ -50,13 +43,12 @@ The client application is a fairly straightforward React application boostrapped
 
 ## Backend Design
 
-The backend of this application is broken into several components, following the event-driven microservices architecture. The services are built using the Express web framework for Node.js. The _Accounts Service_ connects to a MongoDB database (deployed on MongoDB Atlas), which was chosen for the ease of use and the lack of relational data. The _Messages Service_, on the other hand, has quite a bit of relational data, so PostgreSQL (deployed on Heroku) was the database of choice. The services communicate asynchronously via a Kafka broker (deployed on Confluent Cloud). Details below.
+The backend of this application is broken into several components, following the event-driven microservices architecture. The services are built using the Express web framework for Node.js. The _Accounts Service_ connects to a MongoDB database, which was chosen for the ease of use and the lack of relational data. The _Messages Service_, on the other hand, has quite a bit of relational data, so PostgreSQL was the database of choice. The services communicate asynchronously via a Kafka broker. Details below.
 
 ### Microservices
 
 - _Accounts Service_ is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
 - _Messages Service_ handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a CRUD RESTful API for managing parties and topics.
-- _Contact Service_ deals with direct communications with the user. Currently, it sends email verification and password reset emails based on events received from Kafka.
 
 ### Asynchronous Communication
 
