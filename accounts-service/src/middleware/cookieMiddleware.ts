@@ -6,10 +6,10 @@ export const cookieMiddleware: RequestHandler = (req, _res, next) => {
   const cookies: Record<string, string> = {};
 
   if (cookieStr) {
-    const cookieArr = cookieStr.split('; ');
+    const cookieArr = cookieStr.split(';');
 
     cookieArr.forEach((str) => {
-      const [key, ...rest] = str.split('=');
+      const [key, ...rest] = str.trim().split('=');
       const value = rest.join('=');
 
       cookies[key] = value;
