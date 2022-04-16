@@ -14,7 +14,7 @@ env:
   ECS_CLUSTER: ChatterboxECSCluster
   ECS_TASK_DEFINITION_NAME: ChatterboxMessagesECSTaskDefinition
   ECS_TASK_DEFINITION_PATH: task-definition.json
-  CONTAINER_NAME: chatterbox-messages
+  CONTAINER_NAME: messages
 
 jobs:
   deploy:
