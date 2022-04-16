@@ -68,7 +68,6 @@ export function createAuthRouter({
     const url =
       'https://github.com/login/oauth/authorize' +
       `?client_id=${configManager.get('GITHUB_CLIENT_ID')}` +
-      `&redirect_uri=${configManager.get('SERVER_URL')}/auth/github/callback` +
       '&scope=user:email';
 
     res.redirect(url);
