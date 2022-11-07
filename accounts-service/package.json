@@ -9,6 +9,7 @@
   "dependencies": {
     "@chttrbx/common": "^3.0.0",
     "@nestjs/common": "^9.1.6",
+    "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.1.6",
     "@nestjs/platform-express": "^9.1.6",
     "awilix": "^7.0.1",
