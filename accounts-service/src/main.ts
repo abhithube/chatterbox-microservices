@@ -7,6 +7,13 @@ async function bootstrap() {
   app.setGlobalPrefix('accounts-service');
 
   const configService = app.get<ConfigService>(ConfigService);
+
+  const origin = configService.get('CLIENT_URL');
+  app.enableCors({
+    credentials: true,
+    origin,
+  });
+
   const port = configService.get('PORT') || 5000;
 
   await app.listen(port);
