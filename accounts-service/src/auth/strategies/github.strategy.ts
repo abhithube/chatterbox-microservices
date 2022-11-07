@@ -3,8 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { randomUUID } from 'crypto';
 import { Profile, Strategy } from 'passport-github2';
-import { UsersService } from '../../users/users.service';
-import { CreateUserDto } from '../dto/create-user.dto';
+import { CreateUserDto, UsersService } from '../../users';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
