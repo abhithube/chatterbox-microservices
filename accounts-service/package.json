@@ -11,6 +11,7 @@
     "@nestjs/common": "^9.1.6",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.1.6",
+    "@nestjs/jwt": "^9.0.0",
     "@nestjs/mongoose": "^9.2.1",
     "@nestjs/passport": "^9.0.0",
     "@nestjs/platform-express": "^9.1.6",
@@ -24,7 +25,8 @@
     "joi": "^17.6.0",
     "mongodb": "^4.4.1",
     "passport-github2": "^0.1.12",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "passport-jwt": "^4.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.1.5",
@@ -35,6 +37,7 @@
     "@types/node": "^17.0.23",
     "@types/passport-github2": "^1.2.5",
     "@types/passport-google-oauth20": "^2.0.11",
+    "@types/passport-jwt": "^3.0.7",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
