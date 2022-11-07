@@ -1,13 +1,13 @@
 import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Response } from 'express';
-import { User as UserDoc } from '../users';
+import { Auth, JwtAuthGuard } from '../common';
+import { User } from '../users';
 import { AuthService } from './auth.service';
-import { User } from './decorators';
-import { JwtPayloadDto } from './dto';
-import { GithubAuthGuard, GoogleAuthGuard, JwtAuthGuard } from './guards';
+import { JwtPayloadDto, RefreshResponseDto } from './dto';
+import { GithubAuthGuard, GoogleAuthGuard, RefreshCookieGuard } from './guards';
 
-@Controller('/auth')
+@Controller('auth')
 export class AuthController {
   private redirectUrl: URL;
   private cookieOptions: CookieOptions;
@@ -23,13 +23,13 @@ export class AuthController {
     };
   }
 
-  @Get('/github')
+  @Get('github')
   @UseGuards(GithubAuthGuard)
   githubAuth() {}
 
-  @Get('/github/callback')
+  @Get('github/callback')
   @UseGuards(GithubAuthGuard)
-  githubAuthCallback(@Res() res: Response, @User() user: UserDoc) {
+  githubAuthCallback(@Res() res: Response, @Auth() user: User) {
     const { accessToken, refreshToken } =
       this.authService.authenticateUser(user);
 
@@ -40,13 +40,13 @@ export class AuthController {
       .redirect(this.redirectUrl.href);
   }
 
-  @Get('/google')
+  @Get('google')
   @UseGuards(GoogleAuthGuard)
   googleAuth() {}
 
-  @Get('/google/callback')
+  @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleAuthCallback(@Res() res: Response, @User() user: UserDoc) {
+  googleAuthCallback(@Res() res: Response, @Auth() user: User) {
     const { accessToken, refreshToken } =
       this.authService.authenticateUser(user);
 
@@ -57,9 +57,25 @@ export class AuthController {
       .redirect(this.redirectUrl.href);
   }
 
-  @Get('/@me')
+  @Get('@me')
   @UseGuards(JwtAuthGuard)
-  getAuth(@User() auth: JwtPayloadDto) {
+  getAuth(@Auth() auth: JwtPayloadDto): JwtPayloadDto {
     return auth;
+  }
+
+  @Get('refresh')
+  @UseGuards(RefreshCookieGuard)
+  refreshToken(@Auth() auth: JwtPayloadDto): RefreshResponseDto {
+    const accessToken = this.authService.refreshAccessToken(auth.sub);
+
+    return {
+      accessToken,
+    };
+  }
+
+  @Get('logout')
+  @UseGuards(RefreshCookieGuard)
+  logout(@Res() res: Response) {
+    res.clearCookie('refresh').send();
   }
 }

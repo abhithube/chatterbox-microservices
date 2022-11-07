@@ -7,18 +7,18 @@ import { TokenDataDto } from './dto';
 export class AuthService {
   constructor(private jwtService: JwtService) {}
 
-  authenticateUser(user: User): TokenDataDto {
+  authenticateUser({ uuid }: User): TokenDataDto {
     const accessToken = this.jwtService.sign(
       {},
       {
-        subject: user.uuid,
+        subject: uuid,
         expiresIn: '15m',
       }
     );
     const refreshToken = this.jwtService.sign(
       {},
       {
-        subject: user.uuid,
+        subject: uuid,
         expiresIn: '1d',
       }
     );
@@ -27,5 +27,15 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  refreshAccessToken(subject: string): string {
+    return this.jwtService.sign(
+      {},
+      {
+        subject,
+        expiresIn: '15m',
+      }
+    );
   }
 }
