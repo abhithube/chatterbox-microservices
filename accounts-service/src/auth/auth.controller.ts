@@ -1,4 +1,6 @@
-import { Controller, Get, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { User } from 'src/common/decorators/user.decorator';
+import { CreateUserDto } from './dto/create-user.dto';
 import { GithubAuthGuard } from './guards/github-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
 
@@ -10,8 +12,8 @@ export class AuthController {
 
   @Get('/github/callback')
   @UseGuards(GithubAuthGuard)
-  async githubAuthCallback(@Request() req): Promise<void> {
-    console.log(req.user);
+  async githubAuthCallback(@User() user: CreateUserDto): Promise<void> {
+    console.log(user);
   }
 
   @Get('/google')
@@ -20,7 +22,7 @@ export class AuthController {
 
   @Get('/google/callback')
   @UseGuards(GoogleAuthGuard)
-  async googleAuthCallback(@Request() req): Promise<void> {
-    console.log(req.user);
+  async googleAuthCallback(@User() user: CreateUserDto): Promise<void> {
+    console.log(user);
   }
 }

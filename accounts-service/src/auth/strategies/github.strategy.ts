@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { randomUUID } from 'crypto';
 import { Profile, Strategy } from 'passport-github2';
+import { UsersService } from '../../users/users.service';
+import { CreateUserDto } from '../dto/create-user.dto';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
-  constructor(configService: ConfigService) {
+  constructor(
+    private usersService: UsersService,
+    configService: ConfigService
+  ) {
     super({
       clientID: configService.get('GITHUB_CLIENT_ID'),
       clientSecret: configService.get('GITHUB_CLIENT_SECRET'),
@@ -20,11 +26,19 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     profile: Profile,
     done: Function
   ): Promise<any> {
-    const user = {
-      username: profile.displayName,
-      email: profile.emails[0].value,
-      avatarUrl: profile.photos[0].value,
-    };
+    const email = profile.emails[0].value;
+
+    let user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      const createUserDto: CreateUserDto = {
+        uuid: randomUUID(),
+        username: profile.displayName,
+        email,
+        avatarUrl: profile.photos[0].value,
+      };
+
+      user = await this.usersService.createUser(createUserDto);
+    }
 
     done(null, user);
   }
