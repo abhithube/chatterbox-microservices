@@ -1,5 +1,5 @@
 resource "aws_ecs_cluster" "main" {
-  name = var.ecs_cluster_name
+  name = "ChatterboxECSCluster"
 }
 
 resource "aws_ecs_capacity_provider" "main" {
@@ -46,55 +46,55 @@ resource "aws_ecs_task_definition" "accounts" {
       environment = [
         {
           name  = "BROKER_URLS",
-          value = var.common_config.broker_urls
+          value = var.broker_urls
         },
         {
           name  = "CLIENT_URL",
-          value = var.common_config.client_url
+          value = var.client_url
         },
         {
-          name  = "DATABASE_URL",
-          value = var.accounts_secrets.database_url
+          name  = "ACCOUNTS_DATABASE_URL",
+          value = var.accounts_database_url
         },
         {
           name  = "GITHUB_CLIENT_ID",
-          value = var.accounts_config.github_client_id
+          value = var.github_client_id
         },
         {
           name  = "GITHUB_CLIENT_SECRET",
-          value = var.accounts_secrets.github_client_secret
+          value = var.github_client_secret
         },
         {
           name  = "GOOGLE_CLIENT_ID",
-          value = var.accounts_config.google_client_id
+          value = var.google_client_id
         },
         {
           name  = "GOOGLE_CLIENT_SECRET",
-          value = var.accounts_secrets.google_client_secret
+          value = var.google_client_secret
         },
         {
           name  = "GOOGLE_OAUTH_CALLBACK_URL",
-          value = var.accounts_config.google_oauth_callback_url
+          value = var.google_oauth_callback_url
         },
         {
           name  = "JWT_SECRET",
-          value = var.common_secrets.jwt_secret
+          value = var.jwt_secret
         },
         {
           name  = "KAFKA_PASS",
-          value = var.common_secrets.kafka_pass
+          value = var.kafka_pass
         },
         {
           name  = "KAFKA_USER",
-          value = var.common_config.kafka_user
+          value = var.kafka_user
         },
         {
           name  = "NODE_ENV",
-          value = var.common_config.node_env
+          value = var.node_env
         },
         {
           name  = "PORT",
-          value = var.common_config.port
+          value = var.port
         }
       ]
       logConfiguration = {
@@ -146,39 +146,39 @@ resource "aws_ecs_task_definition" "messages" {
       environment = [
         {
           name  = "BROKER_URLS",
-          value = var.common_config.broker_urls
+          value = var.broker_urls
         },
         {
           name  = "CLIENT_URL",
-          value = var.common_config.client_url
+          value = var.client_url
         },
         {
-          name  = "DATABASE_URL",
-          value = var.messages_secrets.database_url
+          name  = "MESSAGES_DATABASE_URL",
+          value = var.messages_database_url
         },
         {
           name  = "JWT_SECRET",
-          value = var.common_secrets.jwt_secret
+          value = var.jwt_secret
         },
         {
           name  = "KAFKA_PASS",
-          value = var.common_secrets.kafka_pass
+          value = var.kafka_pass
         },
         {
           name  = "KAFKA_USER",
-          value = var.common_config.kafka_user
+          value = var.kafka_user
         },
         {
           name  = "NODE_ENV",
-          value = var.common_config.node_env
+          value = var.node_env
         },
         {
           name  = "PORT",
-          value = var.common_config.port
+          value = var.port
         },
         {
           name  = "REDIS_URL",
-          value = var.messages_secrets.redis_url
+          value = var.redis_url
         },
       ]
       logConfiguration = {

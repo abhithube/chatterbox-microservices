@@ -9,7 +9,7 @@ configureContainer().then(async (container) => {
     throw new Error('Configuration missing');
   }
 
-  const port = configManager.get('PORT') || 5000;
+  const port = configManager.get('PORT') || 5002;
   server.listen(port, () => console.log(`Listening on port ${port}...`));
 
   const io = container.resolve('socketServer');
