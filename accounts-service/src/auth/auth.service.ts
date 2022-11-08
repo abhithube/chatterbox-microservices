@@ -13,14 +13,14 @@ export class AuthService {
       {
         subject: uuid,
         expiresIn: '15m',
-      }
+      },
     );
     const refreshToken = this.jwtService.sign(
       {},
       {
         subject: uuid,
         expiresIn: '1d',
-      }
+      },
     );
 
     return {
@@ -35,7 +35,7 @@ export class AuthService {
       {
         subject,
         expiresIn: '15m',
-      }
+      },
     );
   }
 }

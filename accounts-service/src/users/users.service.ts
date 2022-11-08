@@ -9,7 +9,7 @@ import { User, UserDocument } from './schemas';
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @Inject('KAFKA_CLIENT') private client: ClientKafka
+    @Inject('KAFKA_CLIENT') private client: ClientKafka,
   ) {}
 
   async findOneById(uuid: string): Promise<User | null> {

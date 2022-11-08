@@ -9,7 +9,7 @@ import { CreateUserDto, UsersService } from '../../users';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     private usersService: UsersService,
-    configService: ConfigService
+    configService: ConfigService,
   ) {
     super({
       clientID: configService.get('GOOGLE_CLIENT_ID'),
@@ -23,7 +23,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     _: string,
     __: string,
     profile: Profile,
-    done: VerifyCallback
+    done: VerifyCallback,
   ): Promise<any> {
     const email = profile.emails[0].value;
 

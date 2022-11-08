@@ -9,7 +9,7 @@ import { CreateUserDto, UsersService } from '../../users';
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor(
     private usersService: UsersService,
-    configService: ConfigService
+    configService: ConfigService,
   ) {
     super({
       clientID: configService.get('GITHUB_CLIENT_ID'),
@@ -23,7 +23,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     _: string,
     __: string,
     profile: Profile,
-    done: Function
+    done: any,
   ): Promise<any> {
     const email = profile.emails[0].value;
 

@@ -10,6 +10,7 @@ import { GithubAuthGuard, GoogleAuthGuard, RefreshCookieGuard } from './guards';
 @Controller('auth')
 export class AuthController {
   private redirectUrl: URL;
+
   private cookieOptions: CookieOptions;
 
   constructor(private authService: AuthService, configService: ConfigService) {
@@ -25,6 +26,7 @@ export class AuthController {
 
   @Get('github')
   @UseGuards(GithubAuthGuard)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   githubAuth() {}
 
   @Get('github/callback')
@@ -42,6 +44,7 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(GoogleAuthGuard)
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   googleAuth() {}
 
   @Get('google/callback')
