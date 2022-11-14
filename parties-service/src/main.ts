@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -14,8 +15,27 @@ async function bootstrap() {
     origin,
   });
 
-  const port = configService.get('PORT') || 5000;
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        brokers: configService.get<string>('BROKER_URLS').split(','),
+        ssl: true,
+        sasl: {
+          mechanism: 'scram-sha-256',
+          username: configService.get('KAFKA_USER'),
+          password: configService.get('KAFKA_PASS'),
+        },
+      },
+      consumer: {
+        groupId: 'parties',
+      },
+    },
+  });
 
+  await app.startAllMicroservices();
+
+  const port = configService.get('PORT') || 5000;
   await app.listen(port);
 }
 
