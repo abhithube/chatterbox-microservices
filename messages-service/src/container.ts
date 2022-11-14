@@ -36,14 +36,14 @@ import {
   TopicsRepository,
 } from './parties';
 import { createSocketServer } from './socketServer';
-import {
-  createUsersConsumer,
-  createUsersRepository,
-  createUsersService,
-  UsersConsumer,
-  UsersRepository,
-  UsersService,
-} from './users';
+// import {
+//   createUsersConsumer,
+//   createUsersRepository,
+//   createUsersService,
+//   UsersConsumer,
+//   UsersRepository,
+//   UsersService,
+// } from './users';
 
 interface Container {
   httpServer: HttpServer;
@@ -51,15 +51,15 @@ interface Container {
   app: Application;
   partiesRouter: Router;
   messagesGateway: MessagesGateway;
-  usersConsumer: UsersConsumer;
+  // usersConsumer: UsersConsumer;
   partiesService: PartiesService;
   messagesService: MessagesService;
-  usersService: UsersService;
+  // usersService: UsersService;
   partiesRepository: PartiesRepository;
   topicsRepository: TopicsRepository;
   membersRepository: MembersRepository;
   messagesRepository: MessagesRepository;
-  usersRepository: UsersRepository;
+  // usersRepository: UsersRepository;
   randomGenerator: RandomGenerator;
   dbClient: Client;
   brokerClient: BrokerClient;
@@ -124,15 +124,15 @@ export async function configureContainer(): Promise<
     app: asFunction(createApp).singleton(),
     partiesRouter: asFunction(createPartiesRouter).singleton(),
     messagesGateway: asFunction(createMessagesGateway).singleton(),
-    usersConsumer: asFunction(createUsersConsumer).singleton(),
+    // usersConsumer: asFunction(createUsersConsumer).singleton(),
     partiesService: asFunction(createPartiesService).singleton(),
     messagesService: asFunction(createMessagesService).singleton(),
-    usersService: asFunction(createUsersService).singleton(),
+    // usersService: asFunction(createUsersService).singleton(),
     partiesRepository: asFunction(createPartiesRepository).singleton(),
     topicsRepository: asFunction(createTopicsRepository).singleton(),
     membersRepository: asFunction(createMembersRepository).singleton(),
     messagesRepository: asFunction(createMessagesRepository).singleton(),
-    usersRepository: asFunction(createUsersRepository).singleton(),
+    // usersRepository: asFunction(createUsersRepository).singleton(),
     randomGenerator: asFunction(createUuidGenerator).singleton(),
     dbClient: asValue(postgresClient),
     brokerClient: asValue(kafkaClient),

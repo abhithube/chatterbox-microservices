@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from './users';
 
 @Module({
   imports: [
@@ -14,6 +15,9 @@ import { UsersModule } from './users/users.module';
         uri: configService.get('DATABASE_URL'),
       }),
       inject: [ConfigService],
+    }),
+    EventEmitterModule.forRoot({
+      delimiter: ':',
     }),
     UsersModule,
   ],

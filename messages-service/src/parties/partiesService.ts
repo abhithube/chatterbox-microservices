@@ -18,21 +18,21 @@ import { PartyWithMembersAndTopics } from './types';
 export interface PartiesService {
   createParty(
     createPartyDto: CreatePartyDto,
-    user: CurrentUser
+    user: CurrentUser,
   ): Promise<PartyWithMembersAndTopics>;
   getUserParties(user: CurrentUser): Promise<Party[]>;
   getParty(id: string, user: CurrentUser): Promise<PartyWithMembersAndTopics>;
   joinParty(
     id: string,
     joinPartyDto: JoinPartyDto,
-    user: CurrentUser
+    user: CurrentUser,
   ): Promise<void>;
   leaveParty(id: string, user: CurrentUser): Promise<void>;
   deleteParty(id: string, user: CurrentUser): Promise<void>;
   createTopic(
     createTopicDto: CreateTopicDto,
     partyId: string,
-    user: CurrentUser
+    user: CurrentUser,
   ): Promise<Topic>;
   deleteTopic(id: string, partyId: string, user: CurrentUser): Promise<void>;
 }
@@ -54,7 +54,7 @@ export function createPartiesService({
 }: PartiesServiceDeps): PartiesService {
   async function createParty(
     { name }: CreatePartyDto,
-    user: CurrentUser
+    user: CurrentUser,
   ): Promise<PartyWithMembersAndTopics> {
     const partyToInsert: Party = {
       id: randomGenerator.generate(),
@@ -78,7 +78,7 @@ export function createPartiesService({
     await membersRepository.insertOne(memberToInsert);
 
     const party = await partiesRepository.findOneWithMembersAndTopics(
-      partyToInsert.id
+      partyToInsert.id,
     );
     if (!party) {
       throw new InternalServerException();
@@ -112,7 +112,7 @@ export function createPartiesService({
   async function joinParty(
     id: string,
     { token }: JoinPartyDto,
-    user: CurrentUser
+    user: CurrentUser,
   ): Promise<void> {
     const party = await partiesRepository.findOneWithMembersAndTopics(id);
     if (!party) {
@@ -123,9 +123,9 @@ export function createPartiesService({
       throw new ForbiddenException('Invalid invite token');
     }
 
-    if (party.members.find((member) => member.id === user.id)) {
-      throw new ForbiddenException('Already a member');
-    }
+    // if (party.members.find((member) => member.id === user.id)) {
+    //   throw new ForbiddenException('Already a member');
+    // }
 
     const memberToInsert: Member = {
       partyId: id,
@@ -146,7 +146,7 @@ export function createPartiesService({
 
   async function leaveParty(
     id: string,
-    { id: userId }: CurrentUser
+    { id: userId }: CurrentUser,
   ): Promise<void> {
     const member = await membersRepository.deleteOneByUserId(userId);
     if (!member) {
@@ -171,7 +171,7 @@ export function createPartiesService({
 
   async function deleteParty(
     id: string,
-    { id: userId }: CurrentUser
+    { id: userId }: CurrentUser,
   ): Promise<void> {
     const member = await membersRepository.findOne(userId, id);
     if (!member) {
@@ -193,7 +193,7 @@ export function createPartiesService({
   async function createTopic(
     { name }: CreateTopicDto,
     partyId: string,
-    { id: userId }: CurrentUser
+    { id: userId }: CurrentUser,
   ): Promise<Topic> {
     const party = await membersRepository.findOne(userId, partyId);
     if (!party) {
@@ -221,7 +221,7 @@ export function createPartiesService({
   async function deleteTopic(
     id: string,
     partyId: string,
-    { id: userId }: CurrentUser
+    { id: userId }: CurrentUser,
   ): Promise<void> {
     const member = await membersRepository.findOne(userId, partyId);
     if (!member) {
