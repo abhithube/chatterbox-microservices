@@ -5,7 +5,6 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('messages-service');
 
   const configService = app.get(ConfigService);
 
@@ -33,10 +32,10 @@ async function bootstrap() {
     },
   });
 
-  await app.startAllMicroservices();
-
   const port = configService.get('PORT') || 5000;
   await app.listen(port);
+
+  await app.startAllMicroservices();
 }
 
 bootstrap();
