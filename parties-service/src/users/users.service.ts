@@ -15,4 +15,8 @@ export class UsersService {
 
     return user.save();
   }
+
+  async getUserById(uuid: string): Promise<User> {
+    return this.userModel.findOne({ uuid }).exec();
+  }
 }
