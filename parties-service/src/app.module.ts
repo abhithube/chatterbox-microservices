@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
+import { AuthModule } from './auth';
+import { PartiesModule } from './parties';
 import { UsersModule } from './users';
 
 @Module({
@@ -17,6 +19,8 @@ import { UsersModule } from './users';
       inject: [ConfigService],
     }),
     EventEmitterModule.forRoot(),
+    PartiesModule,
+    AuthModule,
     UsersModule,
   ],
   controllers: [AppController],
