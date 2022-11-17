@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { UsersService } from '@users';
 import { randomUUID } from 'crypto';
 import { Model } from 'mongoose';
-import { UsersService } from '../users';
 import { CreatePartyDto } from './dto';
 import { Party, PartyDocument } from './schemas';
 

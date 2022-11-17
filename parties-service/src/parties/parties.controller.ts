@@ -1,5 +1,5 @@
+import { Auth, JwtAuthGuard, JwtPayloadDto } from '@auth';
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { Auth, JwtAuthGuard, JwtPayloadDto } from '../auth';
 import { CreatePartyDto } from './dto';
 import { PartiesService } from './parties.service';
 import { Party } from './schemas';

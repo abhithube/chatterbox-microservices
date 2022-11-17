@@ -1,11 +1,11 @@
+import { AuthModule } from '@auth';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MongooseModule } from '@nestjs/mongoose';
+import { PartiesModule } from '@parties';
+import { UsersModule } from '@users';
 import { AppController } from './app.controller';
-import { AuthModule } from './auth';
-import { PartiesModule } from './parties';
-import { UsersModule } from './users';
 
 @Module({
   imports: [

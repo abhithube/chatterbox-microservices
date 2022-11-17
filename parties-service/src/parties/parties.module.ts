@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UsersModule } from '../users';
+import { UsersModule } from '@users';
 import { PartiesController } from './parties.controller';
 import { PartiesService } from './parties.service';
 import { Party, PartySchema } from './schemas';
