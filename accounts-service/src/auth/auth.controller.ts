@@ -1,8 +1,8 @@
+import { Auth, JwtAuthGuard } from '@common';
 import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { User } from '@users';
 import { CookieOptions, Response } from 'express';
-import { Auth, JwtAuthGuard } from '../common';
-import { User } from '../users';
 import { AuthService } from './auth.service';
 import { JwtPayloadDto, RefreshResponseDto } from './dto';
 import { GithubAuthGuard, GoogleAuthGuard, RefreshCookieGuard } from './guards';

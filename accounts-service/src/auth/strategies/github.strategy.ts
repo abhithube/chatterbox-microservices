@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import { CreateUserDto, UsersService } from '@users';
 import { randomUUID } from 'crypto';
 import { Profile, Strategy } from 'passport-github2';
-import { CreateUserDto, UsersService } from '../../users';
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
