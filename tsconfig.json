@@ -17,6 +17,7 @@
       "@parties-service/auth": ["apps/parties-service/src/auth"],
       "@parties-service/parties": ["apps/parties-service/src/parties"],
       "@parties-service/users": ["apps/parties-service/src/users"],
+      "@messages-service/users": ["apps/messages-service/src/users"],
       "@lib/auth": ["libs/auth/src"]
     },
     "incremental": true,

@@ -1,5 +1,7 @@
+import { UsersModule } from '@messages-service/users';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 
@@ -14,6 +16,8 @@ import { AppController } from './app.controller';
       }),
       inject: [ConfigService],
     }),
+    EventEmitterModule.forRoot(),
+    UsersModule,
   ],
   controllers: [AppController],
 })
