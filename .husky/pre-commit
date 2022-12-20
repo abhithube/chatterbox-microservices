@@ -1,9 +1,5 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-cd ./accounts-service
-npx lint-staged
-
-cd ../messages-service
-npx lint-staged
-
+npm exec --prefix ./apps/accounts-service lint-staged
+npm exec --prefix ./apps/messages-service lint-staged
