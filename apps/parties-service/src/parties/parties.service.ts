@@ -41,7 +41,7 @@ export class PartiesService implements OnModuleInit {
       },
     });
 
-    await this.createMember(party.id, userId);
+    await this.createMember(party.id, userId, party.inviteToken);
     await this.createTopic({ name: 'general' }, party.id);
 
     return this.partyModel
@@ -69,8 +69,13 @@ export class PartiesService implements OnModuleInit {
       .exec();
   }
 
-  async createMember(id: string, userId: string) {
-    const party = await this.partyModel.findById(id).exec();
+  async createMember(id: string, userId: string, inviteToken: string) {
+    const party = await this.partyModel
+      .findOne({
+        id,
+        inviteToken,
+      })
+      .exec();
 
     if ((party.members as unknown as string[]).includes(userId)) return;
 

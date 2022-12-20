@@ -6,6 +6,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CreatePartyDto, CreateTopicDto } from './dto';
@@ -41,8 +42,12 @@ export class PartiesController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/members')
-  joinParty(@Param('id') partyId: string, @Auth() payload: JwtPayloadDto) {
-    return this.partiesService.createMember(partyId, payload.sub);
+  joinParty(
+    @Param('id') partyId: string,
+    @Query('token') token: string,
+    @Auth() payload: JwtPayloadDto,
+  ) {
+    return this.partiesService.createMember(partyId, payload.sub, token);
   }
 
   @UseGuards(JwtAuthGuard)
