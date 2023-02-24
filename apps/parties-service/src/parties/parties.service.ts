@@ -1,9 +1,14 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from '@parties-service/users';
 import { randomUUID } from 'crypto';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { CreatePartyDto, CreateTopicDto } from './dto';
 import { Party, PartyDocument, Topic, TopicDocument } from './schemas';
 
@@ -62,6 +67,9 @@ export class PartiesService implements OnModuleInit {
   }
 
   async getPartyById(partyId: string): Promise<PartyDocument> {
+    if (!isValidObjectId(partyId))
+      throw new BadRequestException('Invalid party ID');
+
     return this.partyModel
       .findById(partyId)
       .populate('topics')
