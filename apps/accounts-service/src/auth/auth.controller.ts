@@ -1,6 +1,14 @@
 import { UserDocument } from '@accounts-service/users';
 import { Auth, JwtAuthGuard, JwtPayloadDto } from '@lib/auth';
-import { Controller, Get, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Redirect,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CookieOptions, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -30,15 +38,18 @@ export class AuthController {
 
   @Get('github/callback')
   @UseGuards(GithubAuthGuard)
-  githubAuthCallback(@Res() res: Response, @Auth() user: UserDocument) {
+  @Redirect()
+  githubAuthCallback(
+    @Res({ passthrough: true }) res: Response,
+    @Auth() user: UserDocument,
+  ) {
     const { accessToken, refreshToken } =
       this.authService.authenticateUser(user);
 
+    res.cookie('refresh', refreshToken, this.cookieOptions);
     this.redirectUrl.hash = accessToken;
 
-    res
-      .cookie('refresh', refreshToken, this.cookieOptions)
-      .redirect(this.redirectUrl.href);
+    return { url: this.redirectUrl.href };
   }
 
   @Get('google')
@@ -48,15 +59,18 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleAuthCallback(@Res() res: Response, @Auth() user: UserDocument) {
+  @Redirect()
+  googleAuthCallback(
+    @Res({ passthrough: true }) res: Response,
+    @Auth() user: UserDocument,
+  ) {
     const { accessToken, refreshToken } =
       this.authService.authenticateUser(user);
 
+    res.cookie('refresh', refreshToken, this.cookieOptions);
     this.redirectUrl.hash = accessToken;
 
-    res
-      .cookie('refresh', refreshToken, this.cookieOptions)
-      .redirect(this.redirectUrl.href);
+    return { url: this.redirectUrl.href };
   }
 
   @Get('@me')
@@ -65,19 +79,18 @@ export class AuthController {
     return auth;
   }
 
-  @Get('refresh')
+  @Post('refresh')
   @UseGuards(RefreshCookieGuard)
+  @HttpCode(200)
   refreshToken(@Auth() auth: JwtPayloadDto): RefreshResponseDto {
-    const accessToken = this.authService.refreshAccessToken(auth.sub);
+    const token = this.authService.refreshAccessToken(auth.sub);
 
-    return {
-      accessToken,
-    };
+    return { token };
   }
 
-  @Get('logout')
+  @Post('logout')
   @UseGuards(RefreshCookieGuard)
   logout(@Res() res: Response) {
-    res.clearCookie('refresh').send();
+    res.clearCookie('refresh').status(200).send();
   }
 }

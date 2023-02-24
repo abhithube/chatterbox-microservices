@@ -1,3 +1,3 @@
 export class RefreshResponseDto {
-  accessToken: string;
+  token: string;
 }
