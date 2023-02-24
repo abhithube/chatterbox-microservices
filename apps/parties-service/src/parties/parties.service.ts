@@ -40,10 +40,7 @@ export class PartiesService implements OnModuleInit {
 
     this.client.emit('parties', {
       key: party.id,
-      value: {
-        event: 'party:created',
-        data: party,
-      },
+      value: { event: 'party:created', data: party },
     });
 
     await this.createMember(party.id, userId, party.inviteToken);
@@ -57,13 +54,7 @@ export class PartiesService implements OnModuleInit {
   }
 
   async getPartiesByUserId(userId: string): Promise<PartyDocument[]> {
-    return this.partyModel
-      .find({
-        members: {
-          $in: userId,
-        },
-      })
-      .exec();
+    return this.partyModel.find({ members: { $in: userId } }).exec();
   }
 
   async getPartyById(partyId: string): Promise<PartyDocument> {
@@ -78,12 +69,7 @@ export class PartiesService implements OnModuleInit {
   }
 
   async createMember(id: string, userId: string, inviteToken: string) {
-    const party = await this.partyModel
-      .findOne({
-        id,
-        inviteToken,
-      })
-      .exec();
+    const party = await this.partyModel.findOne({ id, inviteToken }).exec();
 
     if ((party.members as unknown as string[]).includes(userId)) return;
 
@@ -92,13 +78,7 @@ export class PartiesService implements OnModuleInit {
 
     this.client.emit('parties', {
       key: id,
-      value: {
-        event: 'member:created',
-        data: {
-          partyId: id,
-          userId,
-        },
-      },
+      value: { event: 'member:created', data: { partyId: id, userId } },
     });
   }
 
@@ -112,13 +92,7 @@ export class PartiesService implements OnModuleInit {
 
     this.client.emit('parties', {
       key: id,
-      value: {
-        event: 'member:deleted',
-        data: {
-          partyId: id,
-          userId,
-        },
-      },
+      value: { event: 'member:deleted', data: { partyId: id, userId } },
     });
   }
 
@@ -133,17 +107,12 @@ export class PartiesService implements OnModuleInit {
     await topic.save();
 
     await this.partyModel.findByIdAndUpdate(partyId, {
-      $addToSet: {
-        topics: [topic.id],
-      },
+      $addToSet: { topics: [topic.id] },
     });
 
     this.client.emit('parties', {
       key: partyId,
-      value: {
-        event: 'topic:created',
-        data: topic,
-      },
+      value: { event: 'topic:created', data: topic },
     });
 
     return topic;

@@ -10,32 +10,17 @@ export class AuthService {
   authenticateUser({ id }: UserDocument): TokenDataDto {
     const accessToken = this.jwtService.sign(
       {},
-      {
-        subject: id,
-        expiresIn: '15m',
-      },
+      { subject: id, expiresIn: '15m' },
     );
     const refreshToken = this.jwtService.sign(
       {},
-      {
-        subject: id,
-        expiresIn: '1d',
-      },
+      { subject: id, expiresIn: '1d' },
     );
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
   refreshAccessToken(subject: string): string {
-    return this.jwtService.sign(
-      {},
-      {
-        subject,
-        expiresIn: '15m',
-      },
-    );
+    return this.jwtService.sign({}, { subject, expiresIn: '15m' });
   }
 }

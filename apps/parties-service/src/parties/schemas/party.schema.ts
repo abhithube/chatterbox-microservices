@@ -15,32 +15,13 @@ export class Party {
   })
   inviteToken: string;
 
-  @Prop({
-    type: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Topic',
-      },
-    ],
-  })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Topic' }] })
   topics: Topic[];
 
-  @Prop({
-    type: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  })
+  @Prop({ type: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } })
   admin: User;
 
-  @Prop({
-    type: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
-  })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
   members: User[];
 }
 

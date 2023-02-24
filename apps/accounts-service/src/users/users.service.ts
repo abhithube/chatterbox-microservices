@@ -26,10 +26,7 @@ export class UsersService {
 
     this.client.emit('users', {
       key: user.id,
-      value: {
-        event: 'user:created',
-        data: user,
-      },
+      value: { event: 'user:created', data: user },
     });
 
     return user;

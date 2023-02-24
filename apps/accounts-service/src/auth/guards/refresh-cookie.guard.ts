@@ -14,10 +14,7 @@ export class RefreshCookieGuard implements CanActivate {
     try {
       const { sub, exp } = this.jwtService.verify(refreshToken);
 
-      const auth: JwtPayloadDto = {
-        sub,
-        exp,
-      };
+      const auth: JwtPayloadDto = { sub, exp };
       request.user = auth;
 
       return true;

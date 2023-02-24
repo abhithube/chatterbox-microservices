@@ -9,10 +9,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   const origin = configService.get('CLIENT_URL');
-  app.enableCors({
-    credentials: true,
-    origin,
-  });
+  app.enableCors({ credentials: true, origin });
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
@@ -26,9 +23,7 @@ async function bootstrap() {
           password: configService.get('KAFKA_PASS'),
         },
       },
-      consumer: {
-        groupId: 'parties',
-      },
+      consumer: { groupId: 'parties' },
     },
   });
 

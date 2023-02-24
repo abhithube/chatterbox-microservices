@@ -16,9 +16,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   validate(payload: any): JwtPayloadDto {
     const { sub, exp } = payload;
 
-    return {
-      sub,
-      exp,
-    };
+    return { sub, exp };
   }
 }

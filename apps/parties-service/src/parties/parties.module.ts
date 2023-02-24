@@ -9,14 +9,8 @@ import { Party, PartySchema, Topic, TopicSchema } from './schemas';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      {
-        name: Party.name,
-        schema: PartySchema,
-      },
-      {
-        name: Topic.name,
-        schema: TopicSchema,
-      },
+      { name: Party.name, schema: PartySchema },
+      { name: Topic.name, schema: TopicSchema },
     ]),
     ClientsModule.registerAsync([
       {
