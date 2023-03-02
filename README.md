@@ -1,24 +1,10 @@
 # Chatterbox
 
-![Deploy Accounts Service](https://github.com/abhithube/chatterbox-microservices/actions/workflows/accounts-service.yaml/badge.svg)
-![Deploy Messages Service](https://github.com/abhithube/chatterbox-microservices/actions/workflows/messages-service.yaml/badge.svg)
+Chatterbox is a web application designed for group messaging, in a similar vein to Discord and Slack. Users create _parties_ which other users can join, and then create _topics_ within a party to send messages to each other.
 
-## Link
+<!-- The application is live on AWS and can be found at https://chatterbox.abhithube.com.
 
-The application is live on AWS and can be found at https://chatterbox.abhithube.com.
-
-## Intro
-
-Chatterbox is a web application designed for group messaging, in a similar vein to Discord and Slack. Users create **_parties_** which other users can join, and then create **_topics_** within a party to send messages to each other.
-
-## Features
-
-- User registration and login with email/password or OAuth with Google/GitHub
-- Email verification and password reset
-- Create parties to connect with other users
-- Join parties via an invite link
-- Create topics within parties
-- Send messages to other users within topics
+_IMPORTANT: To minimize server costs, the underlying EC2 instances running the backend microservices are only running from 9 am to 5 pm. The frontend is delivered via the Cloudfront CDN, so the client website will be available 24/7._ -->
 
 ## Tech Stack
 
@@ -33,9 +19,18 @@ Chatterbox is a web application designed for group messaging, in a similar vein 
 - AWS
 - Terraform
 
+## Features
+
+- Register and login using your Google or GitHub account
+- Create parties to connect with other users
+- View which party members are currently online
+- Join or share parties via an invite link
+- Create topics within parties to partition your conversations
+- Send real-time messages in topics and view entire message history
+
 ## Project Structure
 
-This repo contains all of the code for the application. Each service has its own directory. The _client_ directory contains the frontend React application. The _common_ directory contains several reusable TS modules that were published as NPM packages and made available for the microservices to use, in an effort to reduce code duplication. The _k8s_ directory contains all of the manifests for the Kubernetes cluster running on DigitalOcean.
+This repo contains all of the code for the application. Each service has its own directory. The _client_ directory contains the frontend React application. The _common_ directory contains several reusable TypeScript modules that were published as NPM packages and made available for the microservices to use, in an effort to reduce code duplication. The _infra_ directory contains the Terraform configuration to manage the state of cloud infrastructure on AWS.
 
 ## Frontend Design
 
@@ -47,7 +42,7 @@ The backend of this application is broken into several components, following the
 
 ### Microservices
 
-- _Accounts Service_ is responsible for user management and authentication. It supports email/password login as well as social login via your Google or Github accounts. This service also handles email verification and password reset. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
+- _Accounts Service_ is responsible for user management and authentication. It supports social login via your Google or Github accounts. Upon successful authentication, users are issued a JSON web token, which is used to authorize users across all microservices in the application.
 - _Messages Service_ handles the real-time messaging functionality of the application by receiving incoming WebSocket connections. It also provides a CRUD RESTful API for managing parties and topics.
 
 ### Asynchronous Communication
@@ -64,12 +59,8 @@ This microservices architecture allows for painless scalability. RESTful APIs en
 
 ## Deployment
 
-The client application is deployed on Vercel as a static site. The microservices are deployed onto a DigitalOcean Kubernetes cluster. The services are sitting behind a DO load balancer provisioned by an NGINX Ingress controller.
+The client application is deployed on an S3 bucket as a static site, behind a Cloudfront distribution. The microservices are deployed onto a ECS cluster behind an ELB load balancer.
 
-## Orchestration
+### CI/CD
 
-Each service has its own Dockerfile, configured with a multi-stage build process to allow for lightweight images and quicker rebuilds. Kubernetes was chosen as the orchestration solution. Each service has its own Kubernetes _deployment_ and _service_ resources. An _ingress_ resource configures round robin routing and handles SSL/TLS termination. General application configuration is stored in _config maps_, and sensitive config is stored in _secrets_.
-
-## CI/CD
-
-Each service is tested and deployed independently. GitHub Actions is the CI/CD tool of choice. The CI process begins with a pull request to the main branch, where changes to a particular microservice directory will trigger its corresponding GitHub workflow. The workflow will compile the TypeScript and ES6+ code to vanilla JavaScript and then execute the Jest suite of unit and integration tests. The pull request can be merged if all workflows succeed, which will trigger the same workflow on the main branch in order to ensure that the final version of the code that will be pushed into production has been verified. Once these workflows pass, the CD workflows will take over. The deployment workflow will build a Docker image from the microservice, push it to Docker Hub, and update the appropriate Kubernetes deployment on DigitalOcean. If any Kubernetes manifests in the _k8s_ directory have been modified, a separate workflow will apply them to the cluster.
+Each service is tested and deployed independently. GitHub Actions is the CI/CD tool of choice. The CI process begins with a pull request to the main branch, where changes to a particular microservice directory will trigger its corresponding GitHub workflow. The workflow will compile the TypeScript and ES6+ code to production JavaScript. The pull request can be merged if all workflows succeed, which will trigger the same workflow on the main branch in order to ensure that the final version of the code that will be pushed into production has been verified. Once these workflows pass, the CD workflows will take over. The deployment workflow will build a Docker image for each microservice, push it to the AWS image repository, and update the appropriate ECS deployment.
