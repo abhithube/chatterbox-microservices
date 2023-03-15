@@ -14,48 +14,43 @@ import {
 } from '@chakra-ui/react';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PartyDetails } from '../interfaces';
-import { http } from '../utils';
 
 export const InviteModal = () => {
   const { partyId } = useParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const queryClient = useQueryClient();
+
+  const [party, setParty] = useState<PartyDetails>();
   const [link, setLink] = useState('');
   const [isCopied, setIsCopied] = useState(false);
 
-  const { data } = useQuery<PartyDetails>({
-    queryKey: ['parties', partyId],
-    queryFn: () => http.get(`/parties/${partyId}`),
-    enabled: false,
-  });
+  const handleOpen = () => {
+    const party = queryClient.getQueryData<PartyDetails>(['parties', partyId]);
+    if (!party) return;
 
-  useEffect(() => {
-    if (!data) return;
-
+    setParty(party);
     setLink(
-      `${import.meta.env.VITE_FRONTEND_URL}/invite?party=${data._id}&token=${
-        data.inviteToken
+      `${import.meta.env.VITE_FRONTEND_URL}/invite?party=${party._id}&token=${
+        party.inviteToken
       }`,
     );
-  }, [data]);
+
+    onOpen();
+  };
 
   const handleCopy = async () => {
-    // if (!data) return;
-
-    // const link = `${import.meta.env.VITE_FRONTEND_URL}/invite?party=${
-    //   data._id
-    // }&token=${data.inviteToken}`;
     await navigator.clipboard.writeText(link);
 
     setIsCopied(true);
   };
 
   return (
-    <MenuItem icon={<FontAwesomeIcon icon={faEnvelope} />} onClick={onOpen}>
+    <MenuItem icon={<FontAwesomeIcon icon={faEnvelope} />} onClick={handleOpen}>
       Invite Friend
       <Modal
         isOpen={isOpen}
@@ -70,7 +65,7 @@ export const InviteModal = () => {
               INVITE FRIENDS TO{' '}
             </Box>
             <Box as="span" color="teal.700">
-              {data?.name.toUpperCase()}
+              {party?.name.toUpperCase()}
             </Box>
           </ModalHeader>
           <ModalCloseButton />
@@ -78,7 +73,7 @@ export const InviteModal = () => {
             <Text mt={4}>
               Share the link below to allow others to join your party!
             </Text>
-            <Flex align="center" my={4} p={3} bgColor="gray.100" rounded="lg">
+            <Flex align="center" my={4} p={3} bgColor="gray.800" rounded="lg">
               <Text overflowX="auto" whiteSpace="nowrap">
                 {link}
               </Text>

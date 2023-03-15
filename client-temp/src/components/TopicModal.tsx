@@ -20,15 +20,13 @@ import { faComment, faComments } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { PartyDetails, Topic } from '../interfaces';
 import { http } from '../utils';
 
-type TopicModalProps = {
-  partyId: string;
-};
+export const TopicModal = () => {
+  const { partyId } = useParams();
 
-export const TopicModal = ({ partyId }: TopicModalProps) => {
   const [name, setName] = useState('');
 
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -73,7 +71,7 @@ export const TopicModal = ({ partyId }: TopicModalProps) => {
       >
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader bg="teal">Create a New Topic</ModalHeader>
+          <ModalHeader bgColor="teal.300">Create a New Topic</ModalHeader>
           <ModalCloseButton />
           <Box as="form" onSubmit={handleSubmit}>
             <ModalBody>
@@ -99,6 +97,7 @@ export const TopicModal = ({ partyId }: TopicModalProps) => {
                 type="submit"
                 colorScheme="teal"
                 isLoading={isLoading}
+                isDisabled={name.length === 0}
                 loadingText="Loading..."
               >
                 Submit

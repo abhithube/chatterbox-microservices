@@ -23,7 +23,7 @@ import { InviteModal } from './InviteModal';
 import { TopicModal } from './TopicModal';
 
 export const TopicsSidebar = () => {
-  const { partyId, topicId } = useParams<PartyPageParams>();
+  const { partyId } = useParams<PartyPageParams>();
 
   const { data, isFetching } = useQuery<PartyDetails>({
     queryKey: ['parties', partyId],
@@ -54,7 +54,7 @@ export const TopicsSidebar = () => {
                   icon={<FontAwesomeIcon icon={faGear} />}
                 />
                 <MenuList>
-                  <TopicModal partyId={data._id} />
+                  <TopicModal />
                   <InviteModal />
                   <MenuItem>Delete</MenuItem>
                 </MenuList>
@@ -67,7 +67,6 @@ export const TopicsSidebar = () => {
                 key={topic._id}
                 as={RouterLink}
                 to={`/${partyId}/${topic._id}`}
-                bgColor={topic._id === topicId ? 'gray.300' : 'gray.100'}
                 rounded="sm"
                 _hover={{}}
               >
@@ -75,7 +74,13 @@ export const TopicsSidebar = () => {
                   <Box as="span" fontSize="xl" color="teal.500">
                     #
                   </Box>
-                  <Box as="span">{topic.name}</Box>
+                  <Box
+                    as="span"
+                    color="gray.400"
+                    _hover={{ color: 'gray.100' }}
+                  >
+                    {topic.name}
+                  </Box>
                 </HStack>
               </Link>
             ))}
