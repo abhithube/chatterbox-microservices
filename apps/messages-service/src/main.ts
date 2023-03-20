@@ -2,6 +2,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
+import { SocketIoAdapter } from './common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +11,11 @@ async function bootstrap() {
 
   const origin = configService.get('CLIENT_URL');
   app.enableCors({ credentials: true, origin });
+
+  const adapter = new SocketIoAdapter(app, configService);
+  await adapter.connectToRedis();
+
+  app.useWebSocketAdapter(adapter);
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.KAFKA,
