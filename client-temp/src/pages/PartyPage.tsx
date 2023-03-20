@@ -2,6 +2,7 @@ import { Box, Flex, useToast } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PartiesSidebar, TopicsSidebar } from '../components';
+import { useSocketStore } from '../stores';
 
 export type PartyPageParams = {
   partyId?: string;
@@ -9,11 +10,14 @@ export type PartyPageParams = {
 };
 
 export const PartyPage = () => {
-  // const { isLoading, data, activeParty } = useAppSelector(selectParties);
-  // const dispatch = useAppDispatch();
-
   const { state } = useLocation();
   const toast = useToast();
+
+  const { connect } = useSocketStore();
+
+  useEffect(() => {
+    connect();
+  }, []);
 
   useEffect(() => {
     if (state?.joined) {
