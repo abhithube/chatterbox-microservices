@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from '../users';
+import { MessagesGateway } from './messages.gateway';
 import { MessagesService } from './messages.service';
 import { Message, MessageSchema } from './schemas';
 
@@ -17,6 +18,6 @@ import { Message, MessageSchema } from './schemas';
     }),
     UsersModule,
   ],
-  providers: [MessagesService],
+  providers: [MessagesGateway, MessagesService],
 })
 export class MessagesModule {}
