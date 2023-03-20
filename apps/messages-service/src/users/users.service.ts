@@ -13,4 +13,8 @@ export class UsersService {
 
     return user.save();
   }
+
+  getUser(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
+  }
 }
