@@ -4,6 +4,7 @@ import { socket } from '../utils';
 interface SocketState {
   isConnected: boolean;
   connect: () => void;
+  joinParty: (partyId: string) => void;
 }
 
 export const useSocketStore = create<SocketState>()((set) => {
@@ -19,6 +20,9 @@ export const useSocketStore = create<SocketState>()((set) => {
     isConnected: false,
     connect: () => {
       socket.connect();
+    },
+    joinParty: (partyId: string) => {
+      socket.emit('party:join', partyId);
     },
   };
 });

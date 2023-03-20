@@ -4,11 +4,14 @@ import { useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
 import { Party } from '../interfaces';
 import { PartyPageParams } from '../pages';
+import { useSocketStore } from '../stores';
 import { http } from '../utils';
 import { PartyModal } from './PartyModal';
 
 export const PartiesSidebar = () => {
   const { partyId } = useParams<PartyPageParams>();
+
+  const { isConnected, joinParty } = useSocketStore();
 
   const { data, isLoading } = useQuery<Party[]>({
     queryKey: ['parties'],
@@ -22,6 +25,12 @@ export const PartiesSidebar = () => {
 
     if (!partyId) navigate(`/${data[0]._id}`);
   }, [data]);
+
+  useEffect(() => {
+    if (!partyId || !isConnected) return;
+
+    joinParty(partyId);
+  }, [partyId, isConnected]);
 
   if (!data || isLoading) return <Spinner />;
 
