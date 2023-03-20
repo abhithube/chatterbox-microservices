@@ -1,5 +1,0 @@
-export interface Topic {
-  id: string;
-  name: string;
-  partyId: string;
-}
