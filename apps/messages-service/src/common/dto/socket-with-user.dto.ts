@@ -1,8 +1,7 @@
 import { Socket } from 'socket.io';
-import { User } from '../../users';
 
 export class SocketWithUser extends Socket {
-  user: User;
+  user: string;
   party?: string;
   topic?: string;
 }

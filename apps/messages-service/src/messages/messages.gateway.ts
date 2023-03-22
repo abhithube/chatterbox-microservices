@@ -10,7 +10,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SocketWithUser } from '../common';
-import { UsersService } from '../users';
 import { CreateMessageDto } from './dto';
 import { MessagesService } from './messages.service';
 
@@ -21,19 +20,15 @@ export class MessagesGateway implements OnGatewayConnection {
 
   constructor(
     private jwtService: JwtService,
-    private usersService: UsersService,
     private messagesService: MessagesService,
   ) {}
 
-  async handleConnection(client: Socket) {
-    const token = client.handshake.auth.token;
+  handleConnection(client: Socket) {
+    const token = client.handshake.headers.authorization.split(' ')[1];
 
     try {
       const decoded = this.jwtService.verify(token) as JwtPayloadDto;
-
-      const user = await this.usersService.getUser(decoded.sub);
-      if (user) (client as SocketWithUser).user = user;
-      else client.disconnect(true);
+      (client as SocketWithUser).user = decoded.sub;
     } catch (error) {
       client.disconnect(true);
     }
@@ -57,7 +52,7 @@ export class MessagesGateway implements OnGatewayConnection {
       (socket) => (socket as any as SocketWithUser).user,
     );
 
-    client.in(room).emit('user:online', users);
+    this.server.in(room).emit('user:online', users);
   }
 
   @SubscribeMessage('topic:join')
@@ -81,7 +76,7 @@ export class MessagesGateway implements OnGatewayConnection {
     const message = await this.messagesService.createMessage(
       createMessageDto,
       client.topic,
-      client.user.username,
+      client.user,
     );
 
     this.server.in(`topic:${client.topic}`).emit('message:append', message);
