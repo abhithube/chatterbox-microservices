@@ -3,6 +3,7 @@ import { socket } from '../utils';
 
 interface SocketState {
   isConnected: boolean;
+  activeUsers: string[];
   connect: () => void;
   joinParty: (partyId: string) => void;
 }
@@ -16,9 +17,21 @@ export const useSocketStore = create<SocketState>()((set) => {
     set(() => ({ isConnected: false }));
   });
 
+  socket.on('user:online', (users: string[]) => {
+    set(() => ({ activeUsers: users }));
+  });
+
   return {
     isConnected: false,
+    activeUsers: [],
     connect: () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      socket.io.opts.extraHeaders = {
+        authorization: `Bearer ${token}`,
+      };
+
       socket.connect();
     },
     joinParty: (partyId: string) => {

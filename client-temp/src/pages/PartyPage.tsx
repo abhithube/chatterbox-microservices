@@ -1,7 +1,7 @@
 import { Box, Flex, useToast } from '@chakra-ui/react';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { PartiesSidebar, TopicsSidebar } from '../components';
+import { PartiesSidebar, TopicsSidebar, UserSidebar } from '../components';
 import { useSocketStore } from '../stores';
 
 export type PartyPageParams = {
@@ -13,11 +13,11 @@ export const PartyPage = () => {
   const { state } = useLocation();
   const toast = useToast();
 
-  const { connect } = useSocketStore();
+  const { isConnected, connect } = useSocketStore();
 
   useEffect(() => {
-    connect();
-  }, []);
+    if (!isConnected) connect();
+  }, [isConnected]);
 
   useEffect(() => {
     if (state?.joined) {
@@ -37,12 +37,10 @@ export const PartyPage = () => {
       <Box w={48}>
         <TopicsSidebar />
       </Box>
-      {/* <Box flexGrow={1}>
-        <MessageFeed />
-      </Box>
+      <Box flexGrow={1}></Box>
       <Box minW={64}>
         <UserSidebar />
-      </Box> */}
+      </Box>
     </Flex>
   );
 };
