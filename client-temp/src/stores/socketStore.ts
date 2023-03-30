@@ -5,6 +5,7 @@ interface SocketState {
   isConnected: boolean;
   activeUsers: string[];
   connect: () => void;
+  disconnect: () => void;
   joinParty: (partyId: string) => void;
 }
 
@@ -33,6 +34,9 @@ export const useSocketStore = create<SocketState>()((set) => {
       };
 
       socket.connect();
+    },
+    disconnect: () => {
+      socket.disconnect();
     },
     joinParty: (partyId: string) => {
       socket.emit('party:join', partyId);

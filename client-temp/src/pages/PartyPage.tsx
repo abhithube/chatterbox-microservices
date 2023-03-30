@@ -13,10 +13,14 @@ export const PartyPage = () => {
   const { state } = useLocation();
   const toast = useToast();
 
-  const { isConnected, connect } = useSocketStore();
+  const { isConnected, connect, disconnect } = useSocketStore();
 
   useEffect(() => {
     if (!isConnected) connect();
+
+    return () => {
+      if (isConnected) disconnect();
+    };
   }, [isConnected]);
 
   useEffect(() => {
@@ -30,7 +34,7 @@ export const PartyPage = () => {
   }, [state]);
 
   return (
-    <Flex boxSize="full" h="full">
+    <Flex boxSize="full">
       <Box w={16}>
         <PartiesSidebar />
       </Box>
