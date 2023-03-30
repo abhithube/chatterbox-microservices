@@ -1,4 +1,4 @@
-import { Box, Spinner } from '@chakra-ui/react';
+import { Box, Center, Flex, Spinner } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import {
@@ -10,7 +10,7 @@ import {
 } from 'react-router-dom';
 import { Navbar } from './components';
 import { User } from './interfaces';
-import { LoginPage, PartyPage } from './pages';
+import { InvitePage, LoginPage, PartyPage } from './pages';
 import { http } from './utils';
 
 export const App = () => {
@@ -34,22 +34,30 @@ export const App = () => {
     setReady(true);
   }, []);
 
-  if (isLoading) return <Spinner />;
+  if (isLoading)
+    return (
+      <Center boxSize="full">
+        <Spinner />
+      </Center>
+    );
 
   return data ? (
-    <>
+    <Flex flexDir="column" boxSize="full">
       <Navbar />
-      <Box h="calc(100% - 64px)">
+      <Box flexGrow={1}>
         <Routes>
           <Route path="/login" element={<Navigate to="/" />} />
+          <Route path="/invite" element={<InvitePage />} />
           <Route path="/:partyId?/:topicId?" element={<PartyPage />} />
         </Routes>
       </Box>
-    </>
+    </Flex>
   ) : (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="*" element={<Navigate to="/login" />} />
-    </Routes>
+    <Box boxSize="full">
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </Box>
   );
 };
