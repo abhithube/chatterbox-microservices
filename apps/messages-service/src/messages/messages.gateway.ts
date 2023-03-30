@@ -4,6 +4,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -14,7 +15,9 @@ import { CreateMessageDto } from './dto';
 import { MessagesService } from './messages.service';
 
 @WebSocketGateway()
-export class MessagesGateway implements OnGatewayConnection {
+export class MessagesGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
@@ -34,25 +37,48 @@ export class MessagesGateway implements OnGatewayConnection {
     }
   }
 
+  async handleDisconnect(client: SocketWithUser) {
+    if (client.party) {
+      const room = `party:${client.party}`;
+
+      const sockets = await this.server.in(room).fetchSockets();
+      const users = sockets.map(
+        (socket) => (socket as any as SocketWithUser).user,
+      );
+
+      this.server.in(room).emit('user:online', users);
+    }
+  }
+
   @SubscribeMessage('party:join')
   async handleJoinParty(
     @MessageBody() partyId: string,
     @ConnectedSocket() client: SocketWithUser,
   ) {
-    if (client.party) client.leave(`party:${client.party}`);
+    if (client.party) {
+      const oldParty = `party:${client.party}`;
 
-    const room = `party:${partyId}`;
+      client.leave(oldParty);
 
-    await client.join(room);
+      const sockets = await this.server.in(oldParty).fetchSockets();
+      const users = sockets.map(
+        (socket) => (socket as any as SocketWithUser).user,
+      );
+
+      this.server.in(oldParty).emit('user:online', users);
+    }
+
+    const newParty = `party:${partyId}`;
+
+    await client.join(newParty);
     client.party = partyId;
 
-    const sockets = await this.server.in(room).fetchSockets();
-
+    const sockets = await this.server.in(newParty).fetchSockets();
     const users = sockets.map(
       (socket) => (socket as any as SocketWithUser).user,
     );
 
-    this.server.in(room).emit('user:online', users);
+    this.server.in(newParty).emit('user:online', users);
   }
 
   @SubscribeMessage('topic:join')
