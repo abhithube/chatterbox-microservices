@@ -2,7 +2,7 @@ import { INestApplicationContext } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
+import { Redis } from 'ioredis';
 import { ServerOptions } from 'socket.io';
 
 export class SocketIoAdapter extends IoAdapter {
@@ -16,15 +16,8 @@ export class SocketIoAdapter extends IoAdapter {
   }
 
   async connectToRedis() {
-    const pubClient = createClient({
-      url: this.configService.get('REDIS_URL'),
-    });
-
-    pubClient.on('error', (err) => console.log(err));
-
+    const pubClient = new Redis(this.configService.get('REDIS_URL'));
     const subClient = pubClient.duplicate();
-
-    await Promise.all([pubClient.connect(), subClient.connect()]);
 
     this.adapterConstructor = createAdapter(pubClient, subClient);
   }
