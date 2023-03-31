@@ -12,7 +12,7 @@ export class Message {
   @Prop()
   createdAt: Date;
 
-  @Prop({ type: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User;
 
   @Prop()
