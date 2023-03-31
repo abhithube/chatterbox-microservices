@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateMessageDto } from './dto';
 import { Message, MessageDocument } from './schemas';
 
 @Injectable()
@@ -11,7 +10,7 @@ export class MessagesService {
   ) {}
 
   async createMessage(
-    { body }: CreateMessageDto,
+    body: string,
     topicId: string,
     userId: string,
   ): Promise<Message> {
@@ -25,9 +24,9 @@ export class MessagesService {
     return message.save();
   }
 
-  async getMessages(createdAt: Date): Promise<Message[]> {
+  async getMessages(topicId: string): Promise<Message[]> {
     return this.messageModel
-      .find({ createdAt: { $lte: createdAt } })
+      .find({ topicId })
       .limit(10)
       .sort({ createdAt: 'desc' })
       .populate('user')

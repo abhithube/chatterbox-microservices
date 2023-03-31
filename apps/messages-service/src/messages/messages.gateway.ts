@@ -11,7 +11,6 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { SocketWithUser } from '../common';
-import { CreateMessageDto } from './dto';
 import { MessagesService } from './messages.service';
 
 @WebSocketGateway()
@@ -86,21 +85,24 @@ export class MessagesGateway
     @MessageBody() topicId: string,
     @ConnectedSocket() client: SocketWithUser,
   ) {
-    if (client.topic) client.leave(`topic:${client.topic}`);
+    if (client.topic) await client.leave(`topic:${client.topic}`);
 
     await client.join(`topic:${topicId}`);
     client.topic = topicId;
+
+    const messages = await this.messagesService.getMessages(topicId);
+    return messages;
   }
 
   @SubscribeMessage('message:create')
   async createMessage(
-    @MessageBody() createMessageDto: CreateMessageDto,
+    @MessageBody() body: string,
     @ConnectedSocket() client: SocketWithUser,
   ) {
     if (!client.topic) return;
 
     const message = await this.messagesService.createMessage(
-      createMessageDto,
+      body,
       client.topic,
       client.user,
     );
