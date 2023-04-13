@@ -21,7 +21,9 @@ export class MessagesService {
       createdAt: new Date(),
     });
 
-    return message.save();
+    await message.save();
+
+    return message.populate('user');
   }
 
   async getMessages(topicId: string): Promise<Message[]> {
