@@ -12,8 +12,8 @@ export class UsersService {
     @Inject('KAFKA_CLIENT') private client: ClientKafka,
   ) {}
 
-  async findOneById(uuid: string): Promise<UserDocument> {
-    return this.userModel.findOne({ uuid }).exec();
+  async findOneById(_id: string): Promise<UserDocument> {
+    return this.userModel.findOne({ _id }).exec();
   }
 
   async findOneByEmail(email: string): Promise<UserDocument> {
