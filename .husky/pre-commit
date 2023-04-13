@@ -3,3 +3,4 @@
 
 npm exec --prefix ./apps/accounts-service lint-staged
 npm exec --prefix ./apps/messages-service lint-staged
+npm exec --prefix ./apps/parties-service lint-staged
