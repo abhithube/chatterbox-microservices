@@ -6,23 +6,15 @@ import {
   List,
   ListItem,
 } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
 import { PartyDetails } from '../interfaces';
-import { PartyPageParams } from '../pages';
 import { useSocketStore } from '../stores';
-import { http } from '../utils';
 
-export const UserSidebar = () => {
-  const { partyId } = useParams<PartyPageParams>();
+type UsersSidebarProps = {
+  party: PartyDetails | undefined;
+};
 
+export const UsersSidebar = ({ party }: UsersSidebarProps) => {
   const { activeUsers } = useSocketStore();
-
-  const { data } = useQuery<PartyDetails>({
-    queryKey: ['parties', partyId],
-    queryFn: () => http.get(`/parties/${partyId}`),
-    enabled: !!partyId,
-  });
 
   return (
     <Box
@@ -35,7 +27,7 @@ export const UserSidebar = () => {
         Users
       </Heading>
       <List mt={4} pl={4}>
-        {data?.members.map((member) => (
+        {party?.members.map((member) => (
           <ListItem key={member._id} display="flex" alignItems="center" mb={2}>
             <Avatar src={member.avatarUrl || undefined} boxSize={10}>
               <AvatarBadge

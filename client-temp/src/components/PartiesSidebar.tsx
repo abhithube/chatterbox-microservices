@@ -1,16 +1,17 @@
 import { Avatar, Box, Link, Spinner, Tooltip, VStack } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Party } from '../interfaces';
-import { PartyPageParams } from '../pages';
 import { useSocketStore } from '../stores';
 import { http } from '../utils';
 import { PartyModal } from './PartyModal';
 
-export const PartiesSidebar = () => {
-  const { partyId } = useParams<PartyPageParams>();
+type PartiesSidebarProps = {
+  partyId: string | undefined;
+};
 
+export const PartiesSidebar = ({ partyId }: PartiesSidebarProps) => {
   const { isConnected, joinParty } = useSocketStore();
 
   const { data, isLoading } = useQuery<Party[]>({
@@ -23,7 +24,7 @@ export const PartiesSidebar = () => {
   useEffect(() => {
     if (partyId || !data || data.length == 0) return;
 
-    if (!partyId) navigate(`/${data[0]._id}`);
+    navigate(`/${data[0]._id}`);
   }, [data]);
 
   useEffect(() => {
@@ -36,8 +37,8 @@ export const PartiesSidebar = () => {
 
   return (
     <VStack
-      alignItems="start"
       pt={4}
+      pr={2}
       h="full"
       bgColor="gray.900"
       borderRightWidth={1}
@@ -49,7 +50,7 @@ export const PartiesSidebar = () => {
           as={RouterLink}
           to={`/${party._id}`}
           borderLeftWidth={3}
-          borderLeftColor={party._id === partyId ? 'teal.500' : 'gray.300'}
+          borderLeftColor={party._id === partyId ? 'teal.300' : undefined}
           _hover={{}}
         >
           <Tooltip label={party.name} placement="right">
@@ -57,7 +58,7 @@ export const PartiesSidebar = () => {
           </Tooltip>
         </Link>
       ))}
-      <Box alignSelf="center">
+      <Box pl="2">
         <PartyModal />
       </Box>
     </VStack>

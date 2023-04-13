@@ -7,31 +7,35 @@ import {
   Link,
   Menu,
   MenuButton,
-  MenuItem,
   MenuList,
   Spinner,
   VStack,
 } from '@chakra-ui/react';
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { PartyDetails } from '../interfaces';
-import { PartyPageParams } from '../pages';
-import { http } from '../utils';
 import { InviteModal } from './InviteModal';
 import { TopicModal } from './TopicModal';
 
-export const TopicsSidebar = () => {
-  const { partyId } = useParams<PartyPageParams>();
+type TopicsSidebarProps = {
+  party: PartyDetails | undefined;
+  topicId: string | undefined;
+};
 
-  const { data, isFetching } = useQuery<PartyDetails>({
-    queryKey: ['parties', partyId],
-    queryFn: () => http.get(`/parties/${partyId}`),
-    enabled: !!partyId,
-  });
+export const TopicsSidebar = ({ party, topicId }: TopicsSidebarProps) => {
+  const navigate = useNavigate();
 
-  if (isFetching) return <Spinner />;
+  useEffect(() => {
+    if (!party) return;
+
+    if (!topicId) {
+      navigate(`/${party._id}/${party.topics[0]._id}`);
+    }
+  }, [party, topicId]);
+
+  if (!party) return <Spinner />;
 
   return (
     <VStack
@@ -43,35 +47,34 @@ export const TopicsSidebar = () => {
       spacing={4}
       p={4}
     >
-      {data ? (
+      {party ? (
         <>
           <HStack w="full" justify="space-between">
-            <Heading fontSize="2xl">{data?.name}</Heading>
+            <Heading fontSize="2xl">{party?.name}</Heading>
             <Box>
               <Menu>
                 <MenuButton
                   as={IconButton}
                   icon={<FontAwesomeIcon icon={faGear} />}
                 />
-                <MenuList>
+                <MenuList py={0}>
                   <TopicModal />
                   <InviteModal />
-                  <MenuItem>Delete</MenuItem>
                 </MenuList>
               </Menu>
             </Box>
           </HStack>
           <Box>
-            {data.topics.map((topic) => (
+            {party.topics.map((topic) => (
               <Link
                 key={topic._id}
                 as={RouterLink}
-                to={`/${partyId}/${topic._id}`}
+                to={`/${party._id}/${topic._id}`}
                 rounded="sm"
                 _hover={{}}
               >
                 <HStack>
-                  <Box as="span" fontSize="xl" color="teal.500">
+                  <Box as="span" fontSize="xl" color="teal.300">
                     #
                   </Box>
                   <Box
