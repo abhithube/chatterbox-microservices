@@ -19,6 +19,7 @@ export const Navbar = () => {
 
   return (
     <Box
+      w="full"
       h={16}
       bgColor="gray.900"
       pl={6}

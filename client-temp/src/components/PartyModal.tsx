@@ -60,15 +60,16 @@ export const PartyModal = () => {
           icon={<FontAwesomeIcon icon={faPlus} />}
           aria-label="create-party-button"
           onClick={onOpen}
-          colorScheme="teal"
+          size="lg"
           variant="outline"
           rounded="full"
+          colorScheme="teal"
         />
       </Tooltip>
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit}>
-          <ModalHeader bg="teal">Create a New Party</ModalHeader>
+          <ModalHeader bg="teal.300">Create a New Party</ModalHeader>
           <ModalCloseButton />
           <ModalBody pt={4}>
             <FormControl id="name" isRequired>
