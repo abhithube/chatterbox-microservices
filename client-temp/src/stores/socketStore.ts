@@ -1,12 +1,16 @@
 import { create } from 'zustand';
+import { Message } from '../interfaces';
 import { socket } from '../utils';
 
 interface SocketState {
   isConnected: boolean;
   activeUsers: string[];
+  messages: Message[];
   connect: () => void;
   disconnect: () => void;
   joinParty: (partyId: string) => void;
+  joinTopic: (topicId: string) => void;
+  sendMessage: (body: string) => void;
 }
 
 export const useSocketStore = create<SocketState>()((set) => {
@@ -22,9 +26,14 @@ export const useSocketStore = create<SocketState>()((set) => {
     set(() => ({ activeUsers: users }));
   });
 
+  socket.on('message:append', (message: Message) => {
+    set(({ messages }) => ({ messages: [message, ...messages] }));
+  });
+
   return {
     isConnected: false,
     activeUsers: [],
+    messages: [],
     connect: () => {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -35,11 +44,15 @@ export const useSocketStore = create<SocketState>()((set) => {
 
       socket.connect();
     },
-    disconnect: () => {
-      socket.disconnect();
+    disconnect: () => socket.disconnect(),
+    joinParty: (partyId) => socket.emit('party:join', partyId),
+    joinTopic: (topicId) => {
+      set(() => ({ messages: [] }));
+
+      socket.emit('topic:join', topicId, (messages: Message[]) => {
+        set(() => ({ messages }));
+      });
     },
-    joinParty: (partyId: string) => {
-      socket.emit('party:join', partyId);
-    },
+    sendMessage: (body) => socket.emit('message:create', body),
   };
 });
