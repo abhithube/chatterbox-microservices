@@ -1,0 +1,29 @@
+{
+  "autokill": true,
+  "terminals": [
+    {
+      "name": "nginx",
+      "command": "docker container run -p 8080:8080 -v $(pwd)/nginx.conf:/etc/nginx/nginx.conf:ro nginx"
+    },
+    {
+      "name": "accounts-service",
+      "commands": ["cd apps/accounts-service", "npm run dev accounts-service"],
+      "execute": false
+    },
+    {
+      "name": "parties-service",
+      "commands": ["cd apps/parties-service", "npm run dev parties-service"],
+      "execute": false
+    },
+    {
+      "name": "messages-service",
+      "commands": ["cd apps/messages-service", "npm run dev messages-service"],
+      "execute": false
+    },
+    {
+      "name": "client",
+      "commands": ["cd client", "npm run dev"],
+      "execute": false
+    }
+  ]
+}
