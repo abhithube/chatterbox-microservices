@@ -1,21 +1,20 @@
-name: Deploy Accounts Service
+name: Deploy Messages Service
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - "accounts-service/**"
+      - 'apps/messages-service/**'
   workflow_dispatch:
 
 env:
   AWS_REGION: us-west-1
-  ECR_REPOSITORY: chatterbox-accounts
-  ECS_SERVICE: ChatterboxAccountsECSService
+  ECR_REPOSITORY: chatterbox-messages
+  ECS_SERVICE: ChatterboxMessagesECSService
   ECS_CLUSTER: ChatterboxECSCluster
-  ECS_TASK_DEFINITION_NAME: ChatterboxAccountsECSTaskDefinition
+  ECS_TASK_DEFINITION_NAME: ChatterboxMessagesECSTaskDefinition
   ECS_TASK_DEFINITION_PATH: task-definition.json
-  CONTAINER_NAME: accounts
+  CONTAINER_NAME: messages
 
 jobs:
   deploy:
@@ -28,7 +27,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -44,10 +43,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build a docker container and
-          # push it to ECR so that it can
-          # be deployed to ECS.
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./accounts-service
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f apps/messages-service/Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
