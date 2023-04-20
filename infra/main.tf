@@ -33,7 +33,6 @@ module "accounts" {
   kafka_user                = var.kafka_user
   lb_listener_arn           = aws_lb_listener.main.arn
   node_env                  = var.node_env
-  port                      = var.port
   vpc_id                    = data.aws_vpc.main.id
 }
 
@@ -49,7 +48,6 @@ module "parties" {
   node_env             = var.node_env
   parties_database_url = var.parties_database_url
   redis_url            = var.redis_url
-  port                 = var.port
   vpc_id               = data.aws_vpc.main.id
 }
 

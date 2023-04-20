@@ -75,11 +75,6 @@ variable "parties_database_url" {
   sensitive = true
 }
 
-variable "port" {
-  type     = string
-  nullable = false
-}
-
 variable "redis_url" {
   type      = string
   nullable  = false

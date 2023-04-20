@@ -71,11 +71,6 @@ variable "node_env" {
   nullable = false
 }
 
-variable "port" {
-  type     = string
-  nullable = false
-}
-
 variable "vpc_id" {
   type = string
 }

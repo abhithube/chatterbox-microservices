@@ -31,6 +31,10 @@ resource "aws_ecs_task_definition" "main" {
           value = var.accounts_database_url
         },
         {
+          name  = "ACCOUNTS_PORT",
+          value = "80"
+        },
+        {
           name  = "BROKER_URLS",
           value = var.broker_urls
         },
@@ -73,10 +77,6 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "NODE_ENV",
           value = var.node_env
-        },
-        {
-          name  = "PORT",
-          value = var.port
         }
       ]
       logConfiguration = {

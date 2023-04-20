@@ -35,10 +35,6 @@ resource "aws_ecs_task_definition" "main" {
           value = var.client_url
         },
         {
-          name  = "PARTIES_DATABASE_URL",
-          value = var.parties_database_url
-        },
-        {
           name  = "JWT_SECRET",
           value = var.jwt_secret
         },
@@ -55,8 +51,12 @@ resource "aws_ecs_task_definition" "main" {
           value = var.node_env
         },
         {
-          name  = "PORT",
-          value = var.port
+          name  = "PARTIES_DATABASE_URL",
+          value = var.parties_database_url
+        },
+        {
+          name  = "PARTIES_PORT",
+          value = "80"
         },
         {
           name  = "REDIS_URL",
