@@ -37,6 +37,22 @@ module "accounts" {
   vpc_id                    = data.aws_vpc.main.id
 }
 
+module "parties" {
+  source               = "./modules/parties"
+  broker_urls          = var.broker_urls
+  client_url           = var.client_url
+  ecs_cluster_id       = aws_ecs_cluster.main.id
+  jwt_secret           = var.jwt_secret
+  kafka_pass           = var.kafka_pass
+  kafka_user           = var.kafka_user
+  lb_listener_arn      = aws_lb_listener.main.arn
+  node_env             = var.node_env
+  parties_database_url = var.parties_database_url
+  redis_url            = var.redis_url
+  port                 = var.port
+  vpc_id               = data.aws_vpc.main.id
+}
+
 # ACM (Certificate Manager)
 
 resource "aws_acm_certificate" "main" {
