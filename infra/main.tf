@@ -99,14 +99,24 @@ resource "aws_autoscaling_schedule" "evening" {
 
 # EC2 (Elastic Compute Cloud)
 
+data "aws_ami" "main" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-*-amazon-ecs-optimized"]
+  }
+}
+
 resource "aws_launch_template" "main" {
   name                   = "ChatterboxLaunchTemplate"
-  image_id               = "ami-09c5c62bac0d0634e"
+  image_id               = data.aws_ami.main.image_id
   instance_type          = "t2.micro"
   key_name               = "ChatterboxEC2KeyPair"
   update_default_version = true
   security_group_names   = [aws_security_group.internal.name]
-  user_data              = base64encode("#!/bin/bash\necho 'ECS_CLUSTER=ChatterboxECSCluster' >> /etc/ecs/ecs.config")
+  user_data              = base64encode("#!/bin/bash\necho 'ECS_CLUSTER=${aws_ecs_cluster.main.name}' >> /etc/ecs/ecs.config")
 
   iam_instance_profile {
     name = aws_iam_instance_profile.main.name
