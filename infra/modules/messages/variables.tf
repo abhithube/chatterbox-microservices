@@ -33,12 +33,18 @@ variable "lb_listener_arn" {
   type = string
 }
 
+variable "messages_database_url" {
+  type      = string
+  nullable  = false
+  sensitive = true
+}
+
 variable "node_env" {
   type     = string
   nullable = false
 }
 
-variable "parties_database_url" {
+variable "redis_url" {
   type      = string
   nullable  = false
   sensitive = true

@@ -64,6 +64,12 @@ variable "kafka_user" {
   nullable = false
 }
 
+variable "messages_database_url" {
+  type      = string
+  nullable  = false
+  sensitive = true
+}
+
 variable "node_env" {
   type     = string
   nullable = false
