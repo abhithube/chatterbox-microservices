@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@accounts-service/auth": ["apps/accounts-service/src/auth"],
+      "@accounts-service/common": ["apps/accounts-service/src/common"],
+      "@accounts-service/users": ["apps/accounts-service/src/users"],
+      "@parties-service/auth": ["apps/parties-service/src/auth"],
+      "@parties-service/parties": ["apps/parties-service/src/parties"],
+      "@parties-service/users": ["apps/parties-service/src/users"],
+      "@messages-service/users": ["apps/messages-service/src/users"],
+      "@lib/auth": ["libs/auth/src"]
+    },
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  }
+}

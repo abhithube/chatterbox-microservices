@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/accounts-service/src",
+  "monorepo": true,
+  "root": "apps/accounts-service",
+  "compilerOptions": {
+    "webpack": true,
+    "tsConfigPath": "apps/accounts-service/tsconfig.app.json"
+  },
+  "projects": {
+    "accounts-service": {
+      "type": "application",
+      "root": "apps/accounts-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/accounts-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/accounts-service/tsconfig.app.json"
+      }
+    },
+    "parties-service": {
+      "type": "application",
+      "root": "apps/parties-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/parties-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/parties-service/tsconfig.app.json"
+      }
+    },
+    "messages-service": {
+      "type": "application",
+      "root": "apps/messages-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/messages-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/messages-service/tsconfig.app.json"
+      }
+    },
+    "auth": {
+      "type": "library",
+      "root": "libs/auth",
+      "entryFile": "index",
+      "sourceRoot": "libs/auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/auth/tsconfig.lib.json"
+      }
+    }
+  }
+}
