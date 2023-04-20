@@ -17,6 +17,26 @@ provider "aws" {
   region = "us-west-1"
 }
 
+module "accounts" {
+  source                    = "./modules/accounts"
+  accounts_database_url     = var.accounts_database_url
+  broker_urls               = var.broker_urls
+  client_url                = var.client_url
+  ecs_cluster_id            = aws_ecs_cluster.main.id
+  github_client_id          = var.github_client_id
+  github_client_secret      = var.github_client_secret
+  google_client_id          = var.google_client_id
+  google_client_secret      = var.google_client_secret
+  google_oauth_callback_url = var.google_oauth_callback_url
+  jwt_secret                = var.jwt_secret
+  kafka_pass                = var.kafka_pass
+  kafka_user                = var.kafka_user
+  lb_listener_arn           = aws_lb_listener.main.arn
+  node_env                  = var.node_env
+  port                      = var.port
+  vpc_id                    = data.aws_vpc.main.id
+}
+
 # ACM (Certificate Manager)
 
 resource "aws_acm_certificate" "main" {

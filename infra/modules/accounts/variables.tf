@@ -14,6 +14,10 @@ variable "client_url" {
   nullable = false
 }
 
+variable "ecs_cluster_id" {
+  type = string
+}
+
 variable "github_client_id" {
   type     = string
   nullable = false
@@ -41,12 +45,6 @@ variable "google_oauth_callback_url" {
   nullable = false
 }
 
-variable "ip" {
-  type      = string
-  nullable  = false
-  sensitive = true
-}
-
 variable "jwt_secret" {
   type      = string
   nullable  = false
@@ -64,6 +62,10 @@ variable "kafka_user" {
   nullable = false
 }
 
+variable "lb_listener_arn" {
+  type = string
+}
+
 variable "node_env" {
   type     = string
   nullable = false
@@ -72,4 +74,8 @@ variable "node_env" {
 variable "port" {
   type     = string
   nullable = false
+}
+
+variable "vpc_id" {
+  type = string
 }
