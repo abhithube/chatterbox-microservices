@@ -1,7 +1,7 @@
 # ECR (Elastic Container Registry)
 
 resource "aws_ecr_repository" "main" {
-  name = "chatterbox-parties"
+  name = "chatterbox-messages"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -11,13 +11,13 @@ resource "aws_ecr_repository" "main" {
 # ECS (Elastic Container)
 
 resource "aws_ecs_task_definition" "main" {
-  family = "ChatterboxPartiesECSTaskDefinition"
+  family = "ChatterboxMessagesECSTaskDefinition"
   cpu    = 128
   memory = 64
 
   container_definitions = jsonencode([
     {
-      name  = "parties"
+      name  = "messages"
       image = aws_ecr_repository.main.repository_url
       portMappings = [
         {
@@ -51,21 +51,25 @@ resource "aws_ecs_task_definition" "main" {
           value = var.node_env
         },
         {
-          name  = "PARTIES_DATABASE_URL",
-          value = var.parties_database_url
+          name  = "MESSAGES_DATABASE_URL",
+          value = var.messages_database_url
         },
         {
-          name  = "PARTIES_PORT",
+          name  = "MESSAGES_PORT",
           value = "80"
-        }
+        },
+        {
+          name  = "REDIS_URL",
+          value = var.redis_url
+        },
       ]
       logConfiguration = {
         logDriver = "awslogs",
         options = {
-          awslogs-group         = "/chatterbox/ecs/parties-service",
+          awslogs-group         = "/chatterbox/ecs/messages-service",
           awslogs-region        = "us-west-1",
           awslogs-create-group  = "true",
-          awslogs-stream-prefix = "parties-service"
+          awslogs-stream-prefix = "messages-service"
         }
       }
     }
@@ -73,7 +77,7 @@ resource "aws_ecs_task_definition" "main" {
 }
 
 resource "aws_ecs_service" "main" {
-  name                 = "ChatterboxPartiesECSService"
+  name                 = "ChatterboxMessagesECSService"
   cluster              = var.ecs_cluster_id
   desired_count        = 1
   launch_type          = "EC2"
@@ -82,7 +86,7 @@ resource "aws_ecs_service" "main" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.main.arn
-    container_name   = "parties"
+    container_name   = "messages"
     container_port   = 80
   }
 }
@@ -90,14 +94,14 @@ resource "aws_ecs_service" "main" {
 # ELB (Elastic Load Balancing)
 
 resource "aws_lb_target_group" "main" {
-  name     = "ChatterboxPartiesLBTargetGroup"
+  name     = "ChatterboxMessagesLBTargetGroup"
   port     = 80
   protocol = "HTTP"
   vpc_id   = var.vpc_id
 
   health_check {
     matcher = "200"
-    path    = "/parties/health"
+    path    = "/messages/health"
   }
 }
 
@@ -111,7 +115,7 @@ resource "aws_lb_listener_rule" "main" {
 
   condition {
     path_pattern {
-      values = ["/parties/*"]
+      values = ["/messages/*"]
     }
   }
 }
