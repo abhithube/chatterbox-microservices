@@ -4,6 +4,11 @@ variable "accounts_database_url" {
   sensitive = true
 }
 
+variable "base_url" {
+  type     = string
+  nullable = false
+}
+
 variable "broker_urls" {
   type     = string
   nullable = false
@@ -38,11 +43,6 @@ variable "google_client_secret" {
   type      = string
   nullable  = false
   sensitive = true
-}
-
-variable "google_oauth_callback_url" {
-  type     = string
-  nullable = false
 }
 
 variable "jwt_secret" {

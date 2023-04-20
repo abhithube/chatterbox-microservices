@@ -35,6 +35,10 @@ resource "aws_ecs_task_definition" "main" {
           value = "80"
         },
         {
+          name  = "BASE_URL",
+          value = var.base_url
+        },
+        {
           name  = "BROKER_URLS",
           value = var.broker_urls
         },
@@ -57,10 +61,6 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "GOOGLE_CLIENT_SECRET",
           value = var.google_client_secret
-        },
-        {
-          name  = "GOOGLE_OAUTH_CALLBACK_URL",
-          value = var.google_oauth_callback_url
         },
         {
           name  = "JWT_SECRET",
