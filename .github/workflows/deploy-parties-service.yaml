@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'apps/parties-service/**'
+      - '.github/workflows/deploy-parties-service.yaml'
   workflow_dispatch:
 
 env:
@@ -44,9 +45,10 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f apps/parties-service/Dockerfile .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $IMAGE -f apps/parties-service/Dockerfile .
+          docker push $IMAGE
+          echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
 
       - name: Pull Amazon ECS task definition
         run: |
@@ -58,7 +60,7 @@ jobs:
         with:
           task-definition: ${{ env.ECS_TASK_DEFINITION_PATH }}
           container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
+          image: ${{ steps.build-image.outputs.IMAGE }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
