@@ -1,18 +1,11 @@
 {
   "name": "chatterbox-microservices",
-  "version": "0.0.1",
-  "description": "Microservices backend for a group messaging application",
-  "author": "abhithube",
-  "private": true,
-  "license": "UNLICENSED",
   "scripts": {
     "start": "nest start",
     "dev": "nest start --watch",
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
-    "lint": "eslint \"{apps,libs}/**/*.ts\" --fix",
-    "prepare": "husky install"
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\""
   },
   "dependencies": {
     "@nestjs/common": "^9.4.0",
@@ -50,13 +43,6 @@
     "@types/passport-github2": "^1.2.5",
     "@types/passport-google-oauth20": "^2.0.11",
     "@types/passport-jwt": "^3.0.8",
-    "@typescript-eslint/eslint-plugin": "^5.58.0",
-    "@typescript-eslint/parser": "^5.58.0",
-    "eslint": "^8.38.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "husky": "^8.0.3",
-    "lint-staged": "^13.2.1",
     "prettier": "^2.8.7",
     "source-map-support": "^0.5.21",
     "ts-loader": "^9.4.2",

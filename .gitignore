@@ -1,17 +1,6 @@
-# compiled output
-/dist
-/node_modules
-
-# Logs
-logs
-*.log
-npm-debug.log*
-
-# OS
+dist
+node_modules
 .DS_Store
-
-# VSCode
+.env
 .vscode/*
 !.vscode/terminals.json
-
-/.env
