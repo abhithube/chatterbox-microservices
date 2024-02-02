@@ -1,7 +1,7 @@
 import { Box, Stack, Text } from '@chakra-ui/react';
 import { useEffect } from 'react';
-import { PartyDetails } from '../interfaces';
 import { useSocketStore } from '../stores';
+import { PartyDetails } from '../types';
 import { CreateMessageForm } from './CreateMessageForm';
 import { MessageItem } from './MessageItem';
 

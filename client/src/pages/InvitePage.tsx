@@ -17,7 +17,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { PartyDetails } from '../interfaces';
+import { PartyDetails } from '../types';
 import { http } from '../utils';
 
 type JoinPartyArgs = {

@@ -15,7 +15,7 @@ import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { PartyDetails } from '../interfaces';
+import { PartyDetails } from '../types';
 import { InviteModal } from './InviteModal';
 import { TopicModal } from './TopicModal';
 

@@ -6,8 +6,8 @@ import {
   List,
   ListItem,
 } from '@chakra-ui/react';
-import { PartyDetails } from '../interfaces';
 import { useSocketStore } from '../stores';
+import { PartyDetails } from '../types';
 
 type UsersSidebarProps = {
   party: PartyDetails | undefined;

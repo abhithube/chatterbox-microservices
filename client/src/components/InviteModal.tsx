@@ -17,7 +17,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { PartyDetails } from '../interfaces';
+import { PartyDetails } from '../types';
 
 export const InviteModal = () => {
   const { partyId } = useParams();

@@ -1,5 +1,5 @@
 import { Avatar, Box, Flex, Text } from '@chakra-ui/react';
-import { Message } from '../interfaces';
+import { Message } from '../types';
 
 type MessageItemProps = {
   message: Message;

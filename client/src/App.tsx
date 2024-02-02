@@ -9,8 +9,8 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { Navbar } from './components';
-import { User } from './interfaces';
 import { InvitePage, LoginPage, PartyPage } from './pages';
+import { User } from './types';
 import { http } from './utils';
 
 export const App = () => {

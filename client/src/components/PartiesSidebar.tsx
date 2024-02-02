@@ -2,8 +2,8 @@ import { Avatar, Box, Link, Spinner, Tooltip, VStack } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { Party } from '../interfaces';
 import { useSocketStore } from '../stores';
+import { Party } from '../types';
 import { http } from '../utils';
 import { PartyModal } from './PartyModal';
 

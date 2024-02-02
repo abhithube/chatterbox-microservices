@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Message } from '../interfaces';
+import { Message } from '../types';
 import { socket } from '../utils';
 
 interface SocketState {

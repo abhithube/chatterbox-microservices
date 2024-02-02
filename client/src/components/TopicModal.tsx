@@ -21,7 +21,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PartyDetails, Topic } from '../interfaces';
+import { PartyDetails, Topic } from '../types';
 import { http } from '../utils';
 
 export const TopicModal = () => {

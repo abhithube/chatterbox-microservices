@@ -21,7 +21,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Party } from '../interfaces';
+import { Party } from '../types';
 import { http } from '../utils';
 
 export const PartyModal = () => {

@@ -8,8 +8,8 @@ import {
   TopicsSidebar,
   UsersSidebar,
 } from '../components';
-import { PartyDetails } from '../interfaces';
 import { useSocketStore } from '../stores';
+import { PartyDetails } from '../types';
 import { http } from '../utils';
 
 export type PartyPageParams = {
