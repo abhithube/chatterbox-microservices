@@ -15,7 +15,6 @@ env:
   ECS_SERVICE: ChatterboxPartiesECSService
   ECS_CLUSTER: ChatterboxECSCluster
   ECS_TASK_DEFINITION_NAME: ChatterboxPartiesECSTaskDefinition
-  ECS_TASK_DEFINITION_PATH: task-definition.json
   CONTAINER_NAME: parties
 
 jobs:
@@ -23,13 +22,16 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     environment: production
+    defaults:
+      run:
+        working-directory: services
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -37,7 +39,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
@@ -46,19 +48,19 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker build -t $IMAGE -f services/apps/parties-service/Dockerfile .
+          docker build -t $IMAGE -f apps/parties-service/Dockerfile .
           docker push $IMAGE
           echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
 
       - name: Pull Amazon ECS task definition
         run: |
-          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION_NAME --query taskDefinition > $ECS_TASK_DEFINITION_PATH
+          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION_NAME --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION_PATH }}
+          task-definition: services/task-definition.json
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.IMAGE }}
 
