@@ -36,7 +36,7 @@ export const TopicModal = () => {
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isLoading } = useMutation<Topic, unknown, string>({
+  const { mutateAsync, isPending } = useMutation<Topic, unknown, string>({
     mutationFn: (name) => http.post(`/parties/${partyId}/topics`, { name }),
     onSuccess: (data) => {
       queryClient.setQueryData<PartyDetails>(['parties', partyId], (prev) =>
@@ -45,7 +45,7 @@ export const TopicModal = () => {
               ...prev,
               topics: [...prev?.topics, data],
             }
-          : undefined,
+          : undefined
       );
     },
   });
@@ -96,7 +96,7 @@ export const TopicModal = () => {
               <Button
                 type="submit"
                 colorScheme="teal"
-                isLoading={isLoading}
+                isLoading={isPending}
                 isDisabled={name.length === 0}
                 loadingText="Loading..."
               >

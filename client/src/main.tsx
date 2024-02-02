@@ -23,7 +23,7 @@ const queryClient = new QueryClient({
 });
 
 const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement,
+  document.getElementById('root') as HTMLElement
 );
 
 root.render(
@@ -32,9 +32,9 @@ root.render(
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <App />
-          <ReactQueryDevtools position="bottom-right" />
+          <ReactQueryDevtools />
         </QueryClientProvider>
       </BrowserRouter>
     </ChakraProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

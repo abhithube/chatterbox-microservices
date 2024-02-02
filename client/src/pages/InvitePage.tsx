@@ -39,11 +39,7 @@ export const InvitePage = () => {
     enabled: !!partyId,
   });
 
-  const { mutateAsync, isLoading: isMutationLoading } = useMutation<
-    void,
-    unknown,
-    JoinPartyArgs
-  >({
+  const { mutateAsync, isPending } = useMutation<void, unknown, JoinPartyArgs>({
     mutationFn: ({ partyId, token }) =>
       http.post(`/parties/${partyId}/members?token=${token}`),
   });
@@ -104,16 +100,13 @@ export const InvitePage = () => {
           <ButtonGroup>
             <Button
               colorScheme="teal"
-              isLoading={isMutationLoading}
-              isDisabled={isMutationLoading}
+              isLoading={isPending}
+              isDisabled={isPending}
               onClick={joinParty}
             >
               Join
             </Button>
-            <Button
-              isDisabled={isMutationLoading}
-              onClick={() => navigate('/')}
-            >
+            <Button isDisabled={isPending} onClick={() => navigate('/')}>
               Home
             </Button>
           </ButtonGroup>

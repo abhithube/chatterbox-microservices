@@ -29,11 +29,11 @@ export const PartyModal = () => {
 
   const queryClient = useQueryClient();
 
-  const { mutateAsync, isLoading } = useMutation<Party, unknown, string>({
+  const { mutateAsync, isPending } = useMutation<Party, unknown, string>({
     mutationFn: (name) => http.post('/parties', { name }),
     onSuccess: (data) => {
       queryClient.setQueryData<Party[]>(['parties'], (prev) =>
-        prev ? [...prev, data] : [data],
+        prev ? [...prev, data] : [data]
       );
     },
   });
@@ -92,7 +92,7 @@ export const PartyModal = () => {
             <Button
               type="submit"
               colorScheme="teal"
-              isLoading={isLoading}
+              isLoading={isPending}
               loadingText="Loading..."
             >
               Submit
