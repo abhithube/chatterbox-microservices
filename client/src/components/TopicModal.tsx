@@ -15,26 +15,26 @@ import {
   ModalHeader,
   ModalOverlay,
   useDisclosure,
-} from '@chakra-ui/react';
-import { faComment, faComments } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { PartyDetails, Topic } from '../types';
-import { http } from '../utils';
+} from '@chakra-ui/react'
+import { faComment, faComments } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRef, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { PartyDetails, Topic } from '../types'
+import { http } from '../utils'
 
 export const TopicModal = () => {
-  const { partyId } = useParams();
+  const { partyId } = useParams()
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState('')
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const inputRef = useRef(null);
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const inputRef = useRef(null)
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const { mutateAsync, isPending } = useMutation<Topic, unknown, string>({
     mutationFn: (name) => http.post(`/parties/${partyId}/topics`, { name }),
@@ -45,19 +45,19 @@ export const TopicModal = () => {
               ...prev,
               topics: [...prev?.topics, data],
             }
-          : undefined
-      );
+          : undefined,
+      )
     },
-  });
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const topic = await mutateAsync(name);
+    const topic = await mutateAsync(name)
 
-    onClose();
-    navigate(`/${partyId}/${topic._id}`);
-  };
+    onClose()
+    navigate(`/${partyId}/${topic._id}`)
+  }
 
   return (
     <MenuItem icon={<FontAwesomeIcon icon={faComment} />} onClick={onOpen}>
@@ -107,5 +107,5 @@ export const TopicModal = () => {
         </ModalContent>
       </Modal>
     </MenuItem>
-  );
-};
+  )
+}

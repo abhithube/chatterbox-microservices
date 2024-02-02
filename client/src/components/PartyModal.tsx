@@ -15,43 +15,43 @@ import {
   ModalOverlay,
   Tooltip,
   useDisclosure,
-} from '@chakra-ui/react';
-import { faPlus, faUserFriends } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Party } from '../types';
-import { http } from '../utils';
+} from '@chakra-ui/react'
+import { faPlus, faUserFriends } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Party } from '../types'
+import { http } from '../utils'
 
 export const PartyModal = () => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState('')
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const { mutateAsync, isPending } = useMutation<Party, unknown, string>({
     mutationFn: (name) => http.post('/parties', { name }),
     onSuccess: (data) => {
       queryClient.setQueryData<Party[]>(['parties'], (prev) =>
-        prev ? [...prev, data] : [data]
-      );
+        prev ? [...prev, data] : [data],
+      )
     },
-  });
+  })
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const party = await mutateAsync(name);
+    const party = await mutateAsync(name)
 
-    setName('');
+    setName('')
 
-    onClose();
-    navigate(`/${party._id}`);
-  };
+    onClose()
+    navigate(`/${party._id}`)
+  }
 
   return (
     <>
@@ -101,5 +101,5 @@ export const PartyModal = () => {
         </ModalContent>
       </Modal>
     </>
-  );
-};
+  )
+}

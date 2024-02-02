@@ -10,32 +10,32 @@ import {
   MenuList,
   Spinner,
   VStack,
-} from '@chakra-ui/react';
-import { faGear } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { PartyDetails } from '../types';
-import { InviteModal } from './InviteModal';
-import { TopicModal } from './TopicModal';
+} from '@chakra-ui/react'
+import { faGear } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useEffect } from 'react'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { PartyDetails } from '../types'
+import { InviteModal } from './InviteModal'
+import { TopicModal } from './TopicModal'
 
 type TopicsSidebarProps = {
-  party: PartyDetails | undefined;
-  topicId: string | undefined;
-};
+  party: PartyDetails | undefined
+  topicId: string | undefined
+}
 
 export const TopicsSidebar = ({ party, topicId }: TopicsSidebarProps) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   useEffect(() => {
-    if (!party) return;
+    if (!party) return
 
     if (!topicId) {
-      navigate(`/${party._id}/${party.topics[0]._id}`);
+      navigate(`/${party._id}/${party.topics[0]._id}`)
     }
-  }, [party, topicId]);
+  }, [party, topicId])
 
-  if (!party) return <Spinner />;
+  if (!party) return <Spinner />
 
   return (
     <VStack
@@ -95,5 +95,5 @@ export const TopicsSidebar = ({ party, topicId }: TopicsSidebarProps) => {
         </Center>
       )}
     </VStack>
-  );
-};
+  )
+}

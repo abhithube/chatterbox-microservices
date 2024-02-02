@@ -1,39 +1,39 @@
-import { Avatar, Box, Link, Spinner, Tooltip, VStack } from '@chakra-ui/react';
-import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useSocketStore } from '../stores';
-import { Party } from '../types';
-import { http } from '../utils';
-import { PartyModal } from './PartyModal';
+import { Avatar, Box, Link, Spinner, Tooltip, VStack } from '@chakra-ui/react'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useSocketStore } from '../stores'
+import { Party } from '../types'
+import { http } from '../utils'
+import { PartyModal } from './PartyModal'
 
 type PartiesSidebarProps = {
-  partyId: string | undefined;
-};
+  partyId: string | undefined
+}
 
 export const PartiesSidebar = ({ partyId }: PartiesSidebarProps) => {
-  const { isConnected, joinParty } = useSocketStore();
+  const { isConnected, joinParty } = useSocketStore()
 
   const { data, isLoading } = useQuery<Party[]>({
     queryKey: ['parties'],
     queryFn: () => http.get('/parties/@me'),
-  });
+  })
 
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (partyId || !data || data.length == 0) return;
-
-    navigate(`/${data[0]._id}`);
-  }, [data]);
+  const navigate = useNavigate()
 
   useEffect(() => {
-    if (!partyId || !isConnected) return;
+    if (partyId || !data || data.length == 0) return
 
-    joinParty(partyId);
-  }, [partyId, isConnected]);
+    navigate(`/${data[0]._id}`)
+  }, [data])
 
-  if (!data || isLoading) return <Spinner />;
+  useEffect(() => {
+    if (!partyId || !isConnected) return
+
+    joinParty(partyId)
+  }, [partyId, isConnected])
+
+  if (!data || isLoading) return <Spinner />
 
   return (
     <VStack
@@ -62,5 +62,5 @@ export const PartiesSidebar = ({ partyId }: PartiesSidebarProps) => {
         <PartyModal />
       </Box>
     </VStack>
-  );
-};
+  )
+}
