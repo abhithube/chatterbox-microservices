@@ -11,43 +11,43 @@ import {
   ModalOverlay,
   Text,
   useDisclosure,
-} from '@chakra-ui/react';
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { PartyDetails } from '../interfaces';
+} from '@chakra-ui/react'
+import { faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { PartyDetails } from '../types'
 
 export const InviteModal = () => {
-  const { partyId } = useParams();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { partyId } = useParams()
+  const { isOpen, onOpen, onClose } = useDisclosure()
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-  const [party, setParty] = useState<PartyDetails>();
-  const [link, setLink] = useState('');
-  const [isCopied, setIsCopied] = useState(false);
+  const [party, setParty] = useState<PartyDetails>()
+  const [link, setLink] = useState('')
+  const [isCopied, setIsCopied] = useState(false)
 
   const handleOpen = () => {
-    const party = queryClient.getQueryData<PartyDetails>(['parties', partyId]);
-    if (!party) return;
+    const party = queryClient.getQueryData<PartyDetails>(['parties', partyId])
+    if (!party) return
 
-    setParty(party);
+    setParty(party)
     setLink(
       `${import.meta.env.VITE_FRONTEND_URL}/invite?party=${party._id}&token=${
         party.inviteToken
       }`,
-    );
+    )
 
-    onOpen();
-  };
+    onOpen()
+  }
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(link);
+    await navigator.clipboard.writeText(link)
 
-    setIsCopied(true);
-  };
+    setIsCopied(true)
+  }
 
   return (
     <MenuItem icon={<FontAwesomeIcon icon={faEnvelope} />} onClick={handleOpen}>
@@ -85,5 +85,5 @@ export const InviteModal = () => {
         </ModalContent>
       </Modal>
     </MenuItem>
-  );
-};
+  )
+}

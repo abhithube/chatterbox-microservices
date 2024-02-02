@@ -5,16 +5,16 @@ import {
   Heading,
   List,
   ListItem,
-} from '@chakra-ui/react';
-import { PartyDetails } from '../interfaces';
-import { useSocketStore } from '../stores';
+} from '@chakra-ui/react'
+import { useSocketStore } from '../stores'
+import { PartyDetails } from '../types'
 
 type UsersSidebarProps = {
-  party: PartyDetails | undefined;
-};
+  party: PartyDetails | undefined
+}
 
 export const UsersSidebar = ({ party }: UsersSidebarProps) => {
-  const { activeUsers } = useSocketStore();
+  const { activeUsers } = useSocketStore()
 
   return (
     <Box
@@ -48,5 +48,5 @@ export const UsersSidebar = ({ party }: UsersSidebarProps) => {
         ))}
       </List>
     </Box>
-  );
-};
+  )
+}

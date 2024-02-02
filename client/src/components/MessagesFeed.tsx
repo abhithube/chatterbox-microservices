@@ -1,25 +1,25 @@
-import { Box, Stack, Text } from '@chakra-ui/react';
-import { useEffect } from 'react';
-import { PartyDetails } from '../interfaces';
-import { useSocketStore } from '../stores';
-import { CreateMessageForm } from './CreateMessageForm';
-import { MessageItem } from './MessageItem';
+import { Box, Stack, Text } from '@chakra-ui/react'
+import { useEffect } from 'react'
+import { useSocketStore } from '../stores'
+import { PartyDetails } from '../types'
+import { CreateMessageForm } from './CreateMessageForm'
+import { MessageItem } from './MessageItem'
 
 type MessagesFeedProps = {
-  party: PartyDetails | undefined;
-  topicId: string | undefined;
-};
+  party: PartyDetails | undefined
+  topicId: string | undefined
+}
 
 export const MessagesFeed = ({ party, topicId }: MessagesFeedProps) => {
-  const { messages, joinTopic } = useSocketStore();
+  const { messages, joinTopic } = useSocketStore()
 
-  const topic = party?.topics.find((t) => t._id === topicId);
+  const topic = party?.topics.find((t) => t._id === topicId)
 
   useEffect(() => {
-    if (!topicId) return;
+    if (!topicId) return
 
-    joinTopic(topicId);
-  }, [topicId]);
+    joinTopic(topicId)
+  }, [topicId])
 
   return (
     <Box h="full" p={8} bgColor="gray.700">
@@ -43,5 +43,5 @@ export const MessagesFeed = ({ party, topicId }: MessagesFeedProps) => {
       </Stack>
       <CreateMessageForm topicName={topic?.name} />
     </Box>
-  );
-};
+  )
+}

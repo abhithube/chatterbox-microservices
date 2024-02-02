@@ -1,21 +1,21 @@
-import { Box, HStack, Link } from '@chakra-ui/react';
-import { faReplyAll } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link as RouterLink } from 'react-router-dom';
-import { http } from '../utils';
+import { Box, HStack, Link } from '@chakra-ui/react'
+import { faReplyAll } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Link as RouterLink } from 'react-router-dom'
+import { http } from '../utils'
 
 export const Navbar = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
   const { mutate } = useMutation({
     mutationFn: () =>
       http.post('/auth/logout', null, { withCredentials: true }),
     onSuccess: () => {
-      localStorage.removeItem('token');
-      queryClient.setQueryData(['auth'], null);
+      localStorage.removeItem('token')
+      queryClient.setQueryData(['auth'], null)
     },
-  });
+  })
 
   return (
     <Box
@@ -46,5 +46,5 @@ export const Navbar = () => {
         </HStack>
       </HStack>
     </Box>
-  );
-};
+  )
+}

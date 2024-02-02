@@ -6,31 +6,31 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-} from '@chakra-ui/react';
-import { faComment, faPlay } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
-import { useSocketStore } from '../stores';
+} from '@chakra-ui/react'
+import { faComment, faPlay } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useState } from 'react'
+import { useSocketStore } from '../stores'
 
 type CreateMessageFormProps = {
-  topicName: string | undefined;
-};
+  topicName: string | undefined
+}
 
 export const CreateMessageForm = ({ topicName }: CreateMessageFormProps) => {
-  const { sendMessage } = useSocketStore();
+  const { sendMessage } = useSocketStore()
 
-  const [message, setMessage] = useState('');
-  const [isLoading, setLoading] = useState(false);
+  const [message, setMessage] = useState('')
+  const [isLoading, setLoading] = useState(false)
 
   const handleClick = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    setLoading(true);
-    sendMessage(message);
+    setLoading(true)
+    sendMessage(message)
 
-    setMessage('');
-    setLoading(false);
-  };
+    setMessage('')
+    setLoading(false)
+  }
 
   return (
     <Box as="form" onSubmit={handleClick} w="full">
@@ -62,5 +62,5 @@ export const CreateMessageForm = ({ topicName }: CreateMessageFormProps) => {
         </Flex>
       )}
     </Box>
-  );
-};
+  )
+}

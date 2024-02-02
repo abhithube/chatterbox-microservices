@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'apps/messages-service/**'
-      - '.github/workflows/deploy-messages-service.yaml'
+      - "services/apps/messages-service/**"
+      - ".github/workflows/deploy-messages-service.yaml"
   workflow_dispatch:
 
 env:
@@ -46,7 +46,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker build -t $IMAGE -f apps/messages-service/Dockerfile .
+          docker build -t $IMAGE -f services/apps/messages-service/Dockerfile .
           docker push $IMAGE
           echo "IMAGE=$IMAGE" >> $GITHUB_OUTPUT
 

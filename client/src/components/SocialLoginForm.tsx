@@ -1,6 +1,6 @@
-import { Card, CardBody, CardHeader, Heading, VStack } from '@chakra-ui/react';
-import { faGithub, faGoogle } from '@fortawesome/free-brands-svg-icons';
-import { SocialLoginButton } from './SocialLoginButton';
+import { Card, CardBody, CardHeader, Heading, VStack } from '@chakra-ui/react'
+import { faGithub, faGoogle } from '@fortawesome/free-brands-svg-icons'
+import { SocialLoginButton } from './SocialLoginButton'
 
 export const SocialLoginForm = () => {
   return (
@@ -20,5 +20,5 @@ export const SocialLoginForm = () => {
         </VStack>
       </CardBody>
     </Card>
-  );
-};
+  )
+}

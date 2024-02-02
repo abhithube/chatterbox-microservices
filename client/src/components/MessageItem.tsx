@@ -1,9 +1,9 @@
-import { Avatar, Box, Flex, Text } from '@chakra-ui/react';
-import { Message } from '../interfaces';
+import { Avatar, Box, Flex, Text } from '@chakra-ui/react'
+import { Message } from '../types'
 
 type MessageItemProps = {
-  message: Message;
-};
+  message: Message
+}
 
 export const MessageItem = ({ message }: MessageItemProps) => {
   return (
@@ -21,5 +21,5 @@ export const MessageItem = ({ message }: MessageItemProps) => {
         <Text>{message.body}</Text>
       </Box>
     </Flex>
-  );
-};
+  )
+}

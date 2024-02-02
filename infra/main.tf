@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "chatterbox-infra"
+    bucket = "chatterbox-backend"
     key    = "terraform.tfstate"
     region = "us-west-1"
   }
