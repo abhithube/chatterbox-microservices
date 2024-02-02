@@ -105,7 +105,6 @@ resource "aws_ecs_service" "main" {
     container_name   = "accounts"
     container_port   = 80
   }
-
 }
 
 # ELB (Elastic Load Balancing)
