@@ -15,7 +15,7 @@ env:
   ECS_SERVICE: ChatterboxAccountsECSService
   ECS_CLUSTER: ChatterboxECSCluster
   ECS_TASK_DEFINITION_NAME: ChatterboxAccountsECSTaskDefinition
-  ECS_TASK_DEFINITION_PATH: ./task-definition.json
+  ECS_TASK_DEFINITION_PATH: task-definition.json
   CONTAINER_NAME: accounts
 
 jobs:
@@ -55,13 +55,13 @@ jobs:
 
       - name: Pull Amazon ECS task definition
         run: |
-          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION_NAME --query taskDefinition > $ECS_TASK_DEFINITION_PATH
+          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION_NAME --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION_PATH }}
+          task-definition: services/task-definition.json
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.IMAGE }}
 
