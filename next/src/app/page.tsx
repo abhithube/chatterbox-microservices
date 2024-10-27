@@ -1,7 +1,13 @@
+import { auth, signIn } from '@/auth'
 import Image from 'next/image'
 import styles from './page.module.css'
 
-export default function Home() {
+export default async function Home() {
+  const session = await auth()
+  if (!session) {
+    await signIn()
+  }
+
   return (
     <div className={styles.page}>
       <main className={styles.main}>
