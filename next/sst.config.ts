@@ -10,6 +10,29 @@ export default $config({
     }
   },
   async run() {
-    new sst.aws.Nextjs('ChatterboxNext')
+    const dynamoTable = new sst.aws.Dynamo('DynamoTable', {
+      fields: {
+        pk: 'string',
+        sk: 'string',
+        GSI1PK: 'string',
+        GSI1SK: 'string',
+      },
+      primaryIndex: {
+        hashKey: 'pk',
+        rangeKey: 'sk',
+      },
+      globalIndexes: {
+        GSI1: {
+          hashKey: 'GSI1PK',
+          rangeKey: 'GSI1SK',
+          projection: 'all',
+        },
+      },
+      ttl: 'expires',
+    })
+
+    new sst.aws.Nextjs('ChatterboxNext', {
+      link: [dynamoTable],
+    })
   },
 })
