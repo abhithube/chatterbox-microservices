@@ -12,20 +12,28 @@
     "@auth/dynamodb-adapter": "^2",
     "@aws-sdk/client-dynamodb": "^3",
     "@aws-sdk/lib-dynamodb": "^3",
+    "class-variance-authority": "^0.7",
+    "clsx": "^2",
+    "lucide-react": "^0.453",
     "next": "15",
     "next-auth": "^5.0.0-beta.25",
     "react": "19.0.0-rc-69d4b800-20241021",
     "react-dom": "19.0.0-rc-69d4b800-20241021",
-    "sst": "3"
+    "sst": "3",
+    "tailwind-merge": "^2",
+    "tailwindcss-animate": "^1"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10",
     "eslint": "^8",
     "eslint-config-next": "15",
     "eslint-config-prettier": "^9",
+    "postcss": "^8",
     "prettier": "^3",
+    "tailwindcss": "^3",
     "typescript": "^5"
   }
 }
