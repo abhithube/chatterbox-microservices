@@ -1,3 +1,4 @@
+import { auth } from '@/auth'
 import {
   Sidebar,
   SidebarContent,
@@ -10,8 +11,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { VersionSwitcher } from '@/components/version-switcher'
 import * as React from 'react'
+import { PartySelector } from './party-selector'
 
 const data = {
   versions: ['1.0.1', '1.1.0-alpha', '2.0.0-beta1'],
@@ -144,13 +145,17 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export async function AppSidebar({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
+  const userId = (await auth())!.user!.id!
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <VersionSwitcher
-          versions={data.versions}
-          defaultVersion={data.versions[0]}
+        <PartySelector
+          partyId="ec49e442-da01-4e22-8012-c4a0e0625a9a"
+          userId={userId}
         />
       </SidebarHeader>
       <SidebarContent>
