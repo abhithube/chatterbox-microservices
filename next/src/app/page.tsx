@@ -1,3 +1,4 @@
+import { auth } from '@/auth'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -5,8 +6,95 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { PartyDetails } from '@/lib/types'
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  QueryCommand,
+} from '@aws-sdk/client-dynamodb'
+import { notFound } from 'next/navigation'
+import { Resource } from 'sst'
 
-export default function Page() {
+const PARTY_ID = 'ec49e442-da01-4e22-8012-c4a0e0625a9a'
+const TOPIC_ID = '99fa190b-52de-4e37-a8da-d8cf78cbbacf'
+
+const client = new DynamoDBClient({})
+
+export default async function Page() {
+  const userId = (await auth())!.user!.id!
+
+  const getItem = new GetItemCommand({
+    TableName: Resource.DynamoTable.name,
+    Key: {
+      pk: {
+        S: `PARTY#${PARTY_ID}`,
+      },
+      sk: {
+        S: `USER#${userId}`,
+      },
+    },
+    ProjectionExpression: 'userId',
+  })
+
+  const getItemOutput = await client.send(getItem)
+  if (!getItemOutput.Item) {
+    notFound()
+  }
+
+  const query = new QueryCommand({
+    TableName: Resource.DynamoTable.name,
+    KeyConditionExpression: 'pk = :pk',
+    ExpressionAttributeValues: {
+      ':pk': {
+        S: `PARTY#${PARTY_ID}`,
+      },
+    },
+    ProjectionExpression:
+      'id, #name, image, userId, userName, userImage, isAdmin, #type',
+    ExpressionAttributeNames: {
+      '#name': 'name',
+      '#type': 'type',
+    },
+  })
+  const queryOutput = await client.send(query)
+
+  if (!queryOutput.Items || queryOutput.Items.length === 0) {
+    notFound()
+  }
+
+  const party: PartyDetails = {
+    id: '',
+    title: '',
+    topics: [],
+    members: [],
+  }
+
+  for (const item of queryOutput.Items) {
+    switch (item.type.S) {
+      case 'PARTY':
+        party.id = item.id.S!
+        party.title = item.name.S!
+
+        break
+      case 'TOPIC':
+        party.topics.push({
+          id: item.id.S!,
+          title: item.name.S!,
+        })
+
+        break
+      case 'MEMBER':
+        party.members.push({
+          id: item.userId.S!,
+          name: item.userName.S!,
+          image: item.userImage.S ?? null,
+          isAdmin: item.isAdmin.BOOL!,
+        })
+
+        break
+    }
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
