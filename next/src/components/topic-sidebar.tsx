@@ -16,7 +16,7 @@ import { PartySelector } from './party-selector'
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
 
-export async function AppSidebar({
+export async function TopicSidebar({
   partyId,
   topicId,
   topics,
