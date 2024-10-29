@@ -11,10 +11,9 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import * as React from 'react'
-import { PartySelector } from './party-selector'
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
+import { PartySelector } from './party-selector'
 
 export async function TopicSidebar({
   partyId,
@@ -28,7 +27,7 @@ export async function TopicSidebar({
   const userId = (await auth())!.user!.id!
 
   return (
-    <Sidebar>
+    <Sidebar side="left">
       <SidebarHeader>
         <PartySelector partyId={partyId} userId={userId} />
       </SidebarHeader>

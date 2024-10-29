@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Sidebar,
   SidebarContent,
@@ -9,13 +10,11 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import * as React from 'react'
 import { Member } from '@/lib/types'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export async function UserSidebar({ members }: { members: Member[] }) {
   return (
-    <Sidebar side="right" collapsible="none">
+    <Sidebar side="right">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Users</SidebarGroupLabel>
