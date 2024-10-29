@@ -6,6 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { UserSidebar } from '@/components/user-sidebar'
 import { PartyDetails } from '@/lib/types'
 import {
   DynamoDBClient,
@@ -113,6 +114,7 @@ export default async function Page() {
           <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
         </div>
       </SidebarInset>
+      <UserSidebar members={party.members} />
     </SidebarProvider>
   )
 }

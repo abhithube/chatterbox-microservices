@@ -12,6 +12,7 @@
     "@auth/dynamodb-adapter": "^2",
     "@aws-sdk/client-dynamodb": "^3",
     "@aws-sdk/lib-dynamodb": "^3",
+    "@radix-ui/react-avatar": "^1",
     "@radix-ui/react-dialog": "^1",
     "@radix-ui/react-dropdown-menu": "^2",
     "@radix-ui/react-label": "^2",
