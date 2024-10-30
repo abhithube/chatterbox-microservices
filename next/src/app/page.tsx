@@ -1,4 +1,6 @@
 import { auth } from '@/auth'
+import { MessageFeed } from '@/components/message-feed'
+import { MessageForm } from '@/components/message-form'
 import { TopicSidebar } from '@/components/topic-sidebar'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -36,8 +38,8 @@ export default async function Page() {
     },
     ProjectionExpression: 'userId',
   })
-
   const getItemOutput = await client.send(getItem)
+
   if (!getItemOutput.Item) {
     notFound()
   }
@@ -96,6 +98,11 @@ export default async function Page() {
     }
   }
 
+  const topic = party.topics.find((topic) => topic.id === TOPIC_ID)
+  if (!topic) {
+    notFound()
+  }
+
   return (
     <SidebarProvider>
       <TopicSidebar
@@ -103,19 +110,18 @@ export default async function Page() {
         topicId={TOPIC_ID}
         topics={party.topics}
       />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <SidebarInset className="h-screen">
+        <header className="flex bg-background h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <span>Home</span>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-          </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+        <div className="flex flex-col px-8 flex-1 overflow-auto">
+          <div className="flex-1" />
+          <MessageFeed topic={topic} />
+        </div>
+        <div className="h-16 mt-4">
+          <MessageForm topic={topic} />
         </div>
       </SidebarInset>
       <UserSidebar members={party.members} />

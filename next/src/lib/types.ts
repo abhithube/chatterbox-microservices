@@ -21,3 +21,16 @@ export type Member = {
   image: string | null
   isAdmin: boolean
 }
+
+export type Message = {
+  id: string
+  body: string
+  createdAt: Date
+  author: Author
+}
+
+export type Author = {
+  id: string
+  name: string
+  image: string | null
+}
