@@ -1,4 +1,5 @@
 import { auth } from '@/auth'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
 import { Topic } from '@/lib/types'
 import Link from 'next/link'
 import { PartySelector } from './party-selector'
+import { TopicDialog } from './topic-dialog'
 
 export async function TopicSidebar({
   partyId,
@@ -45,6 +47,12 @@ export async function TopicSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton>Add new</SidebarMenuButton>
+                </DialogTrigger>
+                <TopicDialog partyId={partyId} />
+              </Dialog>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
