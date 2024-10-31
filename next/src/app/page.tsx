@@ -9,48 +9,35 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 import { UserSidebar } from '@/components/user-sidebar'
+import { db } from '@/lib/db'
 import { PartyDetails } from '@/lib/types'
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  QueryCommand,
-} from '@aws-sdk/client-dynamodb'
 import { notFound } from 'next/navigation'
 import { Resource } from 'sst'
 
 const PARTY_ID = 'ec49e442-da01-4e22-8012-c4a0e0625a9a'
 const TOPIC_ID = '99fa190b-52de-4e37-a8da-d8cf78cbbacf'
 
-const client = new DynamoDBClient({})
-
 export default async function Page() {
   const userId = (await auth())!.user!.id!
 
-  const getItem = new GetItemCommand({
+  const getItemOutput = await db.get({
     TableName: Resource.DynamoTable.name,
     Key: {
-      pk: {
-        S: `PARTY#${PARTY_ID}`,
-      },
-      sk: {
-        S: `USER#${userId}`,
-      },
+      pk: `PARTY#${PARTY_ID}`,
+      sk: `USER#${userId}`,
     },
     ProjectionExpression: 'userId',
   })
-  const getItemOutput = await client.send(getItem)
 
-  if (!getItemOutput.Item) {
+  if (!getItemOutput.Item?.userId) {
     notFound()
   }
 
-  const query = new QueryCommand({
+  const queryOutput = await db.query({
     TableName: Resource.DynamoTable.name,
     KeyConditionExpression: 'pk = :pk',
     ExpressionAttributeValues: {
-      ':pk': {
-        S: `PARTY#${PARTY_ID}`,
-      },
+      ':pk': `PARTY#${PARTY_ID}`,
     },
     ProjectionExpression:
       'id, #name, image, userId, userName, userImage, isAdmin, #type',
@@ -59,7 +46,6 @@ export default async function Page() {
       '#type': 'type',
     },
   })
-  const queryOutput = await client.send(query)
 
   if (!queryOutput.Items || queryOutput.Items.length === 0) {
     notFound()
@@ -73,25 +59,25 @@ export default async function Page() {
   }
 
   for (const item of queryOutput.Items) {
-    switch (item.type.S) {
+    switch (item.type) {
       case 'PARTY':
-        party.id = item.id.S!
-        party.title = item.name.S!
+        party.id = item.id
+        party.title = item.name
 
         break
       case 'TOPIC':
         party.topics.push({
-          id: item.id.S!,
-          title: item.name.S!,
+          id: item.id,
+          title: item.name,
         })
 
         break
       case 'MEMBER':
         party.members.push({
-          id: item.userId.S!,
-          name: item.userName.S!,
-          image: item.userImage.S ?? null,
-          isAdmin: item.isAdmin.BOOL!,
+          id: item.userId,
+          name: item.userName,
+          image: item.userImage ?? null,
+          isAdmin: item.isAdmin,
         })
 
         break

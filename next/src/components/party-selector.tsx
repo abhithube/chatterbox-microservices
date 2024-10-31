@@ -10,15 +10,13 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { db } from '@/lib/db'
 import { Party } from '@/lib/types'
-import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb'
 import { Check, ChevronsUpDown, GalleryVerticalEnd } from 'lucide-react'
 import Link from 'next/link'
 import { redirect, RedirectType } from 'next/navigation'
 import { Resource } from 'sst'
 import { PartyDialog } from './party-dialog'
-
-const client = new DynamoDBClient({})
 
 export async function PartySelector({
   partyId,
@@ -27,25 +25,20 @@ export async function PartySelector({
   partyId: string
   userId: string
 }) {
-  const query = new QueryCommand({
+  const output = await db.query({
     TableName: Resource.DynamoTable.name,
     IndexName: 'GSI1',
     KeyConditionExpression: 'GSI1PK = :pk AND begins_with(GSI1SK, :sk)',
     ExpressionAttributeValues: {
-      ':pk': {
-        S: `USER#${userId}`,
-      },
-      ':sk': {
-        S: 'PARTY#',
-      },
+      ':pk': `USER#${userId}`,
+      ':sk': 'PARTY#',
     },
     ProjectionExpression: 'partyId, partyName',
   })
 
-  const output = await client.send(query)
   const parties: Party[] = (output.Items ?? []).map((item) => ({
-    id: item.partyId.S!,
-    title: item.partyName.S!,
+    id: item.partyId,
+    title: item.partyName,
   }))
 
   const selected = parties.find((party) => party.id === partyId)
