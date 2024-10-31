@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { createTopic } from '@/lib/actions'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -35,8 +36,8 @@ export function TopicDialog({ partyId }: { partyId: string }) {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log({
-      values,
+    await createTopic({
+      ...values,
       partyId,
     })
   }

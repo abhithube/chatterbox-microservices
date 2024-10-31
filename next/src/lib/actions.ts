@@ -36,11 +36,11 @@ export async function createParty(data: CreateParty) {
         {
           Put: {
             TableName: Resource.DynamoTable.name,
-            ConditionExpression: 'attribute_not_exists(pk)',
             Item: {
               pk: `PARTY#${data.title}`,
               sk: `PARTY#${data.title}`,
             },
+            ConditionExpression: 'attribute_not_exists(pk)',
           },
         },
         {
@@ -80,6 +80,60 @@ export async function createParty(data: CreateParty) {
               partyName: data.title,
               type: 'MEMBER',
             },
+          },
+        },
+      ],
+    })
+  } catch (error) {
+    if (error instanceof TransactionCanceledException) {
+      console.log(error)
+    }
+  }
+}
+
+type CreateTopic = {
+  title: string
+  partyId: string
+}
+
+export async function createTopic(data: CreateTopic) {
+  const user = (await auth())!.user!
+
+  const topicId = randomUUID()
+
+  try {
+    await db.transactWrite({
+      TransactItems: [
+        {
+          ConditionCheck: {
+            TableName: Resource.DynamoTable.name,
+            Key: {
+              pk: `PARTY#${data.partyId}`,
+              sk: `USER#${user.id}`,
+            },
+            ConditionExpression: 'attribute_exists(pk)',
+          },
+        },
+        {
+          Put: {
+            TableName: Resource.DynamoTable.name,
+            Item: {
+              pk: `PARTY#${data.partyId}`,
+              sk: `TOPIC#${topicId}`,
+              id: topicId,
+              name: data.title,
+              type: 'TOPIC',
+            },
+          },
+        },
+        {
+          Put: {
+            TableName: Resource.DynamoTable.name,
+            Item: {
+              pk: `TOPIC#${data.partyId}#${data.title}`,
+              sk: `TOPIC#${data.partyId}#${data.title}`,
+            },
+            ConditionExpression: 'attribute_not_exists(pk)',
           },
         },
       ],
