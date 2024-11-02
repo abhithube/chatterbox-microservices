@@ -1,7 +1,8 @@
 {
   "name": "@abhithube/chatterbox-messages",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc"
   },
   "dependencies": {
     "express": "^5",
