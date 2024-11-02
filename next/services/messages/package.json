@@ -4,9 +4,12 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "express": "^5"
+    "express": "^5",
+    "sst": "^3"
   },
   "devDependencies": {
+    "@pulumi/pulumi": "^3",
+    "@types/aws-lambda": "^8",
     "@types/express": "^5",
     "tsx": "^4",
     "typescript": "^5"
