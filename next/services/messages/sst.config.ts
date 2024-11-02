@@ -78,6 +78,37 @@ export default $config({
       ],
     })
 
+    const policyDocument = await aws.iam.getPolicyDocument({
+      statements: [
+        {
+          principals: [
+            {
+              type: 'Service',
+              identifiers: ['ec2.amazonaws.com'],
+            },
+          ],
+          actions: ['sts:AssumeRole'],
+        },
+      ],
+    })
+
+    const role = new aws.iam.Role('Role', {
+      assumeRolePolicy: policyDocument.json,
+    })
+
+    const policy = await aws.iam.getPolicy({
+      name: 'AmazonEC2ContainerServiceforEC2Role',
+    })
+
+    new aws.iam.PolicyAttachment('PolicyAttachment', {
+      roles: [role],
+      policyArn: policy.arn,
+    })
+
+    const instanceProfile = new aws.iam.InstanceProfile('InstanceProfile', {
+      role: role.name,
+    })
+
     const cluster = new aws.ecs.Cluster('Cluster')
 
     const launchTemplate = new aws.ec2.LaunchTemplate('LaunchTemplate', {
@@ -89,6 +120,9 @@ export default $config({
           `#!/bin/bash\necho 'ECS_CLUSTER=${name}' >> /etc/ecs/ecs.config`,
         ).toString('base64'),
       ),
+      iamInstanceProfile: {
+        arn: instanceProfile.arn,
+      },
     })
 
     const autoScalingGroup = new aws.autoscaling.Group('AutoScalingGroup', {
@@ -103,6 +137,9 @@ export default $config({
     const capacityProvider = new aws.ecs.CapacityProvider('CapacityProvider', {
       autoScalingGroupProvider: {
         autoScalingGroupArn: autoScalingGroup.arn,
+        managedScaling: {
+          status: 'ENABLED',
+        },
       },
     })
 
