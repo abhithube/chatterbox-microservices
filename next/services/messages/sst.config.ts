@@ -12,6 +12,28 @@ export default $config({
     }
   },
   async run() {
+    const vpc = await aws.ec2.getVpc({
+      default: true,
+    })
+
+    const subnetIds = await aws.ec2.getSubnets({
+      filters: [
+        {
+          name: 'vpc-id',
+          values: [vpc.id],
+        },
+      ],
+    })
+
+    const availabilityZones: string[] = []
+    for (const id of subnetIds.ids) {
+      const subnet = await aws.ec2.getSubnet({
+        id,
+      })
+
+      availabilityZones.push(subnet.availabilityZone)
+    }
+
     const internetSecurityGroup = new aws.ec2.SecurityGroup('Internet', {
       ingress: [
         {
@@ -58,7 +80,7 @@ export default $config({
 
     const cluster = new aws.ecs.Cluster('Cluster')
 
-    new aws.ec2.LaunchTemplate('LaunchTemplate', {
+    const launchTemplate = new aws.ec2.LaunchTemplate('LaunchTemplate', {
       imageId: 'ami-0cf4e1fcfd8494d5b',
       instanceType: 't2.micro',
       securityGroupNames: [internalSecurityGroup.name],
@@ -67,6 +89,33 @@ export default $config({
           `#!/bin/bash\necho 'ECS_CLUSTER=${name}' >> /etc/ecs/ecs.config`,
         ).toString('base64'),
       ),
+    })
+
+    const autoScalingGroup = new aws.autoscaling.Group('AutoScalingGroup', {
+      maxSize: 2,
+      minSize: 0,
+      launchTemplate: {
+        id: launchTemplate.id,
+      },
+      availabilityZones,
+    })
+
+    const capacityProvider = new aws.ecs.CapacityProvider('CapacityProvider', {
+      autoScalingGroupProvider: {
+        autoScalingGroupArn: autoScalingGroup.arn,
+      },
+    })
+
+    new aws.ecs.ClusterCapacityProviders('ClusterCapacityProviders', {
+      clusterName: cluster.name,
+      capacityProviders: [capacityProvider.name],
+      defaultCapacityProviderStrategies: [
+        {
+          capacityProvider: capacityProvider.name,
+          base: 1,
+          weight: 100,
+        },
+      ],
     })
 
     const repository = new aws.ecr.Repository('Repository', {
