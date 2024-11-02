@@ -12,7 +12,62 @@ export default $config({
     }
   },
   async run() {
+    const internetSecurityGroup = new aws.ec2.SecurityGroup('Internet', {
+      ingress: [
+        {
+          fromPort: 80,
+          toPort: 80,
+          protocol: 'tcp',
+          cidrBlocks: ['0.0.0.0/0'],
+        },
+        {
+          fromPort: 443,
+          toPort: 443,
+          protocol: 'tcp',
+          cidrBlocks: ['0.0.0.0/0'],
+        },
+      ],
+      egress: [
+        {
+          fromPort: 0,
+          toPort: 0,
+          protocol: '-1',
+          cidrBlocks: ['0.0.0.0/0'],
+        },
+      ],
+    })
+
+    const internalSecurityGroup = new aws.ec2.SecurityGroup('Internal', {
+      ingress: [
+        {
+          fromPort: 0,
+          toPort: 0,
+          protocol: '-1',
+          securityGroups: [internetSecurityGroup.id],
+        },
+      ],
+      egress: [
+        {
+          fromPort: 0,
+          toPort: 0,
+          protocol: '-1',
+          cidrBlocks: ['0.0.0.0/0'],
+        },
+      ],
+    })
+
     const cluster = new aws.ecs.Cluster('Cluster')
+
+    new aws.ec2.LaunchTemplate('LaunchTemplate', {
+      imageId: 'ami-0cf4e1fcfd8494d5b',
+      instanceType: 't2.micro',
+      securityGroupNames: [internalSecurityGroup.name],
+      userData: cluster.name.apply((name) =>
+        Buffer.from(
+          `#!/bin/bash\necho 'ECS_CLUSTER=${name}' >> /etc/ecs/ecs.config`,
+        ).toString('base64'),
+      ),
+    })
 
     const repository = new aws.ecr.Repository('Repository', {
       name: 'chatterbox-messages',
