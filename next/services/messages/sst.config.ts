@@ -118,6 +118,58 @@ export default $config({
       ],
     })
 
+    const loadBalancer = new aws.lb.LoadBalancer('LoadBalancer', {
+      securityGroups: [internetSecurityGroup.id],
+      subnets: subnetIds.ids,
+    })
+
+    const listener = new aws.lb.Listener('Listener', {
+      loadBalancerArn: loadBalancer.arn,
+      defaultActions: [
+        {
+          type: 'fixed-response',
+          fixedResponse: {
+            contentType: 'application/json',
+            statusCode: '404',
+          },
+        },
+      ],
+      protocol: 'HTTP',
+      port: 80,
+    })
+
+    const targetGroup = new aws.lb.TargetGroup('TargetGroup', {
+      port: 80,
+      protocol: 'HTTP',
+      vpcId: vpc.id,
+      healthCheck: {
+        path: '/messages/health',
+      },
+    })
+
+    new aws.lb.ListenerRule('ListenerRule', {
+      listenerArn: listener.arn,
+      actions: [
+        {
+          type: 'forward',
+          forward: {
+            targetGroups: [
+              {
+                arn: targetGroup.arn,
+              },
+            ],
+          },
+        },
+      ],
+      conditions: [
+        {
+          pathPattern: {
+            values: ['/messages/*'],
+          },
+        },
+      ],
+    })
+
     const repository = new aws.ecr.Repository('Repository', {
       name: 'chatterbox-messages',
       forceDelete: true,
@@ -150,6 +202,13 @@ export default $config({
       cluster: cluster.arn,
       taskDefinition: taskDefinition.arn,
       forceDelete: true,
+      loadBalancers: [
+        {
+          targetGroupArn: targetGroup.arn,
+          containerName: 'messages',
+          containerPort: 80,
+        },
+      ],
     })
   },
 })
