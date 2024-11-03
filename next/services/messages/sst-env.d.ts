@@ -6,5 +6,9 @@ import "sst"
 export {}
 declare module "sst" {
   export interface Resource {
+    "IP": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
   }
 }

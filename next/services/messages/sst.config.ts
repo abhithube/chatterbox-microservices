@@ -59,6 +59,8 @@ export default $config({
       ],
     })
 
+    const ip = new sst.Secret('IP')
+
     const internalSecurityGroup = new aws.ec2.SecurityGroup('Internal', {
       ingress: [
         {
@@ -66,6 +68,12 @@ export default $config({
           toPort: 0,
           protocol: '-1',
           securityGroups: [internetSecurityGroup.id],
+        },
+        {
+          fromPort: 22,
+          toPort: 22,
+          protocol: 'tcp',
+          cidrBlocks: [ip.value],
         },
       ],
       egress: [
@@ -135,9 +143,11 @@ export default $config({
     const cluster = new aws.ecs.Cluster('Cluster')
 
     const launchTemplate = new aws.ec2.LaunchTemplate('LaunchTemplate', {
+      updateDefaultVersion: true,
       imageId: 'ami-0cf4e1fcfd8494d5b',
       instanceType: 't2.micro',
       securityGroupNames: [internalSecurityGroup.name],
+      keyName: 'ChatterboxKeyPair',
       userData: cluster.name.apply((name) =>
         Buffer.from(
           `#!/bin/bash\necho 'ECS_CLUSTER=${name}' >> /etc/ecs/ecs.config`,
