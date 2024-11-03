@@ -177,7 +177,7 @@ export default $config({
       protocol: 'HTTP',
       vpcId: vpc.id,
       healthCheck: {
-        path: '/messages/health',
+        path: '/api/v1/health',
       },
     })
 
@@ -198,7 +198,7 @@ export default $config({
       conditions: [
         {
           pathPattern: {
-            values: ['/messages/*'],
+            values: ['/api/v1/*'],
           },
         },
       ],
