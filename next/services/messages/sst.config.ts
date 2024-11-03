@@ -169,34 +169,10 @@ export default $config({
       },
     })
 
-    const autoScalingGroup = new aws.autoscaling.Group('AutoScalingGroup', {
-      maxSize: 2,
-      minSize: 0,
+    new aws.ec2.Instance('Instance', {
       launchTemplate: {
         id: launchTemplate.id,
       },
-      availabilityZones,
-    })
-
-    const capacityProvider = new aws.ecs.CapacityProvider('CapacityProvider', {
-      autoScalingGroupProvider: {
-        autoScalingGroupArn: autoScalingGroup.arn,
-        managedScaling: {
-          status: 'ENABLED',
-        },
-      },
-    })
-
-    new aws.ecs.ClusterCapacityProviders('ClusterCapacityProviders', {
-      clusterName: cluster.name,
-      capacityProviders: [capacityProvider.name],
-      defaultCapacityProviderStrategies: [
-        {
-          capacityProvider: capacityProvider.name,
-          base: 1,
-          weight: 100,
-        },
-      ],
     })
 
     const loadBalancer = new aws.lb.LoadBalancer('LoadBalancer', {
