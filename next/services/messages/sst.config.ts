@@ -86,7 +86,7 @@ export default $config({
       ],
     })
 
-    const assumeRolePolicyDocument = await aws.iam.getPolicyDocument({
+    const ec2AssumeRolePolicyDocument = await aws.iam.getPolicyDocument({
       statements: [
         {
           principals: [
@@ -100,44 +100,21 @@ export default $config({
       ],
     })
 
-    const logsPolicyDocument = await aws.iam.getPolicyDocument({
-      statements: [
-        {
-          resources: ['arn:aws:logs:*:*:*'],
-          actions: [
-            'logs:CreateLogGroup',
-            'logs:CreateLogStream',
-            'logs:PutLogEvents',
-            'logs:DescribeLogStreams',
-          ],
-        },
-      ],
+    const ec2Role = new aws.iam.Role('EC2Role', {
+      assumeRolePolicy: ec2AssumeRolePolicyDocument.json,
     })
 
-    const role = new aws.iam.Role('Role', {
-      assumeRolePolicy: assumeRolePolicyDocument.json,
-    })
-
-    const ecsPolicy = await aws.iam.getPolicy({
+    const ec2Policy = await aws.iam.getPolicy({
       name: 'AmazonEC2ContainerServiceforEC2Role',
     })
 
-    const logsPolicy = new aws.iam.Policy('LogsPolicy', {
-      policy: logsPolicyDocument.json,
-    })
-
-    new aws.iam.PolicyAttachment('ECSPolicyAttachment', {
-      roles: [role],
-      policyArn: ecsPolicy.arn,
-    })
-
-    new aws.iam.PolicyAttachment('LogsPolicyAttachment', {
-      roles: [role],
-      policyArn: logsPolicy.arn,
+    new aws.iam.PolicyAttachment('EC2PolicyAttachment', {
+      roles: [ec2Role],
+      policyArn: ec2Policy.arn,
     })
 
     const instanceProfile = new aws.iam.InstanceProfile('InstanceProfile', {
-      role: role.name,
+      role: ec2Role.name,
     })
 
     const cluster = new aws.ecs.Cluster('Cluster')
@@ -232,9 +209,61 @@ export default $config({
       forceDelete: true,
     })
 
+    const ecsAssumeRolePolicyDocument = await aws.iam.getPolicyDocument({
+      statements: [
+        {
+          principals: [
+            {
+              type: 'Service',
+              identifiers: ['ecs-tasks.amazonaws.com'],
+            },
+          ],
+          resources: [],
+          actions: ['sts:AssumeRole'],
+        },
+      ],
+    })
+
+    const ecsRole = new aws.iam.Role('ECSRole', {
+      assumeRolePolicy: ecsAssumeRolePolicyDocument.json,
+    })
+
+    const ecsPolicy = await aws.iam.getPolicy({
+      name: 'AmazonECSTaskExecutionRolePolicy',
+    })
+
+    new aws.iam.PolicyAttachment('ECSPolicyAttachment', {
+      roles: [ecsRole],
+      policyArn: ecsPolicy.arn,
+    })
+
+    const logsPolicyDocument = await aws.iam.getPolicyDocument({
+      statements: [
+        {
+          resources: ['arn:aws:logs:*:*:*'],
+          actions: [
+            'logs:CreateLogGroup',
+            'logs:CreateLogStream',
+            'logs:PutLogEvents',
+            'logs:DescribeLogStreams',
+          ],
+        },
+      ],
+    })
+
+    const logsPolicy = new aws.iam.Policy('LogsPolicy', {
+      policy: logsPolicyDocument.json,
+    })
+
+    new aws.iam.PolicyAttachment('LogsPolicyAttachment', {
+      roles: [ecsRole],
+      policyArn: logsPolicy.arn,
+    })
+
     const taskDefinition = new aws.ecs.TaskDefinition('TaskDefinition', {
       family: 'ChatterboxMessagesECSTaskDefinition',
       memory: '64',
+      executionRoleArn: ecsRole.arn,
       containerDefinitions: pulumi.jsonStringify([
         {
           name: 'messages',
