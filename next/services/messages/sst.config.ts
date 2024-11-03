@@ -142,9 +142,20 @@ export default $config({
 
     const cluster = new aws.ecs.Cluster('Cluster')
 
+    const ami = await aws.ec2.getAmi({
+      owners: ['amazon'],
+      filters: [
+        {
+          name: 'name',
+          values: ['*amazon-ecs-optimized*'],
+        },
+      ],
+      mostRecent: true,
+    })
+
     const launchTemplate = new aws.ec2.LaunchTemplate('LaunchTemplate', {
       updateDefaultVersion: true,
-      imageId: 'ami-0cf4e1fcfd8494d5b',
+      imageId: ami.imageId,
       instanceType: 't2.micro',
       securityGroupNames: [internalSecurityGroup.name],
       keyName: 'ChatterboxKeyPair',
