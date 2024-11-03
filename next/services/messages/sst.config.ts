@@ -78,7 +78,7 @@ export default $config({
       ],
     })
 
-    const policyDocument = await aws.iam.getPolicyDocument({
+    const assumeRolePolicyDocument = await aws.iam.getPolicyDocument({
       statements: [
         {
           principals: [
@@ -92,17 +92,40 @@ export default $config({
       ],
     })
 
-    const role = new aws.iam.Role('Role', {
-      assumeRolePolicy: policyDocument.json,
+    const logsPolicyDocument = await aws.iam.getPolicyDocument({
+      statements: [
+        {
+          resources: ['arn:aws:logs:*:*:*'],
+          actions: [
+            'logs:CreateLogGroup',
+            'logs:CreateLogStream',
+            'logs:PutLogEvents',
+            'logs:DescribeLogStreams',
+          ],
+        },
+      ],
     })
 
-    const policy = await aws.iam.getPolicy({
+    const role = new aws.iam.Role('Role', {
+      assumeRolePolicy: assumeRolePolicyDocument.json,
+    })
+
+    const ecsPolicy = await aws.iam.getPolicy({
       name: 'AmazonEC2ContainerServiceforEC2Role',
     })
 
-    new aws.iam.PolicyAttachment('PolicyAttachment', {
+    const logsPolicy = new aws.iam.Policy('LogsPolicy', {
+      policy: logsPolicyDocument.json,
+    })
+
+    new aws.iam.PolicyAttachment('ECSPolicyAttachment', {
       roles: [role],
-      policyArn: policy.arn,
+      policyArn: ecsPolicy.arn,
+    })
+
+    new aws.iam.PolicyAttachment('LogsPolicyAttachment', {
+      roles: [role],
+      policyArn: logsPolicy.arn,
     })
 
     const instanceProfile = new aws.iam.InstanceProfile('InstanceProfile', {
@@ -231,6 +254,15 @@ export default $config({
               value: '80',
             },
           ],
+          logConfiguration: {
+            logDriver: 'awslogs',
+            options: {
+              'awslogs-group': '/chatterbox/ecs/messages',
+              'awslogs-region': 'us-west-1',
+              'awslogs-create-group': 'true',
+              'awslogs-stream-prefix': 'messages',
+            },
+          },
         },
       ]),
     })
