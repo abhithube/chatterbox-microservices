@@ -1,4 +1,5 @@
 import express from 'express'
+import { JWTPayload, jwtVerify } from 'jose'
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 
@@ -19,7 +20,7 @@ router.get('/health', (req, res) => {
 
 app.use(API_PREFIX, router)
 
-io.on('connection', (socket) => {
+io.on('connection', async (socket) => {
   const auth = socket.handshake.headers.authorization
   if (!auth) {
     socket.disconnect(true)
@@ -27,8 +28,20 @@ io.on('connection', (socket) => {
     return
   }
 
-  const token = auth.split(' ')[1]
-  console.log(token)
+  let payload: JWTPayload
+
+  try {
+    const token = auth.split(' ')[1]
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET)
+    payload = (await jwtVerify(token, secret)).payload
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    socket.disconnect(true)
+
+    return
+  }
+
+  console.log(payload)
 })
 
 server.listen(PORT, () => {

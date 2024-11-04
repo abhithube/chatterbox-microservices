@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "express": "^5",
+    "jose": "^5",
     "socket.io": "^4",
     "sst": "^3"
   },
