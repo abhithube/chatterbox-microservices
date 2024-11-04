@@ -41,7 +41,33 @@ io.on('connection', async (socket) => {
     return
   }
 
-  console.log(payload)
+  let partyId: string | undefined
+  let topicId: string | undefined
+
+  socket.on('party:join', (id: string) => {
+    if (partyId) {
+      socket.leave(`party:${partyId}`)
+    }
+
+    socket.join(`party:${id}`)
+    partyId = id
+
+    console.log(`user ${payload.sub} joined party ${id}`)
+  })
+
+  socket.on('topic:join', (id: string) => {
+    if (!partyId) {
+      return
+    }
+    if (topicId) {
+      socket.leave(`topic:${topicId}`)
+    }
+
+    socket.join(`topic:${id}`)
+    topicId = id
+
+    console.log(`user ${payload.sub} joined topic ${id}`)
+  })
 })
 
 server.listen(PORT, () => {
