@@ -22,6 +22,9 @@ export type SocketState = {
   messages: Message[]
   connect: (token: string) => void
   disconnect: () => void
+  joinParty: (partyId: string) => void
+  joinTopic: (topicId: string) => void
+  sendMessage: (body: string) => void
 }
 
 const SocketContext = createContext<SocketState>({
@@ -30,6 +33,9 @@ const SocketContext = createContext<SocketState>({
   messages: [],
   connect: () => {},
   disconnect: () => {},
+  joinParty: () => {},
+  joinTopic: () => {},
+  sendMessage: () => {},
 })
 
 export function useSocket() {
@@ -50,11 +56,11 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setConnected(false)
     })
 
-    socket.on('user', (users: string[]) => {
+    socket.on('user:joined', (users: string[]) => {
       setUsers(users)
     })
 
-    socket.on('message', (message: Message) => {
+    socket.on('message:created', (message: Message) => {
       setMessages((messages) => [message, ...messages])
     })
   }, [])
@@ -73,6 +79,22 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     delete socket.io.opts.extraHeaders?.authorization
   }, [])
 
+  const joinParty = useCallback((partyId: string) => {
+    socket.emit('party:join', partyId)
+  }, [])
+
+  const joinTopic = useCallback((topicId: string) => {
+    setMessages([])
+
+    socket.emit('topic:join', topicId, (messages: Message[]) => {
+      setMessages(messages)
+    })
+  }, [])
+
+  const sendMessage = useCallback((body: string) => {
+    socket.emit('message:create', body)
+  }, [])
+
   return (
     <SocketContext.Provider
       value={{
@@ -81,6 +103,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         messages,
         connect,
         disconnect,
+        joinParty,
+        joinTopic,
+        sendMessage,
       }}
     >
       {children}
