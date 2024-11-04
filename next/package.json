@@ -29,6 +29,7 @@
     "react": "19.0.0-rc-69d4b800-20241021",
     "react-dom": "19.0.0-rc-69d4b800-20241021",
     "react-hook-form": "^7",
+    "socket.io-client": "^4",
     "sst": "3",
     "tailwind-merge": "^2",
     "tailwindcss-animate": "^1",
