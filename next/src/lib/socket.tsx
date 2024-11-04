@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react'
 import { io } from 'socket.io-client'
+import { Message } from './types'
 
 const socket = io(process.env.NEXT_PUBLIC_API_ORIGIN, {
   path: process.env.NEXT_PUBLIC_API_PATH + '/socket.io',
@@ -17,12 +18,16 @@ const socket = io(process.env.NEXT_PUBLIC_API_ORIGIN, {
 
 export type SocketState = {
   connected: boolean
+  users: string[]
+  messages: Message[]
   connect: (token: string) => void
   disconnect: () => void
 }
 
 const SocketContext = createContext<SocketState>({
   connected: false,
+  users: [],
+  messages: [],
   connect: () => {},
   disconnect: () => {},
 })
@@ -33,6 +38,8 @@ export function useSocket() {
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [connected, setConnected] = useState(false)
+  const [users, setUsers] = useState<string[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -41,6 +48,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     socket.on('disconnect', () => {
       setConnected(false)
+    })
+
+    socket.on('user', (users: string[]) => {
+      setUsers(users)
+    })
+
+    socket.on('message', (message: Message) => {
+      setMessages((messages) => [message, ...messages])
     })
   }, [])
 
@@ -62,6 +77,8 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     <SocketContext.Provider
       value={{
         connected,
+        users,
+        messages,
         connect,
         disconnect,
       }}
