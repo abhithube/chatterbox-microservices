@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Member } from '@/lib/types'
 
-export async function UserSidebar({ members }: { members: Member[] }) {
+export function UserSidebar({ members }: { members: Member[] }) {
   return (
     <Sidebar side="right">
       <SidebarContent>
