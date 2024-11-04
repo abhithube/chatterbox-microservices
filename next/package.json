@@ -22,6 +22,7 @@
     "@radix-ui/react-tooltip": "^1",
     "class-variance-authority": "^0.7",
     "clsx": "^2",
+    "jose": "^5",
     "lucide-react": "^0.453",
     "next": "15",
     "next-auth": "^5.0.0-beta.25",
