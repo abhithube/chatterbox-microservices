@@ -56,8 +56,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setConnected(false)
     })
 
-    socket.on('user:joined', (users: string[]) => {
-      setUsers(users)
+    socket.on('party:joined', (userId: string) => {
+      setUsers((users) => [...users, userId])
+    })
+
+    socket.on('party:left', (userId: string) => {
+      setUsers((users) => users.filter((user) => user !== userId))
     })
 
     socket.on('message:created', (message: Message) => {

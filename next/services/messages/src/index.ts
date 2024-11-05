@@ -47,9 +47,12 @@ io.on('connection', async (socket) => {
   socket.on('party:join', (id: string) => {
     if (partyId) {
       socket.leave(`party:${partyId}`)
+      io.to(`party:${partyId}`).emit('party:left', payload.sub)
     }
 
     socket.join(`party:${id}`)
+    io.to(`party:${id}`).emit('party:joined', payload.sub)
+
     partyId = id
 
     console.log(`user ${payload.sub} joined party ${id}`)
