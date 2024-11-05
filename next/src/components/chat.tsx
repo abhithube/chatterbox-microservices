@@ -26,7 +26,7 @@ export function Chat({
 }) {
   const { data: session } = useSession()
 
-  const { connect, disconnect } = useSocket()
+  const { connected, connect, disconnect, joinParty, joinTopic } = useSocket()
 
   useEffect(() => {
     if (!session) return
@@ -39,6 +39,18 @@ export function Chat({
       disconnect()
     }
   }, [session, connect, disconnect])
+
+  useEffect(() => {
+    if (!connected) return
+
+    joinParty(party.id)
+  }, [connected, party, joinParty])
+
+  useEffect(() => {
+    if (!connected) return
+
+    joinTopic(topic.id)
+  }, [connected, joinTopic, topic])
 
   return (
     <SidebarProvider>
