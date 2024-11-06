@@ -5,6 +5,7 @@ import { db } from './db'
 import { randomUUID } from 'crypto'
 import { auth } from '@/auth'
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb'
+import { Member, PartyDetails, Topic } from './types'
 
 type CreateParty = {
   title: string
@@ -13,10 +14,24 @@ type CreateParty = {
 export async function createParty(data: CreateParty) {
   const user = (await auth())!.user!
 
-  const partyId = randomUUID()
-  const topicId = randomUUID()
+  const topic: Topic = {
+    id: randomUUID(),
+    title: 'general',
+  }
 
-  const topicName = 'general'
+  const member: Member = {
+    id: user.id!,
+    name: user.name!,
+    image: user.image!,
+    isAdmin: true,
+  }
+
+  const party: PartyDetails = {
+    id: randomUUID(),
+    title: data.title,
+    topics: [topic],
+    members: [member],
+  }
 
   try {
     await db.transactWrite({
@@ -25,10 +40,10 @@ export async function createParty(data: CreateParty) {
           Put: {
             TableName: Resource.DynamoTable.name,
             Item: {
-              pk: `PARTY#${partyId}`,
-              sk: `PARTY#${partyId}`,
-              id: partyId,
-              name: data.title,
+              pk: `PARTY#${party.id}`,
+              sk: `PARTY#${party.id}`,
+              id: party.id,
+              name: party.title,
               type: 'PARTY',
             },
           },
@@ -37,8 +52,8 @@ export async function createParty(data: CreateParty) {
           Put: {
             TableName: Resource.DynamoTable.name,
             Item: {
-              pk: `PARTY#${data.title}`,
-              sk: `PARTY#${data.title}`,
+              pk: `PARTY#${party.title}`,
+              sk: `PARTY#${party.title}`,
             },
             ConditionExpression: 'attribute_not_exists(pk)',
           },
@@ -47,10 +62,10 @@ export async function createParty(data: CreateParty) {
           Put: {
             TableName: Resource.DynamoTable.name,
             Item: {
-              pk: `PARTY#${partyId}`,
-              sk: `TOPIC#${topicId}`,
-              id: topicId,
-              name: topicName,
+              pk: `PARTY#${party.id}`,
+              sk: `TOPIC#${topic.id}`,
+              id: topic.id,
+              name: topic.title,
               type: 'TOPIC',
             },
           },
@@ -59,8 +74,8 @@ export async function createParty(data: CreateParty) {
           Put: {
             TableName: Resource.DynamoTable.name,
             Item: {
-              pk: `TOPIC#${partyId}#${topicName}`,
-              sk: `TOPIC#${partyId}#${topicName}`,
+              pk: `TOPIC#${party.id}#${topic.title}`,
+              sk: `TOPIC#${party.id}#${topic.title}`,
             },
           },
         },
@@ -68,16 +83,16 @@ export async function createParty(data: CreateParty) {
           Put: {
             TableName: Resource.DynamoTable.name,
             Item: {
-              pk: `PARTY#${partyId}`,
-              sk: `USER#${user.id}`,
-              GSI1PK: `USER#${user.id}`,
-              GSI1SK: `PARTY#${partyId}`,
-              userId: user.id,
-              userName: user.name,
-              userImage: user.image,
-              isAdmin: true,
-              partyId,
-              partyName: data.title,
+              pk: `PARTY#${party.id}`,
+              sk: `USER#${member.id}`,
+              GSI1PK: `USER#${member.id}`,
+              GSI1SK: `PARTY#${party.id}`,
+              userId: member.id,
+              userName: member.name,
+              userImage: member.image,
+              isAdmin: member.isAdmin,
+              partyId: party.id,
+              partyName: party.title,
               type: 'MEMBER',
             },
           },
@@ -99,7 +114,10 @@ type CreateTopic = {
 export async function createTopic(data: CreateTopic) {
   const user = (await auth())!.user!
 
-  const topicId = randomUUID()
+  const topic: Topic = {
+    id: randomUUID(),
+    title: data.title,
+  }
 
   try {
     await db.transactWrite({
@@ -119,9 +137,9 @@ export async function createTopic(data: CreateTopic) {
             TableName: Resource.DynamoTable.name,
             Item: {
               pk: `PARTY#${data.partyId}`,
-              sk: `TOPIC#${topicId}`,
-              id: topicId,
-              name: data.title,
+              sk: `TOPIC#${topic.id}`,
+              id: topic.id,
+              name: topic.title,
               type: 'TOPIC',
             },
           },
@@ -130,8 +148,8 @@ export async function createTopic(data: CreateTopic) {
           Put: {
             TableName: Resource.DynamoTable.name,
             Item: {
-              pk: `TOPIC#${data.partyId}#${data.title}`,
-              sk: `TOPIC#${data.partyId}#${data.title}`,
+              pk: `TOPIC#${data.partyId}#${topic.title}`,
+              sk: `TOPIC#${data.partyId}#${topic.title}`,
             },
             ConditionExpression: 'attribute_not_exists(pk)',
           },
