@@ -1,7 +1,24 @@
 import express from 'express'
-import { JWTPayload, jwtVerify } from 'jose'
+import { jwtVerify } from 'jose'
 import { createServer } from 'node:http'
-import { Server } from 'socket.io'
+import { DefaultEventsMap, Server, Socket } from 'socket.io'
+
+type SocketData = {
+  user: {
+    id: string
+    name: string
+    image: string | null
+  }
+  partyId?: string
+  topicId?: string
+}
+
+type UserSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  SocketData
+>
 
 const API_PREFIX = process.env.API_PREFIX ?? '/api/v1'
 const PORT = process.env.PORT ?? 80
@@ -20,7 +37,7 @@ router.get('/health', (req, res) => {
 
 app.use(API_PREFIX, router)
 
-io.on('connection', async (socket) => {
+io.on('connection', async (socket: UserSocket) => {
   const auth = socket.handshake.headers.authorization
   if (!auth) {
     socket.disconnect(true)
@@ -28,48 +45,51 @@ io.on('connection', async (socket) => {
     return
   }
 
-  let payload: JWTPayload
-
   try {
     const token = auth.split(' ')[1]
     const secret = new TextEncoder().encode(process.env.JWT_SECRET)
-    payload = (await jwtVerify(token, secret)).payload
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const payload = (await jwtVerify(token, secret)).payload
+
+    socket.data.user = {
+      id: payload.sub!,
+      name: payload.name as string,
+      image: payload.image as string,
+    }
   } catch (error) {
     socket.disconnect(true)
 
     return
   }
 
-  let partyId: string | undefined
-  let topicId: string | undefined
-
   socket.on('party:join', (id: string) => {
-    if (partyId) {
-      socket.leave(`party:${partyId}`)
-      io.to(`party:${partyId}`).emit('party:left', payload.sub)
+    if (socket.data.partyId) {
+      socket.leave(`party:${socket.data.partyId}`)
+      io.to(`party:${socket.data.partyId}`).emit(
+        'party:left',
+        socket.data.user.id,
+      )
     }
 
     socket.join(`party:${id}`)
-    io.to(`party:${id}`).emit('party:joined', payload.sub)
+    io.to(`party:${id}`).emit('party:joined', socket.data.user.id)
 
-    partyId = id
+    socket.data.partyId = id
 
-    console.log(`user ${payload.sub} joined party ${id}`)
+    console.log(`user ${socket.data.user.id} joined party ${id}`)
   })
 
   socket.on('topic:join', (id: string) => {
-    if (!partyId) {
+    if (!socket.data.partyId) {
       return
     }
-    if (topicId) {
-      socket.leave(`topic:${topicId}`)
+    if (socket.data.topicId) {
+      socket.leave(`topic:${socket.data.topicId}`)
     }
 
     socket.join(`topic:${id}`)
-    topicId = id
+    socket.data.topicId = id
 
-    console.log(`user ${payload.sub} joined topic ${id}`)
+    console.log(`user ${socket.data.user.id} joined topic ${id}`)
   })
 })
 
