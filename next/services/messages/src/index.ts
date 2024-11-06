@@ -73,7 +73,9 @@ io.on('connection', async (socket: UserSocket) => {
       }
 
       socket.join(`party:${id}`)
-      io.to(`party:${id}`).emit('party:joined', socket.data.user.id)
+      socket.broadcast
+        .to(`party:${id}`)
+        .emit('party:joined', socket.data.user.id)
 
       socket.data.partyId = id
 
