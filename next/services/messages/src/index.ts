@@ -1,7 +1,7 @@
 import express from 'express'
 import { jwtVerify } from 'jose'
 import { createServer } from 'node:http'
-import { DefaultEventsMap, Server, Socket } from 'socket.io'
+import { DefaultEventsMap, RemoteSocket, Server, Socket } from 'socket.io'
 
 type SocketData = {
   user: {
@@ -61,22 +61,29 @@ io.on('connection', async (socket: UserSocket) => {
     return
   }
 
-  socket.on('party:join', (id: string) => {
-    if (socket.data.partyId) {
-      socket.leave(`party:${socket.data.partyId}`)
-      io.to(`party:${socket.data.partyId}`).emit(
-        'party:left',
-        socket.data.user.id,
-      )
-    }
+  socket.on(
+    'party:join',
+    async (id: string, callback: (users: string[]) => void) => {
+      if (socket.data.partyId) {
+        socket.leave(`party:${socket.data.partyId}`)
+        io.to(`party:${socket.data.partyId}`).emit(
+          'party:left',
+          socket.data.user.id,
+        )
+      }
 
-    socket.join(`party:${id}`)
-    io.to(`party:${id}`).emit('party:joined', socket.data.user.id)
+      socket.join(`party:${id}`)
+      io.to(`party:${id}`).emit('party:joined', socket.data.user.id)
 
-    socket.data.partyId = id
+      socket.data.partyId = id
 
-    console.log(`user ${socket.data.user.id} joined party ${id}`)
-  })
+      console.log(`user ${socket.data.user.id} joined party ${id}`)
+
+      const users = await getUsers(id)
+
+      callback(users)
+    },
+  )
 
   socket.on('topic:join', (id: string) => {
     if (!socket.data.partyId) {
@@ -92,6 +99,14 @@ io.on('connection', async (socket: UserSocket) => {
     console.log(`user ${socket.data.user.id} joined topic ${id}`)
   })
 })
+
+async function getUsers(partyId: string): Promise<string[]> {
+  const sockets: RemoteSocket<DefaultEventsMap, SocketData>[] = await io
+    .in(`party:${partyId}`)
+    .fetchSockets()
+
+  return sockets.map((socket) => socket.data.user.id)
+}
 
 server.listen(PORT, () => {
   console.log(`Listening on port ${PORT}...`)

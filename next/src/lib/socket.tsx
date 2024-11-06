@@ -84,7 +84,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const joinParty = useCallback((partyId: string) => {
-    socket.emit('party:join', partyId)
+    socket.emit('party:join', partyId, (users: string[]) => {
+      setUsers(users)
+    })
   }, [])
 
   const joinTopic = useCallback((topicId: string) => {
