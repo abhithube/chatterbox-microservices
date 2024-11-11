@@ -11,6 +11,7 @@
   "dependencies": {
     "@auth/dynamodb-adapter": "^2",
     "@aws-sdk/client-dynamodb": "^3",
+    "@aws-sdk/client-sns": "^3",
     "@aws-sdk/lib-dynamodb": "^3",
     "@hookform/resolvers": "^3",
     "@radix-ui/react-avatar": "^1",

@@ -14,5 +14,9 @@ declare module "sst" {
       "name": string
       "type": "sst.aws.Dynamo"
     }
+    "SnsTopic": {
+      "arn": string
+      "type": "sst.aws.SnsTopic"
+    }
   }
 }

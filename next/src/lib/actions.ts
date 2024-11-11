@@ -5,6 +5,7 @@ import { db } from './db'
 import { randomUUID } from 'crypto'
 import { auth } from '@/auth'
 import { TransactionCanceledException } from '@aws-sdk/client-dynamodb'
+import { publishPartyCreated, publishTopicCreated } from './events'
 import { Member, PartyDetails, Topic } from './types'
 
 type CreateParty = {
@@ -99,6 +100,8 @@ export async function createParty(data: CreateParty) {
         },
       ],
     })
+
+    await publishPartyCreated(party)
   } catch (error) {
     if (error instanceof TransactionCanceledException) {
       console.log(error)
@@ -156,6 +159,8 @@ export async function createTopic(data: CreateTopic) {
         },
       ],
     })
+
+    await publishTopicCreated(data.partyId, topic)
   } catch (error) {
     if (error instanceof TransactionCanceledException) {
       console.log(error)
