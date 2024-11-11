@@ -1,8 +1,21 @@
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns'
 import { Resource } from 'sst'
-import { PartyDetails, Topic } from './types'
+import { PartyDetails, Topic, User } from './types'
 
 const snsClient = new SNSClient()
+
+export async function publishUserCreated(user: User) {
+  await snsClient.send(
+    new PublishCommand({
+      Message: JSON.stringify({
+        type: 'user:created',
+        data: user,
+      }),
+      TopicArn: Resource.SnsTopic.arn,
+      MessageGroupId: `user:${user.id}`,
+    }),
+  )
+}
 
 export async function publishPartyCreated(party: PartyDetails) {
   await snsClient.send(
