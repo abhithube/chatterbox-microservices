@@ -1,21 +1,89 @@
-use std::error::Error;
+use std::{env, error::Error, sync::Arc};
 
+use anyhow::anyhow;
 use axum::{routing, Router};
-use socketioxide::{extract::SocketRef, SocketIo};
+use jsonwebtoken::{DecodingKey, Validation};
+use socketioxide::{
+    extract::{Extension, SocketRef, State},
+    handler::ConnectHandler,
+    SocketIo,
+};
 use tokio::net::TcpListener;
+
+const BASE_PATH: &str = "/api/v1";
+
+#[derive(Clone)]
+struct SocketState {
+    pub jwt_secret: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+struct Claims {
+    pub sub: String,
+    pub name: String,
+    pub image: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct SocketUser {
+    pub id: String,
+    pub name: String,
+    pub image: Option<String>,
+}
+
+fn auth_middleware(
+    socket: SocketRef,
+    State(state): State<Arc<SocketState>>,
+) -> Result<(), anyhow::Error> {
+    let bearer = socket
+        .req_parts()
+        .headers
+        .get("Authorization")
+        .ok_or_else(|| anyhow!("'Authorization' header not found"))?
+        .to_str()?
+        .split_whitespace()
+        .next_back()
+        .ok_or_else(|| anyhow!("Invalid format for 'Authorization' header"))?;
+
+    let token = jsonwebtoken::decode::<Claims>(
+        bearer,
+        &DecodingKey::from_secret(state.jwt_secret.as_bytes()),
+        &Validation::default(),
+    )?;
+
+    socket.extensions.insert(SocketUser {
+        id: token.claims.sub,
+        name: token.claims.name,
+        image: token.claims.image,
+    });
+
+    Ok(())
+}
+
+fn on_connect(socket: SocketRef, Extension(user): Extension<SocketUser>) {
+    println!("{:?}", user);
+
+    socket.on("message", |socket: SocketRef| {
+        socket.emit("message-back", "Hello World!").ok();
+    });
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let (layer, io) = SocketIo::new_layer();
+    let jwt_secret = env::var("JWT_SECRET")?;
 
-    io.ns("/", |socket: SocketRef| {
-        socket.on("message", |socket: SocketRef| {
-            socket.emit("message-back", "Hello World!").ok();
-        });
-    });
+    let (layer, io) = SocketIo::builder()
+        .with_state(Arc::new(SocketState { jwt_secret }))
+        .req_path(format!("{}/socket.io", BASE_PATH))
+        .build_layer();
+
+    io.ns("/", on_connect.with(auth_middleware));
 
     let app = Router::new()
-        .route("/", routing::get(|| async { "Hello, World!" }))
+        .nest(
+            BASE_PATH,
+            Router::new().route("/health", routing::get(|| async { "OK" })),
+        )
         .layer(layer);
 
     let listener = TcpListener::bind("0.0.0.0:8000").await?;
