@@ -1,10 +1,10 @@
-use std::{env, error::Error, sync::Arc};
+use std::{env, sync::Arc};
 
 use anyhow::anyhow;
 use axum::{routing, Router};
 use jsonwebtoken::{DecodingKey, Validation};
 use socketioxide::{
-    extract::{Extension, SocketRef, State},
+    extract::{AckSender, Data, Extension, MaybeExtension, SocketRef, State},
     handler::ConnectHandler,
     SocketIo,
 };
@@ -29,6 +29,16 @@ struct SocketUser {
     pub id: String,
     pub name: String,
     pub image: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct SocketParty {
+    pub id: String,
+}
+
+#[derive(Debug, Clone)]
+struct SocketTopic {
+    pub id: String,
 }
 
 fn auth_middleware(
@@ -60,16 +70,68 @@ fn auth_middleware(
     Ok(())
 }
 
-fn on_connect(socket: SocketRef, Extension(user): Extension<SocketUser>) {
-    println!("{:?}", user);
+fn on_connect(socket: SocketRef, Extension(_user): Extension<SocketUser>) {
+    socket.on("party:join", on_party_join);
+    socket.on("topic:join", on_topic_join);
+}
 
-    socket.on("message", |socket: SocketRef| {
-        socket.emit("message-back", "Hello World!").ok();
-    });
+async fn on_party_join(
+    io: SocketIo,
+    socket: SocketRef,
+    Extension(user): Extension<SocketUser>,
+    MaybeExtension(party): MaybeExtension<SocketParty>,
+    Data(party_id): Data<String>,
+    ack: AckSender,
+) {
+    if let Some(party) = party {
+        let room = format!("party:{}", party.id);
+        socket.leave(room.clone());
+        io.to(room).emit("party:left", &user.id).await.unwrap();
+    }
+
+    let room = format!("party:{}", party_id);
+    socket.join(room.clone());
+    socket
+        .broadcast()
+        .to(room.clone())
+        .emit("party:joined", &user.id)
+        .await
+        .unwrap();
+
+    println!("user {} joined party {}", user.id, party_id);
+
+    socket.extensions.insert(SocketParty { id: party_id });
+
+    let sockets = io
+        .to(room)
+        .sockets()
+        .into_iter()
+        .filter_map(|e| e.extensions.get::<SocketUser>().map(|e| e.id))
+        .collect::<Vec<_>>();
+
+    ack.send(&sockets).unwrap();
+}
+
+async fn on_topic_join(
+    socket: SocketRef,
+    Extension(user): Extension<SocketUser>,
+    Extension(_party): Extension<SocketParty>,
+    MaybeExtension(topic): MaybeExtension<SocketTopic>,
+    Data(topic_id): Data<String>,
+) {
+    if let Some(topic) = topic {
+        socket.leave(format!("topic:{}", topic.id));
+    }
+
+    socket.join(format!("party:{}", topic_id));
+
+    println!("user {} joined topic {}", user.id, topic_id);
+
+    socket.extensions.insert(SocketTopic { id: topic_id });
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let jwt_secret = env::var("JWT_SECRET")?;
 
     let (layer, io) = SocketIo::builder()
