@@ -1,0 +1,9 @@
+env_files = [".env"]
+
+[tasks.dev]
+command = "cargo"
+args = ["run"]
+
+[tasks.build]
+command = "cargo"
+args = ["build", "--release"]
