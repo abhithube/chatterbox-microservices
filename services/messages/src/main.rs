@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use axum::{routing, Router};
 use jsonwebtoken::{DecodingKey, Validation};
 use socketioxide::{
-    extract::{AckSender, Data, Extension, MaybeExtension, SocketRef, State},
+    extract::{Data, Extension, MaybeExtension, SocketRef, State},
     handler::ConnectHandler,
     SocketIo,
 };
@@ -81,35 +81,26 @@ async fn on_party_join(
     Extension(user): Extension<SocketUser>,
     MaybeExtension(party): MaybeExtension<SocketParty>,
     Data(party_id): Data<String>,
-    ack: AckSender,
 ) {
     if let Some(party) = party {
-        let room = format!("party:{}", party.id);
-        socket.leave(room.clone());
-        io.to(room).emit("party:left", &user.id).await.unwrap();
+        socket.leave(format!("party:{}", party.id));
     }
 
     let room = format!("party:{}", party_id);
     socket.join(room.clone());
-    socket
-        .broadcast()
-        .to(room.clone())
-        .emit("party:joined", &user.id)
-        .await
-        .unwrap();
 
     println!("user {} joined party {}", user.id, party_id);
 
     socket.extensions.insert(SocketParty { id: party_id });
 
-    let sockets = io
-        .to(room)
+    let users = io
+        .to(room.clone())
         .sockets()
         .into_iter()
         .filter_map(|e| e.extensions.get::<SocketUser>().map(|e| e.id))
         .collect::<Vec<_>>();
 
-    ack.send(&sockets).unwrap();
+    io.to(room).emit("user:online", &users).await.unwrap();
 }
 
 async fn on_topic_join(
